@@ -48,9 +48,20 @@ Combined fused `ggml-vulkan` compute graphs with **[Tencent `ncnn`](https://gith
 - `vknumpy.fft` backed by header-only **[`VkFFT`](https://github.com/DTolm/VkFFT)** (MIT) for GPU `fft`, `ifft`, `rfft`, `irfft`, `fft2`.
 - Expanded `vknumpy.random` distributions (`choice`, `permutation`, `binomial`, `poisson`, `exponential`, `gamma`, `beta`).
 
-### Phase 5 — Lazy Graph Fusion & `llama.cpp` Extensions
+### Phase 5 — Lazy Graph Fusion, Discrete GPU Polish & `llama.cpp` Extensions
 - Lazy graph recording (`with vknumpy.fuse():`) to compile chained ops into a single `ggml_cgraph` submission.
 - `bfloat16` (`GGML_TYPE_BF16`) and opt-in quantized `llama.cpp` matmul dtypes (`Q8_0`, `Q4_0`, `Q4_K`).
+- **Multi-GPU & discrete GPU optimizations**:
+  - Explicit device selection API (`vknumpy.list_devices()`, `vknumpy.set_device(idx)`) across both `ggml-vulkan` and `ncnn` (currently defaults to device `0`; `GGML_VK_VISIBLE_DEVICES` can steer `ggml-vulkan`).
+  - Zero-copy VRAM sharing between `ggml-vulkan` and `ncnn` (via `VK_KHR_external_memory` or shared `VkDevice`/buffer import) to eliminate the PCIe host-staging copy on `ncnn`-backed ops for discrete GPUs.
+
+---
+
+## Hardware Support (APUs & Discrete GPUs)
+
+`vknumpy` targets standard Vulkan 1.3+ compute and works on **both APUs/iGPUs and discrete GPUs** (AMD Radeon, NVIDIA GeForce/RTX, Intel Arc, and macOS via MoltenVK):
+- **All `ggml-vulkan` ops stay 100% in VRAM** with zero PCIe round-trips between chained ops, and automatically use hardware matrix cores (`GL_KHR_cooperative_matrix` / Tensor Cores / WMMA) when supported by the GPU driver.
+- **`ncnn`-backed ops** (`max`, `min`, `prod`, `power`, `arctan2`, inverse trig, `fmod`, `floor_divide`, `logaddexp`) currently stage through host memory between `ggml-vulkan` and `ncnn`'s `VkDevice` — negligible on UMA APUs and functional on discrete GPUs, with zero-copy VRAM sharing planned in Phase 5.
 
 ### Phase 6 — API Coverage Matrix, Differential Tests & Packaging
 - Automated NumPy API coverage tracker.
