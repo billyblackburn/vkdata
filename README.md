@@ -25,7 +25,7 @@ It lets you run matrix multiplications, batched GEMM, `einsum` contractions, ele
 ### Using `pixi` (Recommended)
 
 ```bash
-git clone <your-repo-url> vknumpy
+git clone https://github.com/billyblackburn/vknumpy.git
 cd vknumpy
 
 # 1. Install Python & C++ build toolchain into the workspace
