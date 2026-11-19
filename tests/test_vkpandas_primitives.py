@@ -217,3 +217,37 @@ def test_track_d_gpu_dataframe_inner_join():
     np.testing.assert_allclose(joined_score, [3.0, 1.0, 2.0, 1.0, 4.0, 3.0])
 
 
+def test_track_e_nan_predicates_and_reductions():
+    x_np = np.array([1.0, np.nan, np.inf, -np.inf, 0.0, -3.5], dtype=np.float32)
+    x = vnp.array(x_np)
+
+    np.testing.assert_array_equal(vnp.isnan(x).to_numpy(), np.isnan(x_np))
+    np.testing.assert_array_equal(vnp.isinf(x).to_numpy(), np.isinf(x_np))
+    np.testing.assert_array_equal(vnp.isfinite(x).to_numpy(), np.isfinite(x_np))
+    np.testing.assert_allclose(
+        vnp.nan_to_num(x, nan=-1.0, posinf=99.0, neginf=-99.0).to_numpy(),
+        np.nan_to_num(x_np, nan=-1.0, posinf=99.0, neginf=-99.0),
+    )
+
+    m_np = np.array([[1.0, np.nan, 3.0, 4.0], [np.nan, 2.0, 6.0, np.nan]], dtype=np.float32)
+    m = vnp.array(m_np)
+
+    np.testing.assert_allclose(vnp.nansum(m).to_numpy(), np.nansum(m_np), rtol=1e-5)
+    np.testing.assert_allclose(vnp.nansum(m, axis=-1).to_numpy(), np.nansum(m_np, axis=-1), rtol=1e-5)
+    np.testing.assert_allclose(vnp.nanmean(m).to_numpy(), np.nanmean(m_np), rtol=1e-5)
+    np.testing.assert_allclose(vnp.nanmean(m, axis=0).to_numpy(), np.nanmean(m_np, axis=0), rtol=1e-5)
+    np.testing.assert_allclose(vnp.nanvar(m, axis=-1).to_numpy(), np.nanvar(m_np, axis=-1), rtol=1e-4)
+    np.testing.assert_allclose(vnp.nanstd(m, axis=-1).to_numpy(), np.nanstd(m_np, axis=-1), rtol=1e-4)
+    np.testing.assert_allclose(vnp.nanmax(m).to_numpy(), np.nanmax(m_np))
+    np.testing.assert_allclose(vnp.nanmax(m, axis=-1).to_numpy(), np.nanmax(m_np, axis=-1))
+    np.testing.assert_allclose(vnp.nanmin(m).to_numpy(), np.nanmin(m_np))
+    np.testing.assert_allclose(vnp.nanmin(m, axis=0).to_numpy(), np.nanmin(m_np, axis=0))
+
+    # Forward-fill & backward-fill
+    s_np = np.array([10.0, np.nan, np.nan, 20.0, np.nan, 30.0], dtype=np.float32)
+    np.testing.assert_allclose(vnp.ffill(vnp.array(s_np)).to_numpy(), [10.0, 10.0, 10.0, 20.0, 20.0, 30.0])
+    s2_np = np.array([np.nan, 10.0, np.nan, np.nan, 20.0], dtype=np.float32)
+    np.testing.assert_allclose(vnp.bfill(vnp.array(s2_np)).to_numpy(), [10.0, 10.0, 20.0, 20.0, 20.0])
+
+
+

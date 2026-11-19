@@ -37,9 +37,9 @@ It is intentionally kept **separate from the core NumPy drop-in milestones** in 
   - `isin(element, test_elements, invert=False)` built from GPU `sort` + `searchsorted`.
   - `merge_indices(left_keys, right_keys)` computing `(left_idx, right_idx)` for GPU DataFrame inner joins.
 
-### Track E — Missing-Value / `NaN` Semantics (`skipna=True`, `isna`, `fillna`)
-- GPU `isnan`, `isinf`, `isfinite`, `nan_to_num`.
-- Masked `nan*` reductions (`nansum`, `nanmean`, `nanstd`, `nanmax`, `nanmin`) and `ffill`/`bfill`.
+### Track E — Missing-Value / `NaN` Semantics (`skipna=True`, `isna`, `fillna`) *(Done)*
+- Exact IEEE 754 `isnan`, `isinf`, `isfinite`, and `nan_to_num`.
+- GPU-accelerated `nan*` reductions (`nansum`, `nanmean`, `nanvar`, `nanstd`, `nanmax`, `nanmin`) plus 1D `ffill` and `bfill` via GPU `take`.
 
 ### Track F — Multi-Key Sorting, Rolling Windows, Strings & Columnar I/O
 - Stable multi-column `lexsort` for `df.sort_values(["a", "b"])`.

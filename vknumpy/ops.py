@@ -1854,6 +1854,159 @@ def merge_indices(left_keys: Any, right_keys: Any) -> Tuple[ndarray, ndarray]:
     return left_idx, right_idx
 
 
+# ======================================================================
+# Missing-Value / NaN Semantics (vkpandas Track E)
+# ======================================================================
+
+def isnan(x: Any) -> ndarray:
+    xa = asarray(x)
+    if _np.issubdtype(xa.dtype, _np.integer) or xa.dtype == _np.bool_:
+        from .creation import zeros
+        return zeros(xa.shape, dtype=_np.bool_)
+    return ndarray._from_numpy(_np.asarray(_np.isnan(xa.to_numpy()), dtype=_np.bool_))
+
+
+def isinf(x: Any) -> ndarray:
+    xa = asarray(x)
+    if _np.issubdtype(xa.dtype, _np.integer) or xa.dtype == _np.bool_:
+        from .creation import zeros
+        return zeros(xa.shape, dtype=_np.bool_)
+    return ndarray._from_numpy(_np.asarray(_np.isinf(xa.to_numpy()), dtype=_np.bool_))
+
+
+def isfinite(x: Any) -> ndarray:
+    xa = asarray(x)
+    if _np.issubdtype(xa.dtype, _np.integer) or xa.dtype == _np.bool_:
+        from .creation import ones
+        return ones(xa.shape, dtype=_np.bool_)
+    return ndarray._from_numpy(_np.asarray(_np.isfinite(xa.to_numpy()), dtype=_np.bool_))
+
+
+def nan_to_num(
+    x: Any,
+    copy: bool = True,
+    nan: float = 0.0,
+    posinf: Optional[float] = None,
+    neginf: Optional[float] = None,
+) -> ndarray:
+    xa = asarray(x)
+    res_np = _np.nan_to_num(xa.to_numpy(), copy=True, nan=nan, posinf=posinf, neginf=neginf)
+    res = ndarray._from_numpy(_np.asarray(res_np, dtype=xa.dtype))
+    if not copy and isinstance(x, ndarray):
+        x._buf.upload(res_np, offset=x._offset)
+        return x
+    return res
+
+
+def nansum(a: Any, axis: Any = None, keepdims: bool = False) -> ndarray:
+    """Sum of array elements treating NaNs as zero (runs reduction on GPU)."""
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0 and (axis is None or isinstance(axis, int)):
+        arr_np = xa.to_numpy()
+        cleaned = ndarray._from_numpy(_np.where(_np.isnan(arr_np), _np.array(0.0, dtype=xa.dtype), arr_np))
+        return sum(cleaned, axis=axis, keepdims=keepdims)
+    return ndarray._from_numpy(_np.asarray(_np.nansum(xa.to_numpy(), axis=axis, keepdims=keepdims)))
+
+
+def nanmean(a: Any, axis: Any = None, keepdims: bool = False) -> ndarray:
+    """Arithmetic mean ignoring NaNs (runs sum & division on GPU)."""
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0 and (axis is None or isinstance(axis, int)):
+        arr_np = xa.to_numpy()
+        nan_mask = _np.isnan(arr_np)
+        cleaned = ndarray._from_numpy(_np.where(nan_mask, _np.array(0.0, dtype=xa.dtype), arr_np))
+        valid = ndarray._from_numpy((~nan_mask).astype(_np.float32))
+        s = sum(cleaned, axis=axis, keepdims=keepdims)
+        cnt = sum(valid, axis=axis, keepdims=keepdims)
+        if s.dtype != _np.float32:
+            return divide(s.astype(_np.float32), cnt).astype(s.dtype)
+        return divide(s, cnt)
+    return ndarray._from_numpy(_np.asarray(_np.nanmean(xa.to_numpy(), axis=axis, keepdims=keepdims)))
+
+
+def nanvar(a: Any, axis: Any = None, ddof: int = 0, keepdims: bool = False) -> ndarray:
+    """Variance ignoring NaNs (runs on GPU)."""
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0 and (axis is None or isinstance(axis, int)):
+        arr_np = xa.to_numpy()
+        nan_mask = _np.isnan(arr_np)
+        cleaned = ndarray._from_numpy(_np.where(nan_mask, _np.array(0.0, dtype=xa.dtype), arr_np))
+        valid = ndarray._from_numpy((~nan_mask).astype(_np.float32))
+        cnt = sum(valid, axis=axis, keepdims=True)
+        m = divide(sum(cleaned, axis=axis, keepdims=True).astype(_np.float32), cnt)
+        diff_sq = multiply(square(subtract(cleaned.astype(_np.float32), m)), valid)
+        denom = subtract(sum(valid, axis=axis, keepdims=keepdims), float(ddof))
+        res = divide(sum(diff_sq, axis=axis, keepdims=keepdims), denom)
+        return res.astype(xa.dtype) if xa.dtype != _np.float32 else res
+    return ndarray._from_numpy(_np.asarray(_np.nanvar(xa.to_numpy(), axis=axis, ddof=ddof, keepdims=keepdims)))
+
+
+def nanstd(a: Any, axis: Any = None, ddof: int = 0, keepdims: bool = False) -> ndarray:
+    """Standard deviation ignoring NaNs (runs on GPU)."""
+    return sqrt(nanvar(a, axis=axis, ddof=ddof, keepdims=keepdims))
+
+
+def nanmax(a: Any, axis: Any = None, keepdims: bool = False) -> ndarray:
+    """Maximum of an array ignoring NaNs (runs reduction on GPU)."""
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0 and (axis is None or isinstance(axis, int)):
+        arr_np = xa.to_numpy()
+        nan_mask = _np.isnan(arr_np)
+        if not nan_mask.all():
+            cleaned = ndarray._from_numpy(_np.where(nan_mask, _np.array(-_np.inf, dtype=xa.dtype), arr_np))
+            res = max(cleaned, axis=axis, keepdims=keepdims)
+            # If an entire slice along axis was NaN, restore NaN to match NumPy
+            all_nan = nan_mask.all(axis=axis, keepdims=keepdims)
+            if _np.any(all_nan):
+                res_np = res.to_numpy()
+                res_np = _np.where(all_nan, _np.nan, res_np)
+                return ndarray._from_numpy(_np.asarray(res_np, dtype=xa.dtype))
+            return res
+    return ndarray._from_numpy(_np.asarray(_np.nanmax(xa.to_numpy(), axis=axis, keepdims=keepdims)))
+
+
+def nanmin(a: Any, axis: Any = None, keepdims: bool = False) -> ndarray:
+    """Minimum of an array ignoring NaNs (runs reduction on GPU)."""
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0 and (axis is None or isinstance(axis, int)):
+        arr_np = xa.to_numpy()
+        nan_mask = _np.isnan(arr_np)
+        if not nan_mask.all():
+            cleaned = ndarray._from_numpy(_np.where(nan_mask, _np.array(_np.inf, dtype=xa.dtype), arr_np))
+            res = min(cleaned, axis=axis, keepdims=keepdims)
+            all_nan = nan_mask.all(axis=axis, keepdims=keepdims)
+            if _np.any(all_nan):
+                res_np = res.to_numpy()
+                res_np = _np.where(all_nan, _np.nan, res_np)
+                return ndarray._from_numpy(_np.asarray(res_np, dtype=xa.dtype))
+            return res
+    return ndarray._from_numpy(_np.asarray(_np.nanmin(xa.to_numpy(), axis=axis, keepdims=keepdims)))
+
+
+def ffill(a: Any) -> ndarray:
+    """Forward-fill NaN values in a 1D array using GPU take."""
+    xa = asarray(a).ravel()
+    if xa.size <= 1 or not _np.issubdtype(xa.dtype, _np.floating):
+        return xa.copy()
+    arr_np = xa.to_numpy()
+    valid = ~_np.isnan(arr_np)
+    idx = _np.where(valid, _np.arange(xa.size, dtype=_np.int32), 0)
+    idx = _np.maximum.accumulate(idx).astype(_np.int32)
+    return take(xa, ndarray._from_numpy(idx))
+
+
+def bfill(a: Any) -> ndarray:
+    """Backward-fill NaN values in a 1D array using GPU take."""
+    xa = asarray(a).ravel()
+    if xa.size <= 1 or not _np.issubdtype(xa.dtype, _np.floating):
+        return xa.copy()
+    arr_np = xa.to_numpy()
+    valid = ~_np.isnan(arr_np)
+    rev_idx = _np.where(valid[::-1], _np.arange(xa.size - 1, -1, -1, dtype=_np.int32), xa.size - 1)
+    idx = _np.minimum.accumulate(rev_idx)[::-1].astype(_np.int32).copy()
+    return take(xa, ndarray._from_numpy(idx))
+
+
 def cumsum(a: Any, axis: Optional[int] = None) -> ndarray:
     """Cumulative sum on Vulkan GPU via ggml_cumsum (F32/F16/I32)."""
     xa = asarray(a)
