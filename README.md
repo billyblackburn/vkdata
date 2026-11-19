@@ -4,6 +4,8 @@
 
 It lets you run matrix multiplications, batched GEMM, `einsum` contractions, elementwise ufuncs, and reductions directly on **any Vulkan 1.3+ GPU** (AMD RADV, NVIDIA, Intel, Apple/MoltenVK) using familiar NumPy syntax — no CUDA or ROCm required.
 
+> **Status / Limitations:** This project is an early prototype — **most of the NumPy API is not implemented yet.** GPU acceleration currently covers `float32`/`float16` GEMM & BLAS (`matmul`, `dot`, `outer`, 2-operand `einsum`), core elementwise ufuncs/broadcasting, and common reductions (`sum`, `mean`, `var`, `std`, `argmax`). Unsupported dtypes (such as `float64`/`int64`) and some higher-level routines (such as `linalg.solve`, `svd`, `qr`, `concatenate`) currently fall back to CPU NumPy under the hood.
+
 ## What It Does
 
 - **Direct `ggml-vulkan` C/C++ bridge (`libvknumpy.so`)**: Allocates GPU-resident buffers (`VknBuffer`) and dispatches compute graphs (`ggml_cgraph` + persistent `ggml_gallocr`) directly to `llama.cpp`'s Vulkan shaders, with automatic `ggml-cpu` fallback if no Vulkan GPU is available.
