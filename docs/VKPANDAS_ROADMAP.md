@@ -24,9 +24,12 @@ It is intentionally kept **separate from the core NumPy drop-in milestones** in 
 - GPU stream compaction (`flatnonzero`, `nonzero`, `compress`) built purely from `ggml-vulkan` (`ggml_cumsum` + `ggml_arange` + `ggml_set_rows` + `ggml_cpy` — zero custom shaders).
 - General GPU scatter (`scatter_rows`, `put` via `ggml_set_rows`), plus GPU boolean mask indexing (`a[mask]`) and fancy integer indexing (`a[idx]`) on `ndarray.__getitem__`.
 
-### Track C — Segmented Reductions & `bincount` (`groupby`, `unique`, `value_counts`, `drop_duplicates`)
-- Sort-based `groupby` pipeline on GPU: `argsort(key)` → `take(key, order)` → boundary detection (`sorted[1:] != sorted[:-1]`) → `cumsum` group IDs → segmented aggregation.
-- Primitives needed: `unique`, `bincount`, and indexed/segmented reductions (`scatter_add` / `add.at`, `maximum.at`, `minimum.at`, `reduceat`).
+### Track C — Segmented Reductions & `bincount` (`groupby`, `unique`, `value_counts`, `drop_duplicates`) *(Done)*
+- Built 100% on existing `ggml-vulkan` kernels (zero custom shaders, zero new dependencies):
+  - `diff` (1D & N-D discrete differences along any axis).
+  - `unique` (with `return_index`, `return_inverse`, `return_counts`) via GPU `argsort` + boundary detection + `flatnonzero` stream compaction.
+  - `bincount` (unweighted & weighted) via `unique`/`groupby_agg` + `put` scatter.
+  - `groupby_agg(keys, values, op="sum"|"mean"|"count"|"var"|"std")` via O(N) GPU sort + `cumsum` segmented prefix-sum differencing.
 
 ### Track D — Parallel Binary Search (`merge` / `join`, `isin`, `cut`)
 - `searchsorted(sorted_a, v, side="left"|"right")` on GPU for sort-merge joins (`inner`/`left`/`outer`), `merge_asof`, and `pd.cut`/`histogram`.
@@ -45,5 +48,5 @@ It is intentionally kept **separate from the core NumPy drop-in milestones** in 
 ---
 
 ## Candidate Open-Source Vulkan Libraries to Evaluate (Before Writing Custom Shaders)
-- **Google `vk-radix-sort`** / **AMD FidelityFX Parallel Sort** (MIT) for high-throughput `int32`/`uint32` GPU radix sort & key-value sorting.
+- **[`jaesung-cs/vulkan_radix_sort`](https://github.com/jaesung-cs/vulkan_radix_sort)** (header-only C++ Vulkan reduce-then-scan radix sort), **[`MircoWerner/VkRadixSort`](https://github.com/MircoWerner/VkRadixSort)** (GLSL/Vulkan), and **AMD FidelityFX Parallel Sort** (`GPUOpen-Effects/FidelityFX-ParallelSort`, MIT) for 10M+ row 32-bit key-payload sorting when scaling past `ggml_argsort`.
 - **Existing `ggml-vulkan` kernels** already compiled into `libvknumpy.so`: `ggml_set_rows` (scatter), `ggml_pool_1d` / `ggml_conv_1d` (rolling windows).

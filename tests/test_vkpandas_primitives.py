@@ -108,3 +108,62 @@ def test_track_b_boolean_mask_and_fancy_indexing_dataframe_workflow():
     order_np = np.argsort(price_np[mask_np])
     np.testing.assert_allclose(s_price.to_numpy(), price_np[mask_np][order_np])
     np.testing.assert_array_equal(s_ids.to_numpy(), ids_np[mask_np][order_np])
+
+
+def test_track_c_diff_unique_bincount():
+    # diff (1D and 2D along axes)
+    a_np = np.array([1.0, 4.0, 9.0, 16.0, 25.0], dtype=np.float32)
+    np.testing.assert_allclose(vnp.diff(vnp.array(a_np)).to_numpy(), np.diff(a_np))
+    np.testing.assert_allclose(vnp.diff(vnp.array(a_np), n=2).to_numpy(), np.diff(a_np, n=2))
+
+    m_np = np.arange(12, dtype=np.float32).reshape(3, 4)
+    np.testing.assert_allclose(vnp.diff(vnp.array(m_np), axis=0).to_numpy(), np.diff(m_np, axis=0))
+    np.testing.assert_allclose(vnp.diff(vnp.array(m_np), axis=1).to_numpy(), np.diff(m_np, axis=1))
+
+    # unique with return_inverse and return_counts
+    x_np = np.array([5, 2, 5, 1, 2, 2, 9, 1], dtype=np.int32)
+    u, inv, cnt = vnp.unique(vnp.array(x_np), return_inverse=True, return_counts=True)
+    u_ref, inv_ref, cnt_ref = np.unique(x_np, return_inverse=True, return_counts=True)
+    np.testing.assert_array_equal(u.to_numpy(), u_ref)
+    np.testing.assert_array_equal(inv.to_numpy(), inv_ref)
+    np.testing.assert_array_equal(cnt.to_numpy(), cnt_ref)
+    # Reconstruct original via u[inv]
+    np.testing.assert_array_equal(u[inv].to_numpy(), x_np)
+
+    # bincount (unweighted and weighted)
+    bc_np = np.array([0, 2, 2, 5, 2, 0], dtype=np.int32)
+    w_np = np.array([1.5, 2.0, 3.0, 4.5, 0.5, 1.0], dtype=np.float32)
+    np.testing.assert_array_equal(vnp.bincount(vnp.array(bc_np)).to_numpy(), np.bincount(bc_np))
+    np.testing.assert_array_equal(vnp.bincount(vnp.array(bc_np), minlength=8).to_numpy(), np.bincount(bc_np, minlength=8))
+    np.testing.assert_allclose(vnp.bincount(vnp.array(bc_np), weights=vnp.array(w_np)).to_numpy(), np.bincount(bc_np, weights=w_np), rtol=1e-5)
+
+
+def test_track_c_groupby_agg():
+    rng = np.random.default_rng(7)
+    n = 512
+    keys_np = rng.integers(0, 12, size=n, dtype=np.int32)
+    vals_np = rng.uniform(1.0, 50.0, size=n).astype(np.float32)
+
+    keys = vnp.array(keys_np)
+    vals = vnp.array(vals_np)
+
+    for op in ("count", "sum", "mean", "var", "std"):
+        uk, res = vnp.groupby_agg(keys, vals, op=op)
+        uk_np = uk.to_numpy()
+        res_np = res.to_numpy()
+
+        ref_keys = np.unique(keys_np)
+        np.testing.assert_array_equal(uk_np, ref_keys)
+        for i, k in enumerate(ref_keys):
+            grp = vals_np[keys_np == k]
+            if op == "count":
+                assert res_np[i] == len(grp)
+            elif op == "sum":
+                np.testing.assert_allclose(res_np[i], grp.sum(), rtol=1e-4)
+            elif op == "mean":
+                np.testing.assert_allclose(res_np[i], grp.mean(), rtol=1e-4)
+            elif op == "var":
+                np.testing.assert_allclose(res_np[i], grp.var(), rtol=1e-3, atol=1e-2)
+            elif op == "std":
+                np.testing.assert_allclose(res_np[i], grp.std(), rtol=1e-3, atol=1e-2)
+

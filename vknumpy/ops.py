@@ -1536,6 +1536,202 @@ def compress(condition: Any, a: Any, axis: Optional[int] = None) -> ndarray:
     return take(xa, idx, axis=axis)
 
 
+def diff(a: Any, n: int = 1, axis: int = -1) -> ndarray:
+    """Calculate the n-th discrete difference along the given axis on GPU."""
+    if n < 0:
+        raise ValueError("order must be non-negative")
+    xa = asarray(a)
+    if n == 0:
+        return xa.copy()
+    if xa.ndim == 0:
+        raise ValueError("diff requires input that is at least one dimensional")
+
+    ax = axis + xa.ndim if axis < 0 else axis
+    if ax < 0 or ax >= xa.ndim:
+        raise ValueError(f"axis {axis} out of bounds")
+
+    cur = xa
+    if ax != 0:
+        perm = [ax] + [i for i in range(xa.ndim) if i != ax]
+        cur = cur.transpose(perm)
+    else:
+        perm = None
+
+    for _ in range(n):
+        if cur.shape[0] <= 1:
+            out_shape = (0,) + cur.shape[1:]
+            cur = ndarray._empty_uninit(out_shape, cur.dtype)
+            break
+        if cur.dtype == _np.dtype(_np.int32):
+            cf = cur.astype(_np.float32)
+            cur = subtract(cf[1:], cf[:-1]).astype(_np.int32)
+        else:
+            cur = subtract(cur[1:], cur[:-1])
+
+    if perm is not None:
+        inv_perm = [0] * len(perm)
+        for i, p in enumerate(perm):
+            inv_perm[p] = i
+        cur = cur.transpose(inv_perm)
+    return cur
+
+
+def _group_boundaries_gpu(sorted_keys: ndarray) -> Tuple[ndarray, ndarray]:
+    """Return (starts_i32, counts_i32) for a 1D sorted GPU key array."""
+    from .creation import ones
+    n = sorted_keys.size
+    if n == 0:
+        empty_i32 = ndarray._empty_uninit((0,), _np.int32)
+        return empty_i32, empty_i32
+    if n == 1:
+        zero_i32 = ndarray._from_numpy(_np.array([0], dtype=_np.int32))
+        one_i32 = ndarray._from_numpy(_np.array([1], dtype=_np.int32))
+        return zero_i32, one_i32
+
+    is_new_tail = not_equal(sorted_keys[1:], sorted_keys[:-1]).astype(_np.float32)
+    is_new = concatenate([ones((1,), dtype=_np.float32), is_new_tail], axis=0)
+    starts = flatnonzero(is_new)  # int32 [G]
+
+    n_arr = ndarray._from_numpy(_np.array([n], dtype=_np.int32))
+    bounds = concatenate([starts, n_arr], axis=0)
+    counts = diff(bounds, axis=0)  # int32 [G]
+    return starts, counts
+
+
+def unique(
+    ar: Any,
+    return_index: bool = False,
+    return_inverse: bool = False,
+    return_counts: bool = False,
+) -> Any:
+    """Find unique elements of an array on GPU via argsort + stream compaction."""
+    xa = asarray(ar).ravel()
+    if xa.size == 0:
+        empty_u = ndarray._empty_uninit((0,), xa.dtype)
+        empty_i = ndarray._empty_uninit((0,), _np.int32)
+        res = [empty_u]
+        if return_index:
+            res.append(empty_i)
+        if return_inverse:
+            res.append(empty_i)
+        if return_counts:
+            res.append(empty_i)
+        return res[0] if len(res) == 1 else tuple(res)
+
+    if xa.dtype not in NP_TO_VKN_DTYPE:
+        np_res = _np.unique(
+            xa.to_numpy(),
+            return_index=return_index,
+            return_inverse=return_inverse,
+            return_counts=return_counts,
+        )
+        if isinstance(np_res, tuple):
+            return tuple(ndarray._from_numpy(x) for x in np_res)
+        return ndarray._from_numpy(np_res)
+
+    order = argsort(xa, axis=0)
+    sorted_a = take(xa, order)
+    starts, counts = _group_boundaries_gpu(sorted_a)
+    u_vals = take(sorted_a, starts)
+
+    if not (return_index or return_inverse or return_counts):
+        return u_vals
+
+    out: list[ndarray] = [u_vals]
+    if return_index:
+        out.append(take(order, starts))
+    if return_inverse:
+        from .creation import ones
+        if xa.size == 1:
+            inv = ndarray._from_numpy(_np.array([0], dtype=_np.int32))
+        else:
+            is_new_tail = not_equal(sorted_a[1:], sorted_a[:-1]).astype(_np.float32)
+            is_new = concatenate([ones((1,), dtype=_np.float32), is_new_tail], axis=0)
+            sorted_gid = subtract(cumsum(is_new, axis=0), 1.0).astype(_np.int32)
+            inv = ndarray._empty_uninit((xa.size,), _np.int32)
+            put(inv, order, sorted_gid)
+        out.append(inv)
+    if return_counts:
+        out.append(counts)
+    return tuple(out)
+
+
+def groupby_agg(keys: Any, values: Any, op: str = "sum") -> Tuple[ndarray, ndarray]:
+    """GPU segmented groupby aggregation (sum, mean, count, var, std) via sort + cumsum."""
+    xk = asarray(keys).ravel()
+    xv = asarray(values).ravel()
+    if xk.size != xv.size:
+        raise ValueError(f"keys and values must have same length ({xk.size} != {xv.size})")
+    if xk.size == 0:
+        return ndarray._empty_uninit((0,), xk.dtype), ndarray._empty_uninit((0,), _np.float32)
+
+    order = argsort(xk, axis=0)
+    sorted_k = take(xk, order)
+    starts, counts = _group_boundaries_gpu(sorted_k)
+    u_keys = take(sorted_k, starts)
+
+    if op == "count":
+        return u_keys, counts
+
+    sorted_v = take(xv, order)
+    if sorted_v.dtype != _np.float32:
+        sorted_v = sorted_v.astype(_np.float32)
+
+    n = sorted_v.size
+    # Group end indices = concat([starts[1:] - 1, [n - 1]])
+    last_idx = ndarray._from_numpy(_np.array([n - 1], dtype=_np.int32))
+    if starts.size > 1:
+        ends = concatenate([subtract(starts[1:].astype(_np.float32), 1.0).astype(_np.int32), last_idx], axis=0)
+    else:
+        ends = last_idx
+
+    def _seg_sum(arr_f32: ndarray) -> ndarray:
+        from .creation import zeros
+        cs = cumsum(arr_f32, axis=0)
+        end_sums = take(cs, ends)
+        padded = concatenate([zeros((1,), dtype=_np.float32), end_sums], axis=0)
+        return diff(padded, axis=0)
+
+    g_sums = _seg_sum(sorted_v)
+    if op == "sum":
+        return u_keys, g_sums
+
+    counts_f = counts.astype(_np.float32)
+    g_means = divide(g_sums, counts_f)
+    if op == "mean":
+        return u_keys, g_means
+
+    if op in ("var", "std"):
+        g_sq_sums = _seg_sum(square(sorted_v))
+        g_var = maximum(subtract(divide(g_sq_sums, counts_f), square(g_means)), 0.0)
+        return u_keys, (sqrt(g_var) if op == "std" else g_var)
+
+    raise ValueError(f"Unsupported groupby_agg op '{op}'; expected one of sum, mean, count, var, std")
+
+
+def bincount(x: Any, weights: Any = None, minlength: int = 0) -> ndarray:
+    """Count occurrences of each non-negative int value on GPU via groupby_agg + scatter."""
+    from .creation import zeros
+    xx = asarray(x, dtype=_np.int32).ravel()
+    if xx.size == 0:
+        out_dt = _np.float32 if weights is not None else _np.int32
+        return zeros((minlength,), dtype=out_dt)
+
+    max_val = int(max(xx.astype(_np.float32)).item())
+    out_len = builtins.max(minlength, max_val + 1)
+
+    if weights is None:
+        u_keys, counts = unique(xx, return_counts=True)
+        out = zeros((out_len,), dtype=_np.int32)
+        put(out, u_keys, counts)
+        return out
+
+    u_keys, g_sums = groupby_agg(xx, asarray(weights, dtype=_np.float32), op="sum")
+    out = zeros((out_len,), dtype=_np.float32)
+    put(out, u_keys, g_sums)
+    return out
+
+
 def cumsum(a: Any, axis: Optional[int] = None) -> ndarray:
     """Cumulative sum on Vulkan GPU via ggml_cumsum (F32/F16/I32)."""
     xa = asarray(a)
