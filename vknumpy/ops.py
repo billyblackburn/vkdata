@@ -1732,6 +1732,128 @@ def bincount(x: Any, weights: Any = None, minlength: int = 0) -> ndarray:
     return out
 
 
+def searchsorted(a: Any, v: Any, side: str = "left") -> ndarray:
+    """Find indices where elements of v should be inserted into sorted 1D array a (100% GPU)."""
+    if side not in ("left", "right"):
+        raise ValueError(f"side must be 'left' or 'right', got {side!r}")
+
+    from .creation import ones, zeros
+    xa = asarray(a).ravel()
+    xv_orig = asarray(v)
+    xv = xv_orig.ravel()
+
+    if xv.size == 0:
+        return ndarray._empty_uninit(xv_orig.shape, _np.int32)
+    if xa.size == 0:
+        return zeros(xv_orig.shape, dtype=_np.int32)
+
+    dt = _common_float_dtype(xa, xv)
+    if dt not in NP_TO_VKN_DTYPE:
+        res = _np.searchsorted(xa.to_numpy(), xv_orig.to_numpy(), side=side)
+        return ndarray._from_numpy(_np.asarray(res, dtype=_np.int32))
+
+    # Work in float32 for exact tie-immune sort + group prefix sum on ggml-vulkan
+    af = xa.astype(_np.float32) if xa.dtype != _np.float32 else xa
+    vf = xv.astype(_np.float32) if xv.dtype != _np.float32 else xv
+    n = af.size
+    m = vf.size
+
+    combined = concatenate([af, vf], axis=0)
+    is_a = concatenate([ones((n,), dtype=_np.float32), zeros((m,), dtype=_np.float32)], axis=0)
+
+    order = argsort(combined, axis=0)
+    sorted_vals = take(combined, order)
+    sorted_is_a = take(is_a, order)
+
+    # Tie-immune group boundaries: every equal value shares one group g
+    if sorted_vals.size == 1:
+        gid = zeros((1,), dtype=_np.int32)
+        starts = zeros((1,), dtype=_np.int32)
+    else:
+        is_new_tail = not_equal(sorted_vals[1:], sorted_vals[:-1]).astype(_np.float32)
+        is_new = concatenate([ones((1,), dtype=_np.float32), is_new_tail], axis=0)
+        gid = subtract(cumsum(is_new, axis=0), 1.0).astype(_np.int32)
+        starts = flatnonzero(is_new)
+
+    # Prefix count of 'a' elements up to each group end
+    total_len = n + m
+    last_idx = ndarray._from_numpy(_np.array([total_len - 1], dtype=_np.int32))
+    if starts.size > 1:
+        ends = concatenate([subtract(starts[1:].astype(_np.float32), 1.0).astype(_np.int32), last_idx], axis=0)
+    else:
+        ends = last_idx
+
+    cs_a = cumsum(sorted_is_a, axis=0)
+    prefix_a_after = take(cs_a, ends)  # [G] count of 'a' elements <= group value
+
+    if side == "right":
+        group_ans = prefix_a_after.astype(_np.int32)
+    else:
+        if prefix_a_after.size > 1:
+            group_ans = concatenate([zeros((1,), dtype=_np.float32), prefix_a_after[:-1]], axis=0).astype(_np.int32)
+        else:
+            group_ans = zeros((1,), dtype=_np.int32)
+
+    ans_sorted = take(group_ans, gid)
+    ans_all = ndarray._empty_uninit((total_len,), _np.int32)
+    put(ans_all, order, ans_sorted)
+    return ans_all[n:].reshape(xv_orig.shape)
+
+
+def isin(element: Any, test_elements: Any, invert: bool = False) -> ndarray:
+    """Test whether each element of `element` is also present in `test_elements` on GPU."""
+    xe = asarray(element)
+    xt = asarray(test_elements).ravel()
+    if xe.size == 0:
+        return ndarray._empty_uninit(xe.shape, _np.bool_)
+    if xt.size == 0:
+        from .creation import ones, zeros
+        return (ones(xe.shape, dtype=_np.bool_) if invert else zeros(xe.shape, dtype=_np.bool_))
+
+    dt = _common_float_dtype(xe, xt)
+    if dt not in NP_TO_VKN_DTYPE:
+        return ndarray._from_numpy(_np.isin(xe.to_numpy(), xt.to_numpy(), invert=invert))
+
+    t_sorted = sort(xt.astype(_np.float32) if xt.dtype != _np.float32 else xt)
+    e_flat = xe.ravel().astype(_np.float32) if xe.dtype != _np.float32 else xe.ravel()
+    idx = searchsorted(t_sorted, e_flat, side="left")
+
+    n_t = t_sorted.size
+    in_bounds = less(idx, n_t)
+    clamped = clip(idx.astype(_np.float32), 0.0, float(n_t - 1)).astype(_np.int32)
+    matched = logical_and(in_bounds, equal(take(t_sorted, clamped), e_flat))
+    if invert:
+        matched = logical_not(matched)
+    return matched.reshape(xe.shape)
+
+
+def merge_indices(left_keys: Any, right_keys: Any) -> Tuple[ndarray, ndarray]:
+    """Compute (left_idx, right_idx) for an inner join where right_keys are unique (100% GPU)."""
+    xl = asarray(left_keys).ravel()
+    xr = asarray(right_keys).ravel()
+    if xl.size == 0 or xr.size == 0:
+        empty_i = ndarray._empty_uninit((0,), _np.int32)
+        return empty_i, empty_i
+
+    r_order = argsort(xr, axis=0)
+    r_sorted = take(xr, r_order)
+
+    pos = searchsorted(r_sorted, xl, side="left")
+    n_r = r_sorted.size
+    in_bounds = less(pos, n_r)
+    clamped = clip(pos.astype(_np.float32), 0.0, float(n_r - 1)).astype(_np.int32)
+    matched_mask = logical_and(in_bounds, equal(take(r_sorted, clamped), xl))
+
+    left_idx = flatnonzero(matched_mask)
+    if left_idx.size == 0:
+        empty_i = ndarray._empty_uninit((0,), _np.int32)
+        return empty_i, empty_i
+
+    r_pos_matched = take(clamped, left_idx)
+    right_idx = take(r_order, r_pos_matched)
+    return left_idx, right_idx
+
+
 def cumsum(a: Any, axis: Optional[int] = None) -> ndarray:
     """Cumulative sum on Vulkan GPU via ggml_cumsum (F32/F16/I32)."""
     xa = asarray(a)

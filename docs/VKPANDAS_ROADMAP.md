@@ -31,9 +31,11 @@ It is intentionally kept **separate from the core NumPy drop-in milestones** in 
   - `bincount` (unweighted & weighted) via `unique`/`groupby_agg` + `put` scatter.
   - `groupby_agg(keys, values, op="sum"|"mean"|"count"|"var"|"std")` via O(N) GPU sort + `cumsum` segmented prefix-sum differencing.
 
-### Track D — Parallel Binary Search (`merge` / `join`, `isin`, `cut`)
-- `searchsorted(sorted_a, v, side="left"|"right")` on GPU for sort-merge joins (`inner`/`left`/`outer`), `merge_asof`, and `pd.cut`/`histogram`.
-- `isin(a, test_elements)` built from `sort` + `searchsorted`.
+### Track D — Parallel Search & Joins (`merge` / `join`, `isin`, `cut`) *(Done)*
+- Built 100% on existing `ggml-vulkan` kernels (zero custom shaders):
+  - `searchsorted(sorted_a, v, side="left"|"right")` using tie-immune GPU sort + equal-value group prefix counting (immune to unstable bitonic sort).
+  - `isin(element, test_elements, invert=False)` built from GPU `sort` + `searchsorted`.
+  - `merge_indices(left_keys, right_keys)` computing `(left_idx, right_idx)` for GPU DataFrame inner joins.
 
 ### Track E — Missing-Value / `NaN` Semantics (`skipna=True`, `isna`, `fillna`)
 - GPU `isnan`, `isinf`, `isfinite`, `nan_to_num`.

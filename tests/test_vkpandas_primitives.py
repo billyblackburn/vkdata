@@ -167,3 +167,53 @@ def test_track_c_groupby_agg():
             elif op == "std":
                 np.testing.assert_allclose(res_np[i], grp.std(), rtol=1e-3, atol=1e-2)
 
+
+def test_track_d_searchsorted_and_isin():
+    a_np = np.array([10.0, 20.0, 20.0, 30.0, 40.0], dtype=np.float32)
+    v_np = np.array([5.0, 10.0, 20.0, 25.0, 30.0, 40.0, 45.0], dtype=np.float32)
+    a, v = vnp.array(a_np), vnp.array(v_np)
+
+    np.testing.assert_array_equal(vnp.searchsorted(a, v, side="left").to_numpy(), np.searchsorted(a_np, v_np, side="left"))
+    np.testing.assert_array_equal(vnp.searchsorted(a, v, side="right").to_numpy(), np.searchsorted(a_np, v_np, side="right"))
+
+    # 2D query shape + int32 arrays
+    ai_np = np.array([1, 3, 3, 7, 9], dtype=np.int32)
+    vi_np = np.array([[0, 3, 5], [7, 9, 12]], dtype=np.int32)
+    np.testing.assert_array_equal(
+        vnp.searchsorted(vnp.array(ai_np), vnp.array(vi_np), side="left").to_numpy(),
+        np.searchsorted(ai_np, vi_np, side="left"),
+    )
+    np.testing.assert_array_equal(
+        vnp.searchsorted(vnp.array(ai_np), vnp.array(vi_np), side="right").to_numpy(),
+        np.searchsorted(ai_np, vi_np, side="right"),
+    )
+
+    # isin & invert=True
+    el_np = np.array([1, 2, 3, 4, 5, 7, 9, 10], dtype=np.int32)
+    test_np = np.array([9, 3, 1, 7], dtype=np.int32)
+    np.testing.assert_array_equal(vnp.isin(vnp.array(el_np), vnp.array(test_np)).to_numpy(), np.isin(el_np, test_np))
+    np.testing.assert_array_equal(
+        vnp.isin(vnp.array(el_np), vnp.array(test_np), invert=True).to_numpy(),
+        np.isin(el_np, test_np, invert=True),
+    )
+
+
+def test_track_d_gpu_dataframe_inner_join():
+    # Orders table (left) joined with Users table (right, unique user_id)
+    left_uid_np = np.array([103, 101, 999, 102, 101, 104, 103], dtype=np.int32)
+    left_amt_np = np.array([15.0, 20.0, 5.0, 30.0, 10.0, 40.0, 25.0], dtype=np.float32)
+
+    right_uid_np = np.array([104, 102, 101, 103], dtype=np.int32)
+    right_score_np = np.array([4.0, 2.0, 1.0, 3.0], dtype=np.float32)
+
+    l_idx, r_idx = vnp.merge_indices(vnp.array(left_uid_np), vnp.array(right_uid_np))
+    joined_uid = vnp.take(vnp.array(left_uid_np), l_idx).to_numpy()
+    joined_amt = vnp.take(vnp.array(left_amt_np), l_idx).to_numpy()
+    joined_score = vnp.take(vnp.array(right_score_np), r_idx).to_numpy()
+
+    # Row 2 (uid=999) has no match and must be dropped; remaining 6 rows match exact right_score
+    np.testing.assert_array_equal(joined_uid, [103, 101, 102, 101, 104, 103])
+    np.testing.assert_allclose(joined_amt, [15.0, 20.0, 30.0, 10.0, 40.0, 25.0])
+    np.testing.assert_allclose(joined_score, [3.0, 1.0, 2.0, 1.0, 4.0, 3.0])
+
+
