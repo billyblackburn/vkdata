@@ -4,7 +4,7 @@
 
 It lets you run matrix multiplications, batched GEMM, `einsum` contractions, elementwise ufuncs, and reductions directly on **any Vulkan 1.3+ GPU** (AMD RADV, NVIDIA, Intel, Apple/MoltenVK) using familiar NumPy syntax — no CUDA or ROCm required.
 
-> **Status / Limitations:** This project is an early prototype — **most of the NumPy API is not implemented yet.** GPU acceleration currently covers `float32`/`float16` GEMM & BLAS (`matmul`, `dot`, `outer`, 2-operand `einsum`), core elementwise ufuncs/broadcasting, and common reductions (`sum`, `mean`, `var`, `std`, `argmax`). Unsupported dtypes (such as `float64`/`int64`) and some higher-level routines (such as `linalg.solve`, `svd`, `qr`, `concatenate`) currently fall back to CPU NumPy under the hood.
+> **Status / Limitations:** This project is an early prototype — **most of the NumPy API is not implemented yet.** GPU acceleration currently covers `float32`/`float16` GEMM & BLAS (`matmul`, `dot`, `outer`, 2-operand `einsum`, `linalg.solve_triangular`), GPU creation/manipulation/sorting (`zeros`, `full`, `arange`, `diag`, `tril`/`triu`, `concatenate`, `pad`, `roll`, `tile`, `take`, `cumsum`, `argsort`, `top_k`), elementwise ufuncs/comparisons/`where`/logicals, and `Tencent/ncnn`-backed Vulkan math & reductions (`max`, `min`, `prod`, `power`, `arctan2`, `arcsin`/`arccos`/`arctan`, `fmod`, `floor_divide`, `logaddexp`). Unsupported dtypes (such as `float64`/`int64`) and some higher-level routines (such as `linalg.solve`, `svd`, `qr`) currently fall back to CPU NumPy under the hood. See [docs/ROADMAP.md](docs/ROADMAP.md) for the full phase-by-phase breakdown.
 
 ## What It Does
 
@@ -106,6 +106,8 @@ Output shape: (1024,) mean: 6.433 scores shape: (2, 4, 64, 64)
 ## Project Layout
 
 - [`cpp/vknumpy_ggml.h`](cpp/vknumpy_ggml.h) / [`cpp/vknumpy_ggml.cpp`](cpp/vknumpy_ggml.cpp): C ABI wrapping `ggml-vulkan` buffers and compute graphs.
+- [`cpp/vknumpy_ncnn.cpp`](cpp/vknumpy_ncnn.cpp): Optional `Tencent/ncnn` Vulkan bridge for extended reductions (`max`, `min`, `prod`) and math (`power`, `arctan2`, inverse trig, `fmod`, `floor_divide`, `logaddexp`).
+- [`docs/ROADMAP.md`](docs/ROADMAP.md): Phased implementation roadmap and summary of completed phases (Phase 0–2).
 - [`vknumpy/_backend.py`](vknumpy/_backend.py): `ctypes` loader and RAII `DeviceBuffer`.
 - [`vknumpy/ndarray.py`](vknumpy/ndarray.py): GPU-resident `ndarray` with NumPy operators and protocols.
 - [`vknumpy/ops.py`](vknumpy/ops.py): GEMM/BLAS, `einsum` lowering, ufuncs, reductions, and shape ops.
