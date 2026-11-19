@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Optional, Sequence, Tuple, Union
 import numpy as _np
 
-from ._backend import NATIVE_FLOAT_DTYPES
+from ._backend import NATIVE_FLOAT_DTYPES, NP_TO_VKN_DTYPE, check_rc, i64_array, lib
 from .creation import asarray, eye
 from .ndarray import ndarray
 from .ops import abs as vk_abs, matmul, sqrt, square, sum as vk_sum
@@ -79,6 +79,64 @@ def matrix_power(a: Any, n: int) -> ndarray:
             base = matmul(base, base)
     assert result is not None
     return result
+
+
+def solve_triangular(
+    a: Any,
+    b: Any,
+    lower: bool = True,
+    unit_diagonal: bool = False,
+    left: bool = True,
+) -> ndarray:
+    """Solve triangular system A @ X = B on Vulkan GPU via ggml_solve_tri."""
+    xa = asarray(a)
+    xb = asarray(b)
+    squeeze_1d = False
+    if xb.ndim == xa.ndim - 1:
+        xb = xb.reshape(xb.shape + (1,))
+        squeeze_1d = True
+
+    dt = _np.result_type(xa.dtype, xb.dtype)
+    if (
+        dt in NATIVE_FLOAT_DTYPES
+        and 2 <= xa.ndim <= 4
+        and xa.ndim == xb.ndim
+        and xa.shape[-1] == xa.shape[-2]
+        and xa.shape[-1] == xb.shape[-2]
+        and xa.shape[:-2] == xb.shape[:-2]
+        and xa.size > 0
+        and xb.size > 0
+    ):
+        if xa.dtype != dt:
+            xa = xa.astype(dt)
+        if xb.dtype != dt:
+            xb = xb.astype(dt)
+        ca = xa.contiguous()
+        cb = xb.contiguous()
+        out = ndarray._empty_uninit(cb.shape, dt)
+        rc = lib().vkn_solve_tri(
+            ca._buf.ptr, ca._offset, i64_array(ca.shape),
+            cb._buf.ptr, cb._offset, i64_array(cb.shape),
+            ca.ndim,
+            1 if left else 0,
+            1 if lower else 0,
+            1 if unit_diagonal else 0,
+            out._buf.ptr, 0,
+            NP_TO_VKN_DTYPE[dt],
+        )
+        check_rc(rc, "vkn_solve_tri")
+        return out.reshape(out.shape[:-1]) if squeeze_1d else out
+
+    # Fallback via numpy.linalg.solve on masked triangular matrix
+    a_np = xa.to_numpy()
+    a_tri = _np.tril(a_np) if lower else _np.triu(a_np)
+    if unit_diagonal:
+        idx = _np.arange(a_tri.shape[-1])
+        a_tri[..., idx, idx] = 1.0
+    res = _np.linalg.solve(a_tri, xb.to_numpy())
+    if squeeze_1d:
+        res = res[..., 0]
+    return ndarray._from_numpy(_np.asarray(res))
 
 
 def solve(a: Any, b: Any) -> ndarray:

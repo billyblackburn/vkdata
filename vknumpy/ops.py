@@ -15,19 +15,27 @@ from ._backend import (
     VKN_BIN_MUL,
     VKN_BIN_SUB,
     VKN_UNARY_ABS,
+    VKN_UNARY_CEIL,
     VKN_UNARY_COS,
     VKN_UNARY_EXP,
+    VKN_UNARY_EXPM1,
+    VKN_UNARY_FLOOR,
     VKN_UNARY_GELU,
     VKN_UNARY_LOG,
     VKN_UNARY_NEG,
     VKN_UNARY_RELU,
+    VKN_UNARY_ROUND,
+    VKN_UNARY_SGN,
     VKN_UNARY_SIGMOID,
     VKN_UNARY_SILU,
     VKN_UNARY_SIN,
     VKN_UNARY_SQR,
     VKN_UNARY_SQRT,
+    VKN_UNARY_STEP,
     VKN_UNARY_TANH,
+    VKN_UNARY_TRUNC,
     check_rc,
+    i32_array,
     i64_array,
     lib,
 )
@@ -528,6 +536,82 @@ def gelu(x: Any) -> ndarray:
     return _unary_gpu(VKN_UNARY_GELU, lambda a: 0.5 * a * (1.0 + _np.tanh(math.sqrt(2.0 / math.pi) * (a + 0.044715 * a**3))), x)
 
 
+def floor(x: Any) -> ndarray:
+    return _unary_gpu(VKN_UNARY_FLOOR, _np.floor, x)
+
+
+def ceil(x: Any) -> ndarray:
+    return _unary_gpu(VKN_UNARY_CEIL, _np.ceil, x)
+
+
+def round(x: Any, decimals: int = 0) -> ndarray:
+    if decimals == 0:
+        return _unary_gpu(VKN_UNARY_ROUND, _np.round, x)
+    xa = asarray(x)
+    if xa.dtype in NATIVE_FLOAT_DTYPES:
+        scale = 10.0 ** decimals
+        return _scale_bias(_unary_gpu(VKN_UNARY_ROUND, _np.round, _scale_bias(xa, scale, 0.0)), 1.0 / scale, 0.0)
+    return ndarray._from_numpy(_np.asarray(_np.round(xa.to_numpy(), decimals=decimals)))
+
+
+rint = round
+
+
+def trunc(x: Any) -> ndarray:
+    return _unary_gpu(VKN_UNARY_TRUNC, _np.trunc, x)
+
+
+def sign(x: Any) -> ndarray:
+    return _unary_gpu(VKN_UNARY_SGN, _np.sign, x)
+
+
+def expm1(x: Any) -> ndarray:
+    return _unary_gpu(VKN_UNARY_EXPM1, _np.expm1, x)
+
+
+def log1p(x: Any) -> ndarray:
+    xa = asarray(x)
+    if xa.dtype in NATIVE_FLOAT_DTYPES:
+        return log(_scale_bias(xa, 1.0, 1.0))
+    return ndarray._from_numpy(_np.asarray(_np.log1p(xa.to_numpy())))
+
+
+def sinh(x: Any) -> ndarray:
+    xa = asarray(x)
+    if xa.dtype in NATIVE_FLOAT_DTYPES:
+        return _scale_bias(subtract(exp(xa), exp(negative(xa))), 0.5, 0.0)
+    return ndarray._from_numpy(_np.asarray(_np.sinh(xa.to_numpy())))
+
+
+def cosh(x: Any) -> ndarray:
+    xa = asarray(x)
+    if xa.dtype in NATIVE_FLOAT_DTYPES:
+        return _scale_bias(add(exp(xa), exp(negative(xa))), 0.5, 0.0)
+    return ndarray._from_numpy(_np.asarray(_np.cosh(xa.to_numpy())))
+
+
+def reciprocal(x: Any) -> ndarray:
+    return divide(1.0, asarray(x))
+
+
+def cbrt(x: Any) -> ndarray:
+    xa = asarray(x)
+    if xa.dtype in NATIVE_FLOAT_DTYPES:
+        # sign(x) * exp(log(abs(x)) / 3) with exact 0 handling
+        s = sign(xa)
+        mag = exp(_scale_bias(log(add(abs(xa), 1e-38)), 1.0 / 3.0, 0.0))
+        return multiply(s, mag)
+    return ndarray._from_numpy(_np.asarray(_np.cbrt(xa.to_numpy())))
+
+
+def heaviside(x1: Any, x2: Any) -> ndarray:
+    xa = asarray(x1)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and _is_scalar(x2) and float(x2) == 0.0:
+        return _unary_gpu(VKN_UNARY_STEP, lambda a: _np.heaviside(a, 0.0), xa)
+    xb = asarray(x2)
+    return ndarray._from_numpy(_np.asarray(_np.heaviside(xa.to_numpy(), xb.to_numpy())))
+
+
 def clip(a: Any, a_min: Any, a_max: Any) -> ndarray:
     xa = asarray(a)
     if xa.dtype in NATIVE_FLOAT_DTYPES and (_is_scalar(a_min) or a_min is None) and (_is_scalar(a_max) or a_max is None):
@@ -780,24 +864,401 @@ def expand_dims(a: Any, axis: int) -> ndarray:
     return xa.reshape(tuple(new_shape))
 
 
+def _concat_two_gpu(a: ndarray, b: ndarray, axis: int) -> ndarray:
+    ca = a.contiguous()
+    cb = b.contiguous()
+    out_shape = list(ca.shape)
+    out_shape[axis] += cb.shape[axis]
+    out = ndarray._empty_uninit(tuple(out_shape), ca.dtype)
+    if out.size > 0:
+        rc = lib().vkn_concat(
+            ca._buf.ptr, ca._offset, i64_array(ca.shape),
+            cb._buf.ptr, cb._offset, i64_array(cb.shape),
+            ca.ndim, axis,
+            out._buf.ptr, 0,
+            NP_TO_VKN_DTYPE[ca.dtype],
+        )
+        check_rc(rc, "vkn_concat")
+    return out
+
+
 def concatenate(arrays: Sequence[Any], axis: int = 0) -> ndarray:
-    np_arrs = [asarray(x).to_numpy() for x in arrays]
+    arrs = [asarray(x) for x in arrays]
+    if not arrs:
+        raise ValueError("need at least one array to concatenate")
+    if len(arrs) == 1:
+        return arrs[0].copy()
+
+    dt = _np.result_type(*(a.dtype for a in arrs))
+    ndim = arrs[0].ndim
+    ax = axis + ndim if axis < 0 else axis
+
+    if dt in NP_TO_VKN_DTYPE and 1 <= ndim <= 4 and 0 <= ax < ndim:
+        casted = [a.astype(dt) if a.dtype != dt else a for a in arrs]
+        if builtins.all(a.ndim == ndim and a.size > 0 for a in casted):
+            acc = casted[0]
+            for nxt in casted[1:]:
+                acc = _concat_two_gpu(acc, nxt, ax)
+            return acc
+
+    np_arrs = [x.to_numpy() for x in arrs]
     return ndarray._from_numpy(_np.concatenate(np_arrs, axis=axis))
 
 
 def stack(arrays: Sequence[Any], axis: int = 0) -> ndarray:
-    np_arrs = [asarray(x).to_numpy() for x in arrays]
-    return ndarray._from_numpy(_np.stack(np_arrs, axis=axis))
+    arrs = [asarray(x) for x in arrays]
+    if not arrs:
+        raise ValueError("need at least one array to stack")
+    expanded = [expand_dims(a, axis=axis) for a in arrs]
+    return concatenate(expanded, axis=axis)
 
 
 def vstack(tup: Sequence[Any]) -> ndarray:
-    np_arrs = [asarray(x).to_numpy() for x in tup]
-    return ndarray._from_numpy(_np.vstack(np_arrs))
+    arrs = [asarray(x) for x in tup]
+    prepped = [a.reshape(1, a.shape[0]) if a.ndim == 1 else a for a in arrs]
+    return concatenate(prepped, axis=0)
 
 
 def hstack(tup: Sequence[Any]) -> ndarray:
-    np_arrs = [asarray(x).to_numpy() for x in tup]
-    return ndarray._from_numpy(_np.hstack(np_arrs))
+    arrs = [asarray(x) for x in tup]
+    if arrs and arrs[0].ndim == 1:
+        return concatenate(arrs, axis=0)
+    return concatenate(arrs, axis=1)
+
+
+def dstack(tup: Sequence[Any]) -> ndarray:
+    arrs = [asarray(x) for x in tup]
+    prepped = []
+    for a in arrs:
+        if a.ndim == 1:
+            prepped.append(a.reshape(1, a.shape[0], 1))
+        elif a.ndim == 2:
+            prepped.append(a.reshape(a.shape[0], a.shape[1], 1))
+        else:
+            prepped.append(a)
+    return concatenate(prepped, axis=2)
+
+
+def pad(array: Any, pad_width: Any, mode: str = "constant", **kwargs: Any) -> ndarray:
+    """Pad an array; uses GPU ggml_pad_ext for zero constant padding up to 4D."""
+    xa = asarray(array)
+    constant_values = kwargs.get("constant_values", 0)
+    if (
+        mode == "constant"
+        and constant_values == 0
+        and xa.dtype in NATIVE_FLOAT_DTYPES
+        and 1 <= xa.ndim <= 4
+        and xa.size > 0
+    ):
+        if isinstance(pad_width, int):
+            before = [pad_width] * xa.ndim
+            after = [pad_width] * xa.ndim
+        elif isinstance(pad_width, (tuple, list)) and len(pad_width) == 2 and isinstance(pad_width[0], int):
+            before = [int(pad_width[0])] * xa.ndim
+            after = [int(pad_width[1])] * xa.ndim
+        else:
+            before = [int(p[0]) for p in pad_width]
+            after = [int(p[1]) for p in pad_width]
+
+        if len(before) == xa.ndim and builtins.all(b >= 0 and a >= 0 for b, a in zip(before, after)):
+            c = xa.contiguous()
+            out_shape = tuple(c.shape[i] + before[i] + after[i] for i in range(c.ndim))
+            out = ndarray._empty_uninit(out_shape, c.dtype)
+            rc = lib().vkn_pad(
+                c._buf.ptr, c._offset,
+                i64_array(c.shape), c.ndim,
+                i32_array(before), i32_array(after),
+                out._buf.ptr, 0,
+                NP_TO_VKN_DTYPE[c.dtype],
+            )
+            check_rc(rc, "vkn_pad")
+            return out
+
+    return ndarray._from_numpy(_np.pad(xa.to_numpy(), pad_width, mode=mode, **kwargs))
+
+
+def roll(a: Any, shift: Union[int, Sequence[int]], axis: Optional[Union[int, Sequence[int]]] = None) -> ndarray:
+    """Roll array elements along given axis/axes on Vulkan GPU via ggml_roll."""
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and 1 <= xa.ndim <= 4 and xa.size > 0:
+        if axis is None:
+            flat = xa.ravel()
+            c = flat.contiguous()
+            sh = int(shift) % c.size
+            out = ndarray._empty_uninit(c.shape, c.dtype)
+            rc = lib().vkn_roll(
+                c._buf.ptr, c._offset,
+                i64_array(c.shape), 1,
+                i32_array([sh]),
+                out._buf.ptr, 0,
+                NP_TO_VKN_DTYPE[c.dtype],
+            )
+            check_rc(rc, "vkn_roll")
+            return out.reshape(xa.shape)
+
+        axes = (axis,) if isinstance(axis, int) else tuple(axis)
+        shifts_in = (shift,) * len(axes) if isinstance(shift, int) else tuple(shift)
+        shifts_per_dim = [0] * xa.ndim
+        for ax, sh in zip(axes, shifts_in):
+            ax_n = ax + xa.ndim if ax < 0 else ax
+            shifts_per_dim[ax_n] = (shifts_per_dim[ax_n] + int(sh)) % xa.shape[ax_n]
+        c = xa.contiguous()
+        out = ndarray._empty_uninit(c.shape, c.dtype)
+        rc = lib().vkn_roll(
+            c._buf.ptr, c._offset,
+            i64_array(c.shape), c.ndim,
+            i32_array(shifts_per_dim),
+            out._buf.ptr, 0,
+            NP_TO_VKN_DTYPE[c.dtype],
+        )
+        check_rc(rc, "vkn_roll")
+        return out
+
+    return ndarray._from_numpy(_np.roll(xa.to_numpy(), shift, axis=axis))
+
+
+def tile(A: Any, reps: Union[int, Sequence[int]]) -> ndarray:
+    """Construct an array by repeating A on Vulkan GPU via ggml_repeat."""
+    xa = asarray(A)
+    r = (reps,) if isinstance(reps, int) else tuple(int(x) for x in reps)
+    ndim = builtins.max(xa.ndim, len(r))
+    a_shp = (1,) * (ndim - xa.ndim) + xa.shape
+    r_pad = (1,) * (ndim - len(r)) + r
+    out_shape = tuple(a_shp[i] * r_pad[i] for i in range(ndim))
+
+    if xa.dtype in NATIVE_FLOAT_DTYPES and 1 <= ndim <= 4 and math.prod(out_shape) > 0:
+        c = xa.contiguous()
+        out = ndarray._empty_uninit(out_shape, c.dtype)
+        rc = lib().vkn_repeat(
+            c._buf.ptr, c._offset, i64_array(a_shp),
+            out._buf.ptr, 0, i64_array(out_shape),
+            ndim,
+            NP_TO_VKN_DTYPE[c.dtype],
+        )
+        check_rc(rc, "vkn_repeat")
+        return out
+
+    return ndarray._from_numpy(_np.tile(xa.to_numpy(), reps))
+
+
+def broadcast_to(array: Any, shape: Union[int, Sequence[int]]) -> ndarray:
+    """Broadcast an array to a new shape on Vulkan GPU via ggml_repeat."""
+    xa = asarray(array)
+    target = (shape,) if isinstance(shape, int) else tuple(int(d) for d in shape)
+    if xa.shape == target:
+        return xa.copy()
+    ndim = len(target)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and 1 <= ndim <= 4 and xa.ndim <= ndim and math.prod(target) > 0:
+        a_shp = (1,) * (ndim - xa.ndim) + xa.shape
+        if builtins.all(a_shp[i] == target[i] or a_shp[i] == 1 for i in range(ndim)):
+            c = xa.contiguous()
+            out = ndarray._empty_uninit(target, c.dtype)
+            rc = lib().vkn_repeat(
+                c._buf.ptr, c._offset, i64_array(a_shp),
+                out._buf.ptr, 0, i64_array(target),
+                ndim,
+                NP_TO_VKN_DTYPE[c.dtype],
+            )
+            check_rc(rc, "vkn_repeat")
+            return out
+    return ndarray._from_numpy(_np.broadcast_to(xa.to_numpy(), target).copy())
+
+
+def split(ary: Any, indices_or_sections: Any, axis: int = 0) -> list[ndarray]:
+    xa = asarray(ary)
+    parts = _np.split(xa.to_numpy(), indices_or_sections, axis=axis)
+    return [ndarray._from_numpy(p) for p in parts]
+
+
+def array_split(ary: Any, indices_or_sections: Any, axis: int = 0) -> list[ndarray]:
+    xa = asarray(ary)
+    parts = _np.array_split(xa.to_numpy(), indices_or_sections, axis=axis)
+    return [ndarray._from_numpy(p) for p in parts]
+
+
+def hsplit(ary: Any, indices_or_sections: Any) -> list[ndarray]:
+    xa = asarray(ary)
+    return split(xa, indices_or_sections, axis=0 if xa.ndim == 1 else 1)
+
+
+def vsplit(ary: Any, indices_or_sections: Any) -> list[ndarray]:
+    return split(ary, indices_or_sections, axis=0)
+
+
+def flip(m: Any, axis: Optional[Union[int, Sequence[int]]] = None) -> ndarray:
+    return ndarray._from_numpy(_np.flip(asarray(m).to_numpy(), axis=axis).copy())
+
+
+# ======================================================================
+# Gather, Scans & Sorting (ggml-vulkan)
+# ======================================================================
+
+def take(a: Any, indices: Any, axis: Optional[int] = None) -> ndarray:
+    """Take elements from an array along an axis on GPU via ggml_get_rows."""
+    xa = asarray(a)
+    idx = asarray(indices, dtype=_np.int32)
+
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0 and idx.size > 0:
+        if axis is None:
+            flat = xa.ravel().contiguous()
+            idx_c = idx.ravel().contiguous()
+            out = ndarray._empty_uninit((idx_c.size, 1), flat.dtype)
+            rc = lib().vkn_get_rows(
+                flat._buf.ptr, flat._offset, flat.size, 1,
+                idx_c._buf.ptr, idx_c._offset, idx_c.size,
+                out._buf.ptr, 0,
+                NP_TO_VKN_DTYPE[flat.dtype],
+            )
+            check_rc(rc, "vkn_get_rows")
+            return out.reshape(idx.shape)
+
+        ax = axis + xa.ndim if axis < 0 else axis
+        if ax == 0:
+            c = xa.contiguous()
+            rows = c.shape[0]
+            cols = c.size // rows
+            idx_c = idx.ravel().contiguous()
+            out = ndarray._empty_uninit((idx_c.size, cols), c.dtype)
+            rc = lib().vkn_get_rows(
+                c._buf.ptr, c._offset, rows, cols,
+                idx_c._buf.ptr, idx_c._offset, idx_c.size,
+                out._buf.ptr, 0,
+                NP_TO_VKN_DTYPE[c.dtype],
+            )
+            check_rc(rc, "vkn_get_rows")
+            return out.reshape(idx.shape + c.shape[1:])
+
+    return ndarray._from_numpy(_np.take(xa.to_numpy(), idx.to_numpy(), axis=axis))
+
+
+def cumsum(a: Any, axis: Optional[int] = None) -> ndarray:
+    """Cumulative sum on Vulkan GPU via ggml_cumsum."""
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0:
+        if axis is None:
+            c = xa.ravel().contiguous()
+            out = ndarray._empty_uninit(c.shape, c.dtype)
+            rc = lib().vkn_cumsum_rows(
+                c._buf.ptr, c._offset, 1, c.size,
+                out._buf.ptr, 0,
+                NP_TO_VKN_DTYPE[c.dtype],
+            )
+            check_rc(rc, "vkn_cumsum_rows")
+            return out
+
+        ax = axis + xa.ndim if axis < 0 else axis
+        if ax < 0 or ax >= xa.ndim:
+            raise ValueError(f"axis {axis} out of bounds")
+        perm = None
+        if ax != xa.ndim - 1:
+            perm = [i for i in range(xa.ndim) if i != ax] + [ax]
+            xa = xa.transpose(perm)
+        c = xa.contiguous()
+        cols = c.shape[-1]
+        rows = c.size // cols
+        out = ndarray._empty_uninit(c.shape, c.dtype)
+        rc = lib().vkn_cumsum_rows(
+            c._buf.ptr, c._offset, rows, cols,
+            out._buf.ptr, 0,
+            NP_TO_VKN_DTYPE[c.dtype],
+        )
+        check_rc(rc, "vkn_cumsum_rows")
+        if perm is not None:
+            inv_perm = [0] * len(perm)
+            for i, p in enumerate(perm):
+                inv_perm[p] = i
+            out = out.transpose(inv_perm)
+        return out
+
+    return ndarray._from_numpy(_np.asarray(_np.cumsum(xa.to_numpy(), axis=axis)))
+
+
+def argsort(a: Any, axis: int = -1, descending: bool = False) -> ndarray:
+    """Return the indices that would sort an array on Vulkan GPU via ggml_argsort."""
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0:
+        if axis is None:
+            c = xa.ravel().contiguous()
+            out = ndarray._empty_uninit(c.shape, _np.int32)
+            rc = lib().vkn_argsort_rows(
+                c._buf.ptr, c._offset, 1, c.size,
+                1 if descending else 0,
+                out._buf.ptr, 0,
+                NP_TO_VKN_DTYPE[c.dtype],
+            )
+            check_rc(rc, "vkn_argsort_rows")
+            return out
+
+        ax = axis + xa.ndim if axis < 0 else axis
+        perm = None
+        if ax != xa.ndim - 1:
+            perm = [i for i in range(xa.ndim) if i != ax] + [ax]
+            xa = xa.transpose(perm)
+        c = xa.contiguous()
+        cols = c.shape[-1]
+        rows = c.size // cols
+        out = ndarray._empty_uninit(c.shape, _np.int32)
+        rc = lib().vkn_argsort_rows(
+            c._buf.ptr, c._offset, rows, cols,
+            1 if descending else 0,
+            out._buf.ptr, 0,
+            NP_TO_VKN_DTYPE[c.dtype],
+        )
+        check_rc(rc, "vkn_argsort_rows")
+        if perm is not None:
+            inv_perm = [0] * len(perm)
+            for i, p in enumerate(perm):
+                inv_perm[p] = i
+            out = out.transpose(inv_perm)
+        return out
+
+    res = _np.argsort(xa.to_numpy(), axis=axis)
+    if descending:
+        res = _np.flip(res, axis=axis if axis is not None else 0).copy()
+    return ndarray._from_numpy(res)
+
+
+def sort(a: Any, axis: int = -1, descending: bool = False) -> ndarray:
+    """Return a sorted copy of an array (uses GPU argsort + gather for 1D/last-axis)."""
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0 and (xa.ndim == 1 or axis is None):
+        flat = xa.ravel()
+        idx = argsort(flat, axis=0, descending=descending)
+        return take(flat, idx)
+    res = _np.sort(xa.to_numpy(), axis=axis)
+    if descending:
+        res = _np.flip(res, axis=axis if axis is not None else 0).copy()
+    return ndarray._from_numpy(res)
+
+
+def top_k(a: Any, k: int, axis: int = -1) -> ndarray:
+    """Return indices of the top-k largest elements along axis on GPU via ggml_top_k."""
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0:
+        ax = axis + xa.ndim if axis < 0 else axis
+        perm = None
+        if ax != xa.ndim - 1:
+            perm = [i for i in range(xa.ndim) if i != ax] + [ax]
+            xa = xa.transpose(perm)
+        c = xa.contiguous()
+        cols = c.shape[-1]
+        rows = c.size // cols
+        out_shape = c.shape[:-1] + (k,)
+        out = ndarray._empty_uninit(out_shape, _np.int32)
+        rc = lib().vkn_top_k_rows(
+            c._buf.ptr, c._offset, rows, cols,
+            int(k),
+            out._buf.ptr, 0,
+            NP_TO_VKN_DTYPE[c.dtype],
+        )
+        check_rc(rc, "vkn_top_k_rows")
+        if perm is not None:
+            inv_perm = [0] * len(perm)
+            for i, p in enumerate(perm):
+                inv_perm[p] = i
+            out = out.transpose(inv_perm)
+        return out
+    return argsort(xa, axis=axis, descending=True)[..., :k]
 
 
 def copy(a: Any) -> ndarray:

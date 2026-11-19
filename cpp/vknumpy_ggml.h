@@ -35,7 +35,21 @@ typedef enum {
     VKN_UNARY_SIGMOID = 10,
     VKN_UNARY_SILU    = 11,
     VKN_UNARY_GELU    = 12,
+    VKN_UNARY_FLOOR   = 13,
+    VKN_UNARY_CEIL    = 14,
+    VKN_UNARY_ROUND   = 15,
+    VKN_UNARY_TRUNC   = 16,
+    VKN_UNARY_SGN     = 17,
+    VKN_UNARY_EXPM1   = 18,
+    VKN_UNARY_STEP    = 19,
 } VknUnaryOp;
+
+typedef enum {
+    VKN_TRI_UPPER_DIAG = 0,
+    VKN_TRI_UPPER      = 1,
+    VKN_TRI_LOWER_DIAG = 2,
+    VKN_TRI_LOWER      = 3,
+} VknTriType;
 
 typedef struct VknBuffer VknBuffer;
 
@@ -157,6 +171,107 @@ int vkn_cast(
     const VknBuffer* a, size_t a_off, int src_dtype,
     int64_t n,
     VknBuffer* out, size_t out_off, int dst_dtype
+);
+
+/* Phase 1: Native ggml-vulkan creation, manipulation, sorting, gather & triangular solve */
+int vkn_fill(
+    VknBuffer* out, size_t out_off,
+    int64_t n,
+    float value,
+    int dtype
+);
+
+int vkn_arange(
+    float start, float stop, float step,
+    VknBuffer* out, size_t out_off,
+    int dtype
+);
+
+int vkn_diag(
+    const VknBuffer* a, size_t a_off,
+    int64_t n,
+    VknBuffer* out, size_t out_off,
+    int dtype
+);
+
+int vkn_tri(
+    const VknBuffer* a, size_t a_off,
+    const int64_t* shape, int ndim,
+    int tri_type,
+    VknBuffer* out, size_t out_off,
+    int dtype
+);
+
+int vkn_concat(
+    const VknBuffer* a, size_t a_off, const int64_t* a_shape,
+    const VknBuffer* b, size_t b_off, const int64_t* b_shape,
+    int ndim, int axis,
+    VknBuffer* out, size_t out_off,
+    int dtype
+);
+
+int vkn_pad(
+    const VknBuffer* a, size_t a_off,
+    const int64_t* shape, int ndim,
+    const int* pad_before, const int* pad_after,
+    VknBuffer* out, size_t out_off,
+    int dtype
+);
+
+int vkn_roll(
+    const VknBuffer* a, size_t a_off,
+    const int64_t* shape, int ndim,
+    const int* shifts,
+    VknBuffer* out, size_t out_off,
+    int dtype
+);
+
+int vkn_repeat(
+    const VknBuffer* a, size_t a_off, const int64_t* a_shape,
+    VknBuffer* out, size_t out_off, const int64_t* out_shape,
+    int ndim,
+    int dtype
+);
+
+int vkn_cumsum_rows(
+    const VknBuffer* a, size_t a_off,
+    int64_t rows, int64_t cols,
+    VknBuffer* out, size_t out_off,
+    int dtype
+);
+
+int vkn_argsort_rows(
+    const VknBuffer* a, size_t a_off,
+    int64_t rows, int64_t cols,
+    int descending,
+    VknBuffer* out_i32, size_t out_off,
+    int dtype
+);
+
+int vkn_top_k_rows(
+    const VknBuffer* a, size_t a_off,
+    int64_t rows, int64_t cols,
+    int k,
+    VknBuffer* out_i32, size_t out_off,
+    int dtype
+);
+
+int vkn_get_rows(
+    const VknBuffer* a, size_t a_off,
+    int64_t rows, int64_t cols,
+    const VknBuffer* idx_i32, size_t idx_off,
+    int64_t n_idx,
+    VknBuffer* out, size_t out_off,
+    int dtype
+);
+
+int vkn_solve_tri(
+    const VknBuffer* a, size_t a_off, const int64_t* a_shape,
+    const VknBuffer* b, size_t b_off, const int64_t* b_shape,
+    int ndim,
+    int left, int lower, int unit_diag,
+    VknBuffer* out, size_t out_off,
+    int dtype
 );
 
 #ifdef __cplusplus

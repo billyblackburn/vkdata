@@ -247,3 +247,112 @@ def test_linalg():
         rtol=1e-4,
         atol=1e-3,
     )
+
+
+# ----------------------------------------------------------------------
+# Phase 1: Native ggml-vulkan creation, unary, manipulation, sort & solve_tri
+# ----------------------------------------------------------------------
+
+def test_phase1_gpu_creation_and_tri():
+    # GPU diag (1D -> 2D)
+    v_np = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    np.testing.assert_allclose(vnp.diag(vnp.array(v_np)).to_numpy(), np.diag(v_np))
+
+    # GPU tril / triu
+    m_np = np.arange(16, dtype=np.float32).reshape(4, 4) + 1.0
+    m = vnp.array(m_np)
+    np.testing.assert_allclose(vnp.tril(m).to_numpy(), np.tril(m_np))
+    np.testing.assert_allclose(vnp.tril(m, k=-1).to_numpy(), np.tril(m_np, k=-1))
+    np.testing.assert_allclose(vnp.triu(m).to_numpy(), np.triu(m_np))
+    np.testing.assert_allclose(vnp.triu(m, k=1).to_numpy(), np.triu(m_np, k=1))
+
+
+def test_phase1_unary_math():
+    x_np = np.array([-2.7, -1.5, -0.3, 0.0, 0.4, 1.5, 2.8], dtype=np.float32)
+    x = vnp.array(x_np)
+
+    np.testing.assert_allclose(vnp.floor(x).to_numpy(), np.floor(x_np))
+    np.testing.assert_allclose(vnp.ceil(x).to_numpy(), np.ceil(x_np))
+    np.testing.assert_allclose(vnp.trunc(x).to_numpy(), np.trunc(x_np))
+    np.testing.assert_allclose(vnp.sign(x).to_numpy(), np.sign(x_np))
+    np.testing.assert_allclose(vnp.expm1(x).to_numpy(), np.expm1(x_np), rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(vnp.sinh(x).to_numpy(), np.sinh(x_np), rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(vnp.cosh(x).to_numpy(), np.cosh(x_np), rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(vnp.cbrt(x).to_numpy(), np.cbrt(x_np), rtol=1e-4, atol=1e-5)
+    np.testing.assert_allclose(vnp.heaviside(x, 0.0).to_numpy(), np.heaviside(x_np, 0.0))
+
+    pos_np = np.array([0.2, 1.0, 2.5, 10.0], dtype=np.float32)
+    pos = vnp.array(pos_np)
+    np.testing.assert_allclose(vnp.log1p(pos).to_numpy(), np.log1p(pos_np), rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(vnp.reciprocal(pos).to_numpy(), np.reciprocal(pos_np), rtol=1e-5)
+
+    r_np = np.array([-2.3, -0.2, 0.3, 1.7, 2.8], dtype=np.float32)
+    np.testing.assert_allclose(vnp.round(vnp.array(r_np)).to_numpy(), np.round(r_np))
+
+
+def test_phase1_concat_pad_roll_tile_broadcast():
+    a_np = np.arange(6, dtype=np.float32).reshape(2, 3)
+    b_np = (np.arange(6, dtype=np.float32) + 10.0).reshape(2, 3)
+    a, b = vnp.array(a_np), vnp.array(b_np)
+
+    np.testing.assert_allclose(vnp.concatenate([a, b], axis=0).to_numpy(), np.concatenate([a_np, b_np], axis=0))
+    np.testing.assert_allclose(vnp.concatenate([a, b], axis=1).to_numpy(), np.concatenate([a_np, b_np], axis=1))
+    np.testing.assert_allclose(vnp.stack([a, b], axis=0).to_numpy(), np.stack([a_np, b_np], axis=0))
+    np.testing.assert_allclose(vnp.vstack([a, b]).to_numpy(), np.vstack([a_np, b_np]))
+    np.testing.assert_allclose(vnp.hstack([a, b]).to_numpy(), np.hstack([a_np, b_np]))
+    np.testing.assert_allclose(vnp.dstack([a, b]).to_numpy(), np.dstack([a_np, b_np]))
+
+    # GPU zero pad
+    np.testing.assert_allclose(vnp.pad(a, ((1, 2), (2, 1))).to_numpy(), np.pad(a_np, ((1, 2), (2, 1))))
+
+    # GPU roll
+    np.testing.assert_allclose(vnp.roll(a, 2).to_numpy(), np.roll(a_np, 2))
+    np.testing.assert_allclose(vnp.roll(a, 1, axis=0).to_numpy(), np.roll(a_np, 1, axis=0))
+    np.testing.assert_allclose(vnp.roll(a, -1, axis=1).to_numpy(), np.roll(a_np, -1, axis=1))
+
+    # GPU tile & broadcast_to
+    np.testing.assert_allclose(vnp.tile(a, (2, 3)).to_numpy(), np.tile(a_np, (2, 3)))
+    row_np = np.array([[1.0, 2.0, 3.0]], dtype=np.float32)
+    np.testing.assert_allclose(vnp.broadcast_to(vnp.array(row_np), (4, 3)).to_numpy(), np.broadcast_to(row_np, (4, 3)))
+
+
+def test_phase1_take_cumsum_argsort_sort_topk():
+    rng = np.random.default_rng(2026)
+    x_np = rng.standard_normal((4, 16)).astype(np.float32)
+    x = vnp.array(x_np)
+
+    # GPU take
+    idx_np = np.array([2, 0, 3, 1], dtype=np.int32)
+    np.testing.assert_allclose(vnp.take(x, idx_np, axis=0).to_numpy(), np.take(x_np, idx_np, axis=0))
+    np.testing.assert_allclose(vnp.take(x, np.array([0, 5, 17, 63], dtype=np.int32)).to_numpy(), np.take(x_np, [0, 5, 17, 63]))
+
+    # GPU cumsum
+    np.testing.assert_allclose(vnp.cumsum(x, axis=-1).to_numpy(), np.cumsum(x_np, axis=-1), rtol=1e-4, atol=1e-4)
+    np.testing.assert_allclose(vnp.cumsum(x, axis=0).to_numpy(), np.cumsum(x_np, axis=0), rtol=1e-4, atol=1e-4)
+    np.testing.assert_allclose(vnp.cumsum(x).to_numpy(), np.cumsum(x_np), rtol=1e-4, atol=1e-4)
+
+    # GPU argsort & sort
+    np.testing.assert_array_equal(vnp.argsort(x, axis=-1).to_numpy(), np.argsort(x_np, axis=-1))
+    np.testing.assert_allclose(vnp.sort(x[0]).to_numpy(), np.sort(x_np[0]))
+
+    # GPU top_k (check returned indices match the top-k values)
+    k = 4
+    tk_idx = vnp.top_k(x, k, axis=-1).to_numpy()
+    assert tk_idx.shape == (4, k)
+    for row in range(4):
+        got_vals = np.sort(x_np[row, tk_idx[row]])
+        ref_vals = np.sort(x_np[row])[-k:]
+        np.testing.assert_allclose(got_vals, ref_vals)
+
+
+def test_phase1_solve_triangular():
+    rng = np.random.default_rng(55)
+    raw = rng.standard_normal((8, 8)).astype(np.float32)
+    L_np = np.tril(raw)
+    np.fill_diagonal(L_np, np.abs(np.diag(L_np)) + 2.0)
+    B_np = rng.standard_normal((8, 3)).astype(np.float32)
+
+    X_vk = vnp.linalg.solve_triangular(vnp.array(L_np), vnp.array(B_np), lower=True)
+    X_ref = np.linalg.solve(L_np, B_np)
+    np.testing.assert_allclose(X_vk.to_numpy(), X_ref, rtol=1e-4, atol=1e-4)
+

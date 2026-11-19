@@ -34,6 +34,19 @@ VKN_UNARY_RELU    = 9
 VKN_UNARY_SIGMOID = 10
 VKN_UNARY_SILU    = 11
 VKN_UNARY_GELU    = 12
+VKN_UNARY_FLOOR   = 13
+VKN_UNARY_CEIL    = 14
+VKN_UNARY_ROUND   = 15
+VKN_UNARY_TRUNC   = 16
+VKN_UNARY_SGN     = 17
+VKN_UNARY_EXPM1   = 18
+VKN_UNARY_STEP    = 19
+
+# Triangular mask types
+VKN_TRI_UPPER_DIAG = 0
+VKN_TRI_UPPER      = 1
+VKN_TRI_LOWER_DIAG = 2
+VKN_TRI_LOWER      = 3
 
 NP_TO_VKN_DTYPE = {
     _np.dtype(_np.float32): VKN_DTYPE_F32,
@@ -258,6 +271,106 @@ class _LibHandle:
             c_void_p, c_size_t, c_int,
         ]
         lib.vkn_cast.restype = c_int
+
+        # Phase 1 bindings
+        lib.vkn_fill.argtypes = [c_void_p, c_size_t, ctypes.c_int64, c_float, c_int]
+        lib.vkn_fill.restype = c_int
+
+        lib.vkn_arange.argtypes = [c_float, c_float, c_float, c_void_p, c_size_t, c_int]
+        lib.vkn_arange.restype = c_int
+
+        lib.vkn_diag.argtypes = [c_void_p, c_size_t, ctypes.c_int64, c_void_p, c_size_t, c_int]
+        lib.vkn_diag.restype = c_int
+
+        lib.vkn_tri.argtypes = [
+            c_void_p, c_size_t,
+            c_int64_p, c_int,
+            c_int,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_tri.restype = c_int
+
+        lib.vkn_concat.argtypes = [
+            c_void_p, c_size_t, c_int64_p,
+            c_void_p, c_size_t, c_int64_p,
+            c_int, c_int,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_concat.restype = c_int
+
+        lib.vkn_pad.argtypes = [
+            c_void_p, c_size_t,
+            c_int64_p, c_int,
+            c_int_p, c_int_p,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_pad.restype = c_int
+
+        lib.vkn_roll.argtypes = [
+            c_void_p, c_size_t,
+            c_int64_p, c_int,
+            c_int_p,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_roll.restype = c_int
+
+        lib.vkn_repeat.argtypes = [
+            c_void_p, c_size_t, c_int64_p,
+            c_void_p, c_size_t, c_int64_p,
+            c_int,
+            c_int,
+        ]
+        lib.vkn_repeat.restype = c_int
+
+        lib.vkn_cumsum_rows.argtypes = [
+            c_void_p, c_size_t,
+            ctypes.c_int64, ctypes.c_int64,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_cumsum_rows.restype = c_int
+
+        lib.vkn_argsort_rows.argtypes = [
+            c_void_p, c_size_t,
+            ctypes.c_int64, ctypes.c_int64,
+            c_int,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_argsort_rows.restype = c_int
+
+        lib.vkn_top_k_rows.argtypes = [
+            c_void_p, c_size_t,
+            ctypes.c_int64, ctypes.c_int64,
+            c_int,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_top_k_rows.restype = c_int
+
+        lib.vkn_get_rows.argtypes = [
+            c_void_p, c_size_t,
+            ctypes.c_int64, ctypes.c_int64,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_get_rows.restype = c_int
+
+        lib.vkn_solve_tri.argtypes = [
+            c_void_p, c_size_t, c_int64_p,
+            c_void_p, c_size_t, c_int64_p,
+            c_int,
+            c_int, c_int, c_int,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_solve_tri.restype = c_int
 
 
 _handle = _LibHandle()

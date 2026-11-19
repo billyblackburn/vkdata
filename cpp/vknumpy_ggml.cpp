@@ -493,6 +493,13 @@ int vkn_unary_op(
         case VKN_UNARY_SIGMOID: res = ggml_sigmoid(ctx, sa); break;
         case VKN_UNARY_SILU:    res = ggml_silu(ctx, sa); break;
         case VKN_UNARY_GELU:    res = ggml_gelu(ctx, sa); break;
+        case VKN_UNARY_FLOOR:   res = ggml_floor(ctx, sa); break;
+        case VKN_UNARY_CEIL:    res = ggml_ceil(ctx, sa); break;
+        case VKN_UNARY_ROUND:   res = ggml_round(ctx, sa); break;
+        case VKN_UNARY_TRUNC:   res = ggml_trunc(ctx, sa); break;
+        case VKN_UNARY_SGN:     res = ggml_sgn(ctx, sa); break;
+        case VKN_UNARY_EXPM1:   res = ggml_expm1(ctx, sa); break;
+        case VKN_UNARY_STEP:    res = ggml_step(ctx, sa); break;
         default:
             ggml_free(ctx);
             set_error("vkn_unary_op: unknown op");
@@ -790,6 +797,500 @@ int vkn_cast(
 
     ggml_tensor* res = ggml_cpy(ctx, ta, tb);
     int rc = run_graph(ctx, res);
+    ggml_free(ctx);
+    return rc;
+}
+
+/* ======================================================================
+ * Phase 1: Native ggml-vulkan creation, manipulation, sorting, gather & solve_tri
+ * ====================================================================== */
+
+int vkn_fill(
+    VknBuffer* out, size_t out_off,
+    int64_t n,
+    float value,
+    int dtype
+) {
+    if (!out || n <= 0) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    ggml_context* ctx = make_graph_ctx();
+
+    ggml_tensor* final_node = nullptr;
+    if (gtype == GGML_TYPE_F32) {
+        ggml_tensor* dst = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, n);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_fill_inplace(ctx, dst, value);
+    } else {
+        ggml_tensor* tmp = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, n);
+        ggml_tensor* filled = ggml_fill_inplace(ctx, tmp, value);
+        ggml_tensor* dst = ggml_new_tensor_1d(ctx, gtype, n);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_cpy(ctx, filled, dst);
+    }
+
+    int rc = run_graph(ctx, final_node);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_arange(
+    float start, float stop, float step,
+    VknBuffer* out, size_t out_off,
+    int dtype
+) {
+    if (!out || step == 0.0f) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    ggml_context* ctx = make_graph_ctx();
+
+    ggml_tensor* res = ggml_arange(ctx, start, stop, step);
+    ggml_tensor* final_node = res;
+
+    if (gtype == GGML_TYPE_F32) {
+        bind_tensor(res, out, out_off);
+    } else {
+        ggml_tensor* dst = ggml_new_tensor_1d(ctx, gtype, res->ne[0]);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_cpy(ctx, res, dst);
+    }
+
+    int rc = run_graph(ctx, final_node);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_diag(
+    const VknBuffer* a, size_t a_off,
+    int64_t n,
+    VknBuffer* out, size_t out_off,
+    int dtype
+) {
+    if (!a || !out || n <= 0) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    ggml_context* ctx = make_graph_ctx();
+
+    ggml_tensor* ta = ggml_new_tensor_1d(ctx, gtype, n);
+    bind_tensor(ta, a, a_off);
+
+    ggml_tensor* sa = ta;
+    if (gtype != GGML_TYPE_F32) {
+        ggml_tensor* sa_f32 = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, n);
+        sa = ggml_cpy(ctx, ta, sa_f32);
+    }
+
+    ggml_tensor* res = ggml_diag(ctx, sa);
+    ggml_tensor* final_node = res;
+
+    if (gtype == GGML_TYPE_F32) {
+        bind_tensor(res, out, out_off);
+    } else {
+        ggml_tensor* dst = ggml_new_tensor_2d(ctx, gtype, n, n);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_cpy(ctx, res, dst);
+    }
+
+    int rc = run_graph(ctx, final_node);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_tri(
+    const VknBuffer* a, size_t a_off,
+    const int64_t* shape, int ndim,
+    int tri_type,
+    VknBuffer* out, size_t out_off,
+    int dtype
+) {
+    if (!a || !out || ndim < 2 || ndim > 4) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    int64_t ne[4];
+    np_shape_to_ggml_ne(shape, ndim, ne);
+
+    ggml_context* ctx = make_graph_ctx();
+    ggml_tensor* ta = ggml_new_tensor_4d(ctx, gtype, ne[0], ne[1], ne[2], ne[3]);
+    bind_tensor(ta, a, a_off);
+
+    ggml_tensor* sa = ta;
+    if (gtype != GGML_TYPE_F32) {
+        ggml_tensor* sa_f32 = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, ne[0], ne[1], ne[2], ne[3]);
+        sa = ggml_cpy(ctx, ta, sa_f32);
+    }
+
+    ggml_tensor* res = ggml_tri(ctx, sa, static_cast<ggml_tri_type>(tri_type));
+    ggml_tensor* final_node = res;
+
+    if (gtype == GGML_TYPE_F32) {
+        bind_tensor(res, out, out_off);
+    } else {
+        ggml_tensor* dst = ggml_new_tensor_4d(ctx, gtype, ne[0], ne[1], ne[2], ne[3]);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_cpy(ctx, res, dst);
+    }
+
+    int rc = run_graph(ctx, final_node);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_concat(
+    const VknBuffer* a, size_t a_off, const int64_t* a_shape,
+    const VknBuffer* b, size_t b_off, const int64_t* b_shape,
+    int ndim, int axis,
+    VknBuffer* out, size_t out_off,
+    int dtype
+) {
+    if (!a || !b || !out || ndim < 1 || ndim > 4 || axis < 0 || axis >= ndim) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    int64_t a_ne[4], b_ne[4];
+    np_shape_to_ggml_ne(a_shape, ndim, a_ne);
+    np_shape_to_ggml_ne(b_shape, ndim, b_ne);
+    int ggml_dim = ndim - 1 - axis;
+
+    ggml_context* ctx = make_graph_ctx();
+    ggml_tensor* ta = ggml_new_tensor_4d(ctx, gtype, a_ne[0], a_ne[1], a_ne[2], a_ne[3]);
+    ggml_tensor* tb = ggml_new_tensor_4d(ctx, gtype, b_ne[0], b_ne[1], b_ne[2], b_ne[3]);
+    bind_tensor(ta, a, a_off);
+    bind_tensor(tb, b, b_off);
+
+    ggml_tensor* res = ggml_concat(ctx, ta, tb, ggml_dim);
+    bind_tensor(res, out, out_off);
+
+    int rc = run_graph(ctx, res);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_pad(
+    const VknBuffer* a, size_t a_off,
+    const int64_t* shape, int ndim,
+    const int* pad_before, const int* pad_after,
+    VknBuffer* out, size_t out_off,
+    int dtype
+) {
+    if (!a || !out || ndim < 1 || ndim > 4) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    int64_t ne[4];
+    np_shape_to_ggml_ne(shape, ndim, ne);
+
+    int lp[4] = {0, 0, 0, 0};
+    int rp[4] = {0, 0, 0, 0};
+    for (int i = 0; i < ndim; ++i) {
+        lp[ndim - 1 - i] = pad_before[i];
+        rp[ndim - 1 - i] = pad_after[i];
+    }
+
+    ggml_context* ctx = make_graph_ctx();
+    ggml_tensor* ta = ggml_new_tensor_4d(ctx, gtype, ne[0], ne[1], ne[2], ne[3]);
+    bind_tensor(ta, a, a_off);
+
+    ggml_tensor* sa = ta;
+    if (gtype != GGML_TYPE_F32) {
+        ggml_tensor* sa_f32 = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, ne[0], ne[1], ne[2], ne[3]);
+        sa = ggml_cpy(ctx, ta, sa_f32);
+    }
+
+    ggml_tensor* res = ggml_pad_ext(ctx, sa, lp[0], rp[0], lp[1], rp[1], lp[2], rp[2], lp[3], rp[3]);
+    ggml_tensor* final_node = res;
+
+    if (gtype == GGML_TYPE_F32) {
+        bind_tensor(res, out, out_off);
+    } else {
+        ggml_tensor* dst = ggml_new_tensor_4d(ctx, gtype, res->ne[0], res->ne[1], res->ne[2], res->ne[3]);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_cpy(ctx, res, dst);
+    }
+
+    int rc = run_graph(ctx, final_node);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_roll(
+    const VknBuffer* a, size_t a_off,
+    const int64_t* shape, int ndim,
+    const int* shifts,
+    VknBuffer* out, size_t out_off,
+    int dtype
+) {
+    if (!a || !out || ndim < 1 || ndim > 4) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    int64_t ne[4];
+    np_shape_to_ggml_ne(shape, ndim, ne);
+
+    int sh[4] = {0, 0, 0, 0};
+    for (int i = 0; i < ndim; ++i) {
+        sh[ndim - 1 - i] = shifts[i];
+    }
+
+    ggml_context* ctx = make_graph_ctx();
+    ggml_tensor* ta = ggml_new_tensor_4d(ctx, gtype, ne[0], ne[1], ne[2], ne[3]);
+    bind_tensor(ta, a, a_off);
+
+    ggml_tensor* sa = ta;
+    if (gtype != GGML_TYPE_F32) {
+        ggml_tensor* sa_f32 = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, ne[0], ne[1], ne[2], ne[3]);
+        sa = ggml_cpy(ctx, ta, sa_f32);
+    }
+
+    ggml_tensor* res = ggml_roll(ctx, sa, sh[0], sh[1], sh[2], sh[3]);
+    ggml_tensor* final_node = res;
+
+    if (gtype == GGML_TYPE_F32) {
+        bind_tensor(res, out, out_off);
+    } else {
+        ggml_tensor* dst = ggml_new_tensor_4d(ctx, gtype, ne[0], ne[1], ne[2], ne[3]);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_cpy(ctx, res, dst);
+    }
+
+    int rc = run_graph(ctx, final_node);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_repeat(
+    const VknBuffer* a, size_t a_off, const int64_t* a_shape,
+    VknBuffer* out, size_t out_off, const int64_t* out_shape,
+    int ndim,
+    int dtype
+) {
+    if (!a || !out || ndim < 1 || ndim > 4) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    int64_t a_ne[4], o_ne[4];
+    np_shape_to_ggml_ne(a_shape, ndim, a_ne);
+    np_shape_to_ggml_ne(out_shape, ndim, o_ne);
+
+    ggml_context* ctx = make_graph_ctx();
+    ggml_tensor* ta = ggml_new_tensor_4d(ctx, gtype, a_ne[0], a_ne[1], a_ne[2], a_ne[3]);
+    bind_tensor(ta, a, a_off);
+
+    ggml_tensor* sa = ta;
+    if (gtype != GGML_TYPE_F32) {
+        ggml_tensor* sa_f32 = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, a_ne[0], a_ne[1], a_ne[2], a_ne[3]);
+        sa = ggml_cpy(ctx, ta, sa_f32);
+    }
+
+    ggml_tensor* tmpl = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, o_ne[0], o_ne[1], o_ne[2], o_ne[3]);
+    ggml_tensor* res = ggml_repeat(ctx, sa, tmpl);
+    ggml_tensor* final_node = res;
+
+    if (gtype == GGML_TYPE_F32) {
+        bind_tensor(res, out, out_off);
+    } else {
+        ggml_tensor* dst = ggml_new_tensor_4d(ctx, gtype, o_ne[0], o_ne[1], o_ne[2], o_ne[3]);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_cpy(ctx, res, dst);
+    }
+
+    int rc = run_graph(ctx, final_node);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_cumsum_rows(
+    const VknBuffer* a, size_t a_off,
+    int64_t rows, int64_t cols,
+    VknBuffer* out, size_t out_off,
+    int dtype
+) {
+    if (!a || !out || rows <= 0 || cols <= 0) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    ggml_context* ctx = make_graph_ctx();
+
+    ggml_tensor* ta = ggml_new_tensor_2d(ctx, gtype, cols, rows);
+    bind_tensor(ta, a, a_off);
+
+    ggml_tensor* sa = ta;
+    if (gtype != GGML_TYPE_F32) {
+        ggml_tensor* sa_f32 = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, cols, rows);
+        sa = ggml_cpy(ctx, ta, sa_f32);
+    }
+
+    ggml_tensor* res = ggml_cumsum(ctx, sa);
+    ggml_tensor* final_node = res;
+
+    if (gtype == GGML_TYPE_F32) {
+        bind_tensor(res, out, out_off);
+    } else {
+        ggml_tensor* dst = ggml_new_tensor_2d(ctx, gtype, cols, rows);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_cpy(ctx, res, dst);
+    }
+
+    int rc = run_graph(ctx, final_node);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_argsort_rows(
+    const VknBuffer* a, size_t a_off,
+    int64_t rows, int64_t cols,
+    int descending,
+    VknBuffer* out_i32, size_t out_off,
+    int dtype
+) {
+    if (!a || !out_i32 || rows <= 0 || cols <= 0) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    ggml_context* ctx = make_graph_ctx();
+
+    ggml_tensor* ta = ggml_new_tensor_2d(ctx, gtype, cols, rows);
+    bind_tensor(ta, a, a_off);
+
+    ggml_tensor* sa = ta;
+    if (gtype != GGML_TYPE_F32) {
+        ggml_tensor* sa_f32 = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, cols, rows);
+        sa = ggml_cpy(ctx, ta, sa_f32);
+    }
+
+    ggml_sort_order order = descending ? GGML_SORT_ORDER_DESC : GGML_SORT_ORDER_ASC;
+    ggml_tensor* res = ggml_argsort(ctx, sa, order);
+    bind_tensor(res, out_i32, out_off);
+
+    int rc = run_graph(ctx, res);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_top_k_rows(
+    const VknBuffer* a, size_t a_off,
+    int64_t rows, int64_t cols,
+    int k,
+    VknBuffer* out_i32, size_t out_off,
+    int dtype
+) {
+    if (!a || !out_i32 || rows <= 0 || cols <= 0 || k <= 0 || k > cols) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    ggml_context* ctx = make_graph_ctx();
+
+    ggml_tensor* ta = ggml_new_tensor_2d(ctx, gtype, cols, rows);
+    bind_tensor(ta, a, a_off);
+
+    ggml_tensor* sa = ta;
+    if (gtype != GGML_TYPE_F32) {
+        ggml_tensor* sa_f32 = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, cols, rows);
+        sa = ggml_cpy(ctx, ta, sa_f32);
+    }
+
+    ggml_tensor* res = ggml_top_k(ctx, sa, k);
+    bind_tensor(res, out_i32, out_off);
+
+    int rc = run_graph(ctx, res);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_get_rows(
+    const VknBuffer* a, size_t a_off,
+    int64_t rows, int64_t cols,
+    const VknBuffer* idx_i32, size_t idx_off,
+    int64_t n_idx,
+    VknBuffer* out, size_t out_off,
+    int dtype
+) {
+    if (!a || !idx_i32 || !out || rows <= 0 || cols <= 0 || n_idx <= 0) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    ggml_context* ctx = make_graph_ctx();
+
+    ggml_tensor* ta = ggml_new_tensor_2d(ctx, gtype, cols, rows);
+    ggml_tensor* tidx = ggml_new_tensor_1d(ctx, GGML_TYPE_I32, n_idx);
+    bind_tensor(ta, a, a_off);
+    bind_tensor(tidx, idx_i32, idx_off);
+
+    ggml_tensor* res = ggml_get_rows(ctx, ta, tidx); // always F32 [cols, n_idx]
+    ggml_tensor* final_node = res;
+
+    if (gtype == GGML_TYPE_F32) {
+        bind_tensor(res, out, out_off);
+    } else {
+        ggml_tensor* dst = ggml_new_tensor_2d(ctx, gtype, cols, n_idx);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_cpy(ctx, res, dst);
+    }
+
+    int rc = run_graph(ctx, final_node);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_solve_tri(
+    const VknBuffer* a, size_t a_off, const int64_t* a_shape,
+    const VknBuffer* b, size_t b_off, const int64_t* b_shape,
+    int ndim,
+    int left, int lower, int unit_diag,
+    VknBuffer* out, size_t out_off,
+    int dtype
+) {
+    if (!a || !b || !out || ndim < 2 || ndim > 4) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    int64_t a_ne[4], b_ne[4];
+    np_shape_to_ggml_ne(a_shape, ndim, a_ne);
+    np_shape_to_ggml_ne(b_shape, ndim, b_ne);
+
+    ggml_context* ctx = make_graph_ctx();
+    ggml_tensor* ta = ggml_new_tensor_4d(ctx, gtype, a_ne[0], a_ne[1], a_ne[2], a_ne[3]);
+    ggml_tensor* tb = ggml_new_tensor_4d(ctx, gtype, b_ne[0], b_ne[1], b_ne[2], b_ne[3]);
+    bind_tensor(ta, a, a_off);
+    bind_tensor(tb, b, b_off);
+
+    ggml_tensor* sa = ta;
+    ggml_tensor* sb = tb;
+    if (gtype != GGML_TYPE_F32) {
+        ggml_tensor* sa_f32 = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, a_ne[0], a_ne[1], a_ne[2], a_ne[3]);
+        ggml_tensor* sb_f32 = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, b_ne[0], b_ne[1], b_ne[2], b_ne[3]);
+        sa = ggml_cpy(ctx, ta, sa_f32);
+        sb = ggml_cpy(ctx, tb, sb_f32);
+    }
+
+    ggml_tensor* res = ggml_solve_tri(ctx, sa, sb, left != 0, lower != 0, unit_diag != 0);
+    ggml_tensor* final_node = res;
+
+    if (gtype == GGML_TYPE_F32) {
+        bind_tensor(res, out, out_off);
+    } else {
+        ggml_tensor* dst = ggml_new_tensor_4d(ctx, gtype, b_ne[0], b_ne[1], b_ne[2], b_ne[3]);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_cpy(ctx, res, dst);
+    }
+
+    int rc = run_graph(ctx, final_node);
     ggml_free(ctx);
     return rc;
 }
