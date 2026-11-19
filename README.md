@@ -59,6 +59,7 @@ pip install --no-build-isolation --no-deps -e .
 ```python
 import vknumpy as np
 
+np.random.seed(0)
 print("Device:", np.device_info())
 
 # Allocate GPU-resident float32 arrays
@@ -79,7 +80,16 @@ scores = np.einsum("bhqd,bhkd->bhqk", q, k)
 
 # Download back to standard NumPy when needed
 host_arr = row_means.to_numpy()
-print("Output shape:", host_arr.shape, "mean:", float(row_means.mean()))
+print("Output shape:", host_arr.shape, "mean:", round(float(row_means.mean()), 4), "scores shape:", scores.shape)
+```
+
+Output:
+
+```text
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 | fp16: 0 | bf16: 0 | fp4: 0 | warp size: 32 | shared memory: 65536 | int dot: 1 | matrix cores: none
+Device: {'backend': 'ggml-vulkan', 'vulkan': True, 'name': 'AMD Custom GPU 0405 (RADV VANGOGH)', 'free_memory_mb': 11524.56, 'total_memory_mb': 12288.0}
+Output shape: (1024,) mean: 6.433 scores shape: (2, 4, 64, 64)
 ```
 
 ## Benchmarks (AMD Custom GPU 0405 / RADV VanGogh)
