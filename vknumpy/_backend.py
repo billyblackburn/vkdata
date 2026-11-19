@@ -443,6 +443,25 @@ class _LibHandle:
         ]
         lib.vkn_ncnn_reduce_rows.restype = c_int
 
+        # vkpandas Track A & B bindings
+        lib.vkn_set_rows.argtypes = [
+            c_void_p, c_size_t,
+            ctypes.c_int64, ctypes.c_int64,
+            c_void_p, c_size_t,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+            c_int,
+        ]
+        lib.vkn_set_rows.restype = c_int
+
+        lib.vkn_scatter_nonzero.argtypes = [
+            c_void_p, c_size_t,
+            c_void_p, c_size_t,
+            ctypes.c_int64, ctypes.c_int64,
+            c_void_p, c_size_t,
+        ]
+        lib.vkn_scatter_nonzero.restype = c_int
+
 
 _handle = _LibHandle()
 

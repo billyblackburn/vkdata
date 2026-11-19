@@ -16,13 +16,13 @@ It is intentionally kept **separate from the core NumPy drop-in milestones** in 
 
 ## Required Additions for `vkpandas`
 
-### Track A — Native `int32` / `bool_` GPU Ops (Keys, Indices & Validity Masks)
-- Extend GPU dispatch beyond `float32`/`float16` to `int32` (and `uint32`/`bool_`) for comparisons, arithmetic, `take`, `argsort`, and `cumsum`.
+### Track A — Native `int32` / `bool_` GPU Ops (Keys, Indices & Validity Masks) *(Done)*
+- Native GPU `int32` gather via `ggml_get_rows` (`get_rows_i32`), GPU `float32 ↔ int32` cast (`vkn_cast`), and GPU `int32` comparisons, `argsort`, and `cumsum`.
 - Required for row indices, group IDs, timestamps, join keys, categorical codes, and null/validity masks.
 
-### Track B — Stream Compaction & Scatter (`df[df["x"] > 0]`, `dropna`)
-- `nonzero(mask)` / `compress(mask, a)` built from GPU `cumsum(mask)` + scatter write to produce dense `int32` row indices for filtering all columns via `take`.
-- General GPU scatter (`put` / `scatter` / `ggml_set_rows`).
+### Track B — Stream Compaction & Scatter (`df[df["x"] > 0]`, `dropna`) *(Done)*
+- GPU stream compaction (`flatnonzero`, `nonzero`, `compress`) built purely from `ggml-vulkan` (`ggml_cumsum` + `ggml_arange` + `ggml_set_rows` + `ggml_cpy` — zero custom shaders).
+- General GPU scatter (`scatter_rows`, `put` via `ggml_set_rows`), plus GPU boolean mask indexing (`a[mask]`) and fancy integer indexing (`a[idx]`) on `ndarray.__getitem__`.
 
 ### Track C — Segmented Reductions & `bincount` (`groupby`, `unique`, `value_counts`, `drop_duplicates`)
 - Sort-based `groupby` pipeline on GPU: `argsort(key)` → `take(key, order)` → boundary detection (`sorted[1:] != sorted[:-1]`) → `cumsum` group IDs → segmented aggregation.

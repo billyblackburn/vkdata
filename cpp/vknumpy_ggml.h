@@ -320,6 +320,23 @@ int vkn_ncnn_reduce_rows(
     int dtype
 );
 
+/* vkpandas Track A & B: GPU scatter (set_rows) and stream compaction (nonzero) */
+int vkn_set_rows(
+    VknBuffer* dst, size_t dst_off,
+    int64_t rows, int64_t cols,
+    const VknBuffer* src, size_t src_off,
+    const VknBuffer* idx_i32, size_t idx_off,
+    int64_t n_idx,
+    int dtype
+);
+
+int vkn_scatter_nonzero(
+    const VknBuffer* mask_f32, size_t mask_off,
+    const VknBuffer* cumsum_f32, size_t cumsum_off,
+    int64_t n, int64_t k,
+    VknBuffer* out_idx_i32, size_t out_off
+);
+
 #ifdef __cplusplus
 }
 #endif

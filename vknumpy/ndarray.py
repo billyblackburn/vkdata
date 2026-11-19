@@ -195,7 +195,13 @@ class ndarray:
         if dt == self._dtype:
             return self.copy()
         c = self.contiguous()
-        if c._dtype in NATIVE_FLOAT_DTYPES and dt in NATIVE_FLOAT_DTYPES and c.size > 0:
+        _GPU_CAST_PAIRS = {
+            (_np.dtype(_np.float32), _np.dtype(_np.float16)),
+            (_np.dtype(_np.float16), _np.dtype(_np.float32)),
+            (_np.dtype(_np.float32), _np.dtype(_np.int32)),
+            (_np.dtype(_np.int32), _np.dtype(_np.float32)),
+        }
+        if (c._dtype, dt) in _GPU_CAST_PAIRS and c.size > 0:
             out = ndarray._empty_uninit(c._shape, dt)
             rc = lib().vkn_cast(
                 c._buf.ptr,
@@ -326,6 +332,22 @@ class ndarray:
     # Indexing
     # ------------------------------------------------------------------
     def __getitem__(self, key: Any) -> Any:
+        # GPU boolean mask indexing: a[mask] -> flatnonzero(mask) + take
+        if isinstance(key, ndarray) and key.dtype == _np.bool_:
+            from .ops import compress, flatnonzero, take
+            if key.shape == self._shape:
+                idx = flatnonzero(key)
+                if idx.size == 0:
+                    return ndarray._empty_uninit((0,), self._dtype)
+                return take(self.ravel(), idx)
+            if key.ndim == 1 and self.ndim >= 1 and key.shape[0] == self._shape[0]:
+                return compress(key, self, axis=0)
+
+        # GPU integer fancy indexing along axis 0: a[int_idx] -> take(a, idx, axis=0)
+        if isinstance(key, ndarray) and _np.issubdtype(key.dtype, _np.integer) and self.ndim >= 1:
+            from .ops import take
+            return take(self, key, axis=0)
+
         # Zero-copy fast path for contiguous leading-axis integer/slice indexing
         if not self._transposed_last2 and self.ndim >= 1:
             if isinstance(key, int):

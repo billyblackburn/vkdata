@@ -774,6 +774,9 @@ def _compare_gpu(op_code: int, np_fn: Any, a: Any, b: Any) -> ndarray:
     if dt in NATIVE_FLOAT_DTYPES and len(out_shape) <= 4:
         mask_f = _binary_gpu(op_code, np_fn, xa, xb)
         return mask_f.astype(_np.bool_)
+    if dt == _np.dtype(_np.int32) and len(out_shape) <= 4:
+        mask_f = _binary_gpu(op_code, np_fn, xa.astype(_np.float32), xb.astype(_np.float32))
+        return mask_f.astype(_np.bool_)
     return ndarray._from_numpy(_np.asarray(np_fn(xa.to_numpy(), xb.to_numpy())))
 
 
@@ -1382,11 +1385,11 @@ def flip(m: Any, axis: Optional[Union[int, Sequence[int]]] = None) -> ndarray:
 # ======================================================================
 
 def take(a: Any, indices: Any, axis: Optional[int] = None) -> ndarray:
-    """Take elements from an array along an axis on GPU via ggml_get_rows."""
+    """Take elements from an array along an axis on GPU via ggml_get_rows (F32/F16/I32)."""
     xa = asarray(a)
     idx = asarray(indices, dtype=_np.int32)
 
-    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0 and idx.size > 0:
+    if xa.dtype in NP_TO_VKN_DTYPE and xa.size > 0 and idx.size > 0:
         if axis is None:
             flat = xa.ravel().contiguous()
             idx_c = idx.ravel().contiguous()
@@ -1419,9 +1422,125 @@ def take(a: Any, indices: Any, axis: Optional[int] = None) -> ndarray:
     return ndarray._from_numpy(_np.take(xa.to_numpy(), idx.to_numpy(), axis=axis))
 
 
-def cumsum(a: Any, axis: Optional[int] = None) -> ndarray:
-    """Cumulative sum on Vulkan GPU via ggml_cumsum."""
+def scatter_rows(dst: Any, indices: Any, src: Any) -> ndarray:
+    """Scatter rows from src into a copy of dst at row indices on GPU via ggml_set_rows."""
+    xd = asarray(dst).copy()
+    xs = asarray(src)
+    idx = asarray(indices, dtype=_np.int32)
+
+    if xd.dtype in NP_TO_VKN_DTYPE and xd.size > 0 and idx.size > 0:
+        if xs.dtype != xd.dtype:
+            xs = xs.astype(xd.dtype)
+        cd = xd.contiguous()
+        cs = xs.contiguous()
+        ci = idx.ravel().contiguous()
+        rows = cd.shape[0]
+        cols = cd.size // rows
+        rc = lib().vkn_set_rows(
+            cd._buf.ptr, cd._offset, rows, cols,
+            cs._buf.ptr, cs._offset,
+            ci._buf.ptr, ci._offset, ci.size,
+            NP_TO_VKN_DTYPE[cd.dtype],
+        )
+        check_rc(rc, "vkn_set_rows")
+        return cd
+
+    arr = xd.to_numpy()
+    arr[idx.to_numpy()] = xs.to_numpy()
+    return ndarray._from_numpy(arr)
+
+
+def put(a: ndarray, indices: Any, values: Any) -> None:
+    """Replace specified elements of an array in-place on GPU via ggml_set_rows."""
+    idx = asarray(indices, dtype=_np.int32).ravel().contiguous()
+    vals = asarray(values, dtype=a.dtype)
+    if vals.size == 1 and idx.size > 1:
+        vals = broadcast_to(vals.reshape(1), (idx.size,))
+    vals = vals.ravel().contiguous()
+
+    if not a._transposed_last2 and a.dtype in NP_TO_VKN_DTYPE and a.size > 0 and idx.size > 0:
+        rc = lib().vkn_set_rows(
+            a._buf.ptr, a._offset, a.size, 1,
+            vals._buf.ptr, vals._offset,
+            idx._buf.ptr, idx._offset, idx.size,
+            NP_TO_VKN_DTYPE[a.dtype],
+        )
+        check_rc(rc, "vkn_set_rows")
+        return
+
+    arr = a.to_numpy()
+    _np.put(arr, idx.to_numpy(), vals.to_numpy())
+    a._buf.upload(arr, offset=a._offset)
+
+
+def flatnonzero(a: Any) -> ndarray:
+    """Return indices of non-zero elements in flattened array via GPU stream compaction."""
     xa = asarray(a)
+    if xa.size == 0:
+        return ndarray._empty_uninit((0,), _np.int32)
+
+    # Convert to float32 {0, 1} mask on GPU
+    if xa.dtype in NATIVE_FLOAT_DTYPES:
+        mask_f = _binary_gpu(VKN_BIN_NE, _np.not_equal, xa.ravel(), 0.0)
+        if mask_f.dtype != _np.float32:
+            mask_f = mask_f.astype(_np.float32)
+    elif xa.dtype == _np.dtype(_np.int32):
+        mask_f = _binary_gpu(VKN_BIN_NE, _np.not_equal, xa.ravel().astype(_np.float32), 0.0)
+    elif xa.dtype == _np.dtype(_np.bool_):
+        mask_f = ndarray._from_numpy(xa.to_numpy().ravel().astype(_np.float32))
+    else:
+        return ndarray._from_numpy(_np.flatnonzero(xa.to_numpy()).astype(_np.int32))
+
+    # Step 1: GPU prefix sum (cumsum)
+    cs = cumsum(mask_f, axis=0)
+    # Download only the final scalar element (4 bytes) to get output length K
+    last_val = cs._buf.download((1,), _np.dtype(_np.float32), offset=cs._offset + (cs.size - 1) * 4)
+    k = int(builtins.round(float(last_val[0])))
+    if k <= 0:
+        return ndarray._empty_uninit((0,), _np.int32)
+
+    # Step 2: GPU scatter compaction (arange + set_rows + cpy -> int32)
+    out = ndarray._empty_uninit((k,), _np.int32)
+    rc = lib().vkn_scatter_nonzero(
+        mask_f._buf.ptr, mask_f._offset,
+        cs._buf.ptr, cs._offset,
+        mask_f.size, k,
+        out._buf.ptr, 0,
+    )
+    check_rc(rc, "vkn_scatter_nonzero")
+    return out
+
+
+def nonzero(a: Any) -> Tuple[ndarray, ...]:
+    """Return tuple of index arrays for non-zero elements (1D runs 100% on GPU)."""
+    xa = asarray(a)
+    if xa.ndim <= 1:
+        return (flatnonzero(xa),)
+    flat_idx = flatnonzero(xa).to_numpy()
+    unraveled = _np.unravel_index(flat_idx, xa.shape)
+    return tuple(ndarray._from_numpy(u.astype(_np.int32)) for u in unraveled)
+
+
+def compress(condition: Any, a: Any, axis: Optional[int] = None) -> ndarray:
+    """Select slices of an array along given axis using GPU stream compaction + take."""
+    xa = asarray(a)
+    cond = asarray(condition).ravel()
+    idx = flatnonzero(cond)
+    if idx.size == 0:
+        if axis is None:
+            return ndarray._empty_uninit((0,), xa.dtype)
+        ax = axis + xa.ndim if axis < 0 else axis
+        out_shape = list(xa.shape)
+        out_shape[ax] = 0
+        return ndarray._empty_uninit(tuple(out_shape), xa.dtype)
+    return take(xa, idx, axis=axis)
+
+
+def cumsum(a: Any, axis: Optional[int] = None) -> ndarray:
+    """Cumulative sum on Vulkan GPU via ggml_cumsum (F32/F16/I32)."""
+    xa = asarray(a)
+    if xa.dtype == _np.dtype(_np.int32) and xa.size > 0:
+        return cumsum(xa.astype(_np.float32), axis=axis).astype(_np.int32)
     if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0:
         if axis is None:
             c = xa.ravel().contiguous()
@@ -1462,8 +1581,10 @@ def cumsum(a: Any, axis: Optional[int] = None) -> ndarray:
 
 
 def argsort(a: Any, axis: int = -1, descending: bool = False) -> ndarray:
-    """Return the indices that would sort an array on Vulkan GPU via ggml_argsort."""
+    """Return the indices that would sort an array on Vulkan GPU via ggml_argsort (F32/F16/I32)."""
     xa = asarray(a)
+    if xa.dtype == _np.dtype(_np.int32) and xa.size > 0:
+        return argsort(xa.astype(_np.float32), axis=axis, descending=descending)
     if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0:
         if axis is None:
             c = xa.ravel().contiguous()
