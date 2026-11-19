@@ -16,19 +16,45 @@ set(GGML_STATIC ON CACHE BOOL "" FORCE)
 
 add_subdirectory(third_party/llama.cpp/ggml)
 
-add_library(vknumpy SHARED
+set(VKNUMPY_SOURCES
     cpp/vknumpy_ggml.cpp
+    cpp/vknumpy_ncnn.cpp
 )
+
+set(VKNUMPY_LIBS
+    ggml
+    ggml-vulkan
+)
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ncnn/CMakeLists.txt")
+    set(NCNN_VULKAN ON CACHE BOOL "" FORCE)
+    set(NCNN_SYSTEM_GLSLANG ON CACHE BOOL "" FORCE)
+    set(NCNN_OPENMP OFF CACHE BOOL "" FORCE)
+    set(NCNN_SHARED_LIB OFF CACHE BOOL "" FORCE)
+    set(NCNN_BUILD_BENCHMARK OFF CACHE BOOL "" FORCE)
+    set(NCNN_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(NCNN_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+    set(NCNN_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(NCNN_SIMPLEOCV ON CACHE BOOL "" FORCE)
+    set(NCNN_SIMPLEOMP ON CACHE BOOL "" FORCE)
+    set(NCNN_INSTALL_SDK OFF CACHE BOOL "" FORCE)
+    add_subdirectory(third_party/ncnn)
+    list(APPEND VKNUMPY_LIBS ncnn)
+    set(VKNUMPY_HAS_NCNN ON)
+endif()
+
+add_library(vknumpy SHARED ${VKNUMPY_SOURCES})
+
+if(VKNUMPY_HAS_NCNN)
+    target_compile_definitions(vknumpy PRIVATE VKNUMPY_USE_NCNN=1)
+endif()
 
 target_include_directories(vknumpy PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llama.cpp/ggml/include
 )
 
-target_link_libraries(vknumpy PRIVATE
-    ggml
-    ggml-vulkan
-)
+target_link_libraries(vknumpy PRIVATE ${VKNUMPY_LIBS})
 
 # Output libvknumpy.so directly into vknumpy/_lib/ for immediate Python import
 set_target_properties(vknumpy PROPERTIES

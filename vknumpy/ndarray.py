@@ -397,6 +397,22 @@ class ndarray:
         from .ops import divide
         return divide(other, self)
 
+    def __floordiv__(self, other: Any) -> "ndarray":
+        from .ops import floor_divide
+        return floor_divide(self, other)
+
+    def __rfloordiv__(self, other: Any) -> "ndarray":
+        from .ops import floor_divide
+        return floor_divide(other, self)
+
+    def __mod__(self, other: Any) -> "ndarray":
+        from .ops import remainder
+        return remainder(self, other)
+
+    def __rmod__(self, other: Any) -> "ndarray":
+        from .ops import remainder
+        return remainder(other, self)
+
     def __pow__(self, other: Any) -> "ndarray":
         from .ops import power
         return power(self, other)
@@ -417,28 +433,28 @@ class ndarray:
         return vk_abs(self)
 
     def __eq__(self, other: Any) -> "ndarray":
-        o = other.to_numpy() if isinstance(other, ndarray) else other
-        return ndarray._from_numpy(self.to_numpy() == o)
+        from .ops import equal
+        return equal(self, other)
 
     def __ne__(self, other: Any) -> "ndarray":
-        o = other.to_numpy() if isinstance(other, ndarray) else other
-        return ndarray._from_numpy(self.to_numpy() != o)
+        from .ops import not_equal
+        return not_equal(self, other)
 
     def __lt__(self, other: Any) -> "ndarray":
-        o = other.to_numpy() if isinstance(other, ndarray) else other
-        return ndarray._from_numpy(self.to_numpy() < o)
+        from .ops import less
+        return less(self, other)
 
     def __le__(self, other: Any) -> "ndarray":
-        o = other.to_numpy() if isinstance(other, ndarray) else other
-        return ndarray._from_numpy(self.to_numpy() <= o)
+        from .ops import less_equal
+        return less_equal(self, other)
 
     def __gt__(self, other: Any) -> "ndarray":
-        o = other.to_numpy() if isinstance(other, ndarray) else other
-        return ndarray._from_numpy(self.to_numpy() > o)
+        from .ops import greater
+        return greater(self, other)
 
     def __ge__(self, other: Any) -> "ndarray":
-        o = other.to_numpy() if isinstance(other, ndarray) else other
-        return ndarray._from_numpy(self.to_numpy() >= o)
+        from .ops import greater_equal
+        return greater_equal(self, other)
 
     # ------------------------------------------------------------------
     # Reduction & math methods

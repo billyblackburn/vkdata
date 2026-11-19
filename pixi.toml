@@ -15,10 +15,11 @@ c-compiler = "*"
 cxx-compiler = "*"
 vulkan-headers = ">=1.3"
 spirv-headers = "*"
+glslang = "*"
 pkg-config = "*"
 
 [tasks]
-setup = "test -d third_party/llama.cpp || git clone --depth 1 https://github.com/ggml-org/llama.cpp.git third_party/llama.cpp"
+setup = "bash -c 'test -d third_party/llama.cpp || git clone --depth 1 https://github.com/ggml-org/llama.cpp.git third_party/llama.cpp; test -d third_party/ncnn || git clone --depth 1 https://github.com/Tencent/ncnn.git third_party/ncnn'"
 build = "bash -c 'VK_INC=\"\"; [ -d third_party/vulkan-include ] && VK_INC=\"-DVulkan_INCLUDE_DIR=third_party/vulkan-include\"; cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release $VK_INC && cmake --build build'"
 test = "PYTHONPATH=. pytest -v tests"
 bench = "PYTHONPATH=. python benchmarks/bench_gemm.py"

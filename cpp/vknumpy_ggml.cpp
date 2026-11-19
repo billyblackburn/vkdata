@@ -431,6 +431,48 @@ int vkn_binary_op(
         case VKN_BIN_SUB: res = ggml_sub(ctx, sa, sb); break;
         case VKN_BIN_MUL: res = ggml_mul(ctx, sa, sb); break;
         case VKN_BIN_DIV: res = ggml_div(ctx, sa, sb); break;
+        case VKN_BIN_MAX: {
+            ggml_tensor* sum  = ggml_add(ctx, sa, sb);
+            ggml_tensor* adif = ggml_abs(ctx, ggml_sub(ctx, sa, sb));
+            res = ggml_scale(ctx, ggml_add(ctx, sum, adif), 0.5f);
+            break;
+        }
+        case VKN_BIN_MIN: {
+            ggml_tensor* sum  = ggml_add(ctx, sa, sb);
+            ggml_tensor* adif = ggml_abs(ctx, ggml_sub(ctx, sa, sb));
+            res = ggml_scale(ctx, ggml_sub(ctx, sum, adif), 0.5f);
+            break;
+        }
+        case VKN_BIN_GT: {
+            ggml_tensor* diff = ggml_sub(ctx, sa, sb);
+            res = ggml_step(ctx, diff);
+            break;
+        }
+        case VKN_BIN_LT: {
+            ggml_tensor* ndiff = ggml_neg(ctx, ggml_sub(ctx, sa, sb));
+            res = ggml_step(ctx, ndiff);
+            break;
+        }
+        case VKN_BIN_GE: {
+            ggml_tensor* ndiff = ggml_neg(ctx, ggml_sub(ctx, sa, sb));
+            res = ggml_scale_bias(ctx, ggml_step(ctx, ndiff), -1.0f, 1.0f);
+            break;
+        }
+        case VKN_BIN_LE: {
+            ggml_tensor* diff = ggml_sub(ctx, sa, sb);
+            res = ggml_scale_bias(ctx, ggml_step(ctx, diff), -1.0f, 1.0f);
+            break;
+        }
+        case VKN_BIN_EQ: {
+            ggml_tensor* adif = ggml_abs(ctx, ggml_sub(ctx, sa, sb));
+            res = ggml_scale_bias(ctx, ggml_step(ctx, adif), -1.0f, 1.0f);
+            break;
+        }
+        case VKN_BIN_NE: {
+            ggml_tensor* adif = ggml_abs(ctx, ggml_sub(ctx, sa, sb));
+            res = ggml_step(ctx, adif);
+            break;
+        }
         default:
             ggml_free(ctx);
             set_error("vkn_binary_op: unknown op");
@@ -1286,6 +1328,73 @@ int vkn_solve_tri(
         bind_tensor(res, out, out_off);
     } else {
         ggml_tensor* dst = ggml_new_tensor_4d(ctx, gtype, b_ne[0], b_ne[1], b_ne[2], b_ne[3]);
+        bind_tensor(dst, out, out_off);
+        final_node = ggml_cpy(ctx, res, dst);
+    }
+
+    int rc = run_graph(ctx, final_node);
+    ggml_free(ctx);
+    return rc;
+}
+
+int vkn_where(
+    const VknBuffer* cond, size_t cond_off, const int64_t* cond_shape,
+    const VknBuffer* x,    size_t x_off,    const int64_t* x_shape,
+    const VknBuffer* y,    size_t y_off,    const int64_t* y_shape,
+    VknBuffer* out,        size_t out_off,  const int64_t* out_shape,
+    int ndim,
+    int dtype
+) {
+    if (!cond || !x || !y || !out || ndim < 1 || ndim > 4) return -1;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return -1;
+
+    ggml_type gtype = to_ggml_type(dtype);
+    int64_t c_ne[4], x_ne[4], y_ne[4], o_ne[4];
+    np_shape_to_ggml_ne(cond_shape, ndim, c_ne);
+    np_shape_to_ggml_ne(x_shape, ndim, x_ne);
+    np_shape_to_ggml_ne(y_shape, ndim, y_ne);
+    np_shape_to_ggml_ne(out_shape, ndim, o_ne);
+
+    ggml_context* ctx = make_graph_ctx();
+    ggml_tensor* tc = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, c_ne[0], c_ne[1], c_ne[2], c_ne[3]);
+    ggml_tensor* tx = ggml_new_tensor_4d(ctx, gtype, x_ne[0], x_ne[1], x_ne[2], x_ne[3]);
+    ggml_tensor* ty = ggml_new_tensor_4d(ctx, gtype, y_ne[0], y_ne[1], y_ne[2], y_ne[3]);
+    bind_tensor(tc, cond, cond_off);
+    bind_tensor(tx, x, x_off);
+    bind_tensor(ty, y, y_off);
+
+    ggml_tensor* sx = tx;
+    ggml_tensor* sy = ty;
+    if (gtype != GGML_TYPE_F32) {
+        ggml_tensor* sx_f32 = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, x_ne[0], x_ne[1], x_ne[2], x_ne[3]);
+        ggml_tensor* sy_f32 = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, y_ne[0], y_ne[1], y_ne[2], y_ne[3]);
+        sx = ggml_cpy(ctx, tx, sx_f32);
+        sy = ggml_cpy(ctx, ty, sy_f32);
+    }
+
+    auto maybe_repeat = [&](ggml_tensor* t, const int64_t ne[4]) -> ggml_tensor* {
+        if (ne[0] != o_ne[0] || ne[1] != o_ne[1] || ne[2] != o_ne[2] || ne[3] != o_ne[3]) {
+            ggml_tensor* tmpl = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, o_ne[0], o_ne[1], o_ne[2], o_ne[3]);
+            return ggml_repeat(ctx, t, tmpl);
+        }
+        return t;
+    };
+
+    // Normalize cond to {0.0, 1.0} mask
+    ggml_tensor* mask = ggml_step(ctx, ggml_abs(ctx, tc));
+    mask = maybe_repeat(mask, c_ne);
+    ggml_tensor* inv_mask = ggml_scale_bias(ctx, mask, -1.0f, 1.0f);
+
+    ggml_tensor* px = ggml_mul(ctx, mask, sx);
+    ggml_tensor* py = ggml_mul(ctx, inv_mask, sy);
+    ggml_tensor* res = ggml_add(ctx, px, py);
+    ggml_tensor* final_node = res;
+
+    if (gtype == GGML_TYPE_F32) {
+        bind_tensor(res, out, out_off);
+    } else {
+        ggml_tensor* dst = ggml_new_tensor_4d(ctx, gtype, o_ne[0], o_ne[1], o_ne[2], o_ne[3]);
         bind_tensor(dst, out, out_off);
         final_node = ggml_cpy(ctx, res, dst);
     }

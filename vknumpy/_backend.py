@@ -19,6 +19,35 @@ VKN_BIN_ADD = 0
 VKN_BIN_SUB = 1
 VKN_BIN_MUL = 2
 VKN_BIN_DIV = 3
+VKN_BIN_MAX = 4
+VKN_BIN_MIN = 5
+VKN_BIN_GT  = 6
+VKN_BIN_LT  = 7
+VKN_BIN_GE  = 8
+VKN_BIN_LE  = 9
+VKN_BIN_EQ  = 10
+VKN_BIN_NE  = 11
+
+# ncnn op enums (matching third_party/ncnn/src/layer/{unaryop,binaryop,reduction}.h)
+NCNN_UNARY_RSQRT = 6
+NCNN_UNARY_ASIN  = 12
+NCNN_UNARY_ACOS  = 13
+NCNN_UNARY_ATAN  = 14
+NCNN_UNARY_ASINH = 23
+
+NCNN_BIN_MAX          = 4
+NCNN_BIN_MIN          = 5
+NCNN_BIN_POW          = 6
+NCNN_BIN_ATAN2        = 10
+NCNN_BIN_FMOD         = 12
+NCNN_BIN_LOGADDEXP    = 14
+NCNN_BIN_FLOOR_DIVIDE = 15
+NCNN_BIN_REMAINDER    = 17
+
+NCNN_REDUCE_MAX       = 4
+NCNN_REDUCE_MIN       = 5
+NCNN_REDUCE_PROD      = 6
+NCNN_REDUCE_LOGSUMEXP = 10
 
 # Unary ops
 VKN_UNARY_NEG     = 0
@@ -371,6 +400,48 @@ class _LibHandle:
             c_int,
         ]
         lib.vkn_solve_tri.restype = c_int
+
+        # Phase 2 bindings
+        lib.vkn_where.argtypes = [
+            c_void_p, c_size_t, c_int64_p,
+            c_void_p, c_size_t, c_int64_p,
+            c_void_p, c_size_t, c_int64_p,
+            c_void_p, c_size_t, c_int64_p,
+            c_int,
+            c_int,
+        ]
+        lib.vkn_where.restype = c_int
+
+        lib.vkn_ncnn_available.argtypes = []
+        lib.vkn_ncnn_available.restype = c_int
+
+        lib.vkn_ncnn_unary.argtypes = [
+            c_int,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_ncnn_unary.restype = c_int
+
+        lib.vkn_ncnn_binary.argtypes = [
+            c_int,
+            c_void_p, c_size_t,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_ncnn_binary.restype = c_int
+
+        lib.vkn_ncnn_reduce_rows.argtypes = [
+            c_int,
+            c_void_p, c_size_t,
+            ctypes.c_int64, ctypes.c_int64,
+            c_void_p, c_size_t,
+            c_int,
+        ]
+        lib.vkn_ncnn_reduce_rows.restype = c_int
 
 
 _handle = _LibHandle()

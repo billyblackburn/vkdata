@@ -9,10 +9,31 @@ import numpy as _np
 
 from ._backend import (
     NATIVE_FLOAT_DTYPES,
+    NCNN_BIN_ATAN2,
+    NCNN_BIN_FLOOR_DIVIDE,
+    NCNN_BIN_FMOD,
+    NCNN_BIN_LOGADDEXP,
+    NCNN_BIN_POW,
+    NCNN_BIN_REMAINDER,
+    NCNN_REDUCE_MAX,
+    NCNN_REDUCE_MIN,
+    NCNN_REDUCE_PROD,
+    NCNN_UNARY_ACOS,
+    NCNN_UNARY_ASIN,
+    NCNN_UNARY_ASINH,
+    NCNN_UNARY_ATAN,
     NP_TO_VKN_DTYPE,
     VKN_BIN_ADD,
     VKN_BIN_DIV,
+    VKN_BIN_EQ,
+    VKN_BIN_GE,
+    VKN_BIN_GT,
+    VKN_BIN_LE,
+    VKN_BIN_LT,
+    VKN_BIN_MAX,
+    VKN_BIN_MIN,
     VKN_BIN_MUL,
+    VKN_BIN_NE,
     VKN_BIN_SUB,
     VKN_UNARY_ABS,
     VKN_UNARY_CEIL,
@@ -415,6 +436,45 @@ def divide(a: Any, b: Any) -> ndarray:
 true_divide = divide
 
 
+def _ncnn_unary_gpu(ncnn_op: int, np_fn: Any, x: Any) -> ndarray:
+    xa = asarray(x)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0 and lib().vkn_ncnn_available():
+        c = xa.astype(_np.float32) if xa.dtype != _np.float32 else xa.contiguous()
+        out = ndarray._empty_uninit(c.shape, _np.float32)
+        rc = lib().vkn_ncnn_unary(
+            ncnn_op,
+            c._buf.ptr, c._offset,
+            c.size,
+            out._buf.ptr, 0,
+            NP_TO_VKN_DTYPE[_np.dtype(_np.float32)],
+        )
+        check_rc(rc, "vkn_ncnn_unary")
+        return out.astype(xa.dtype) if xa.dtype != _np.float32 else out
+    return ndarray._from_numpy(_np.asarray(np_fn(xa.to_numpy())))
+
+
+def _ncnn_binary_gpu(ncnn_op: int, np_fn: Any, a: Any, b: Any) -> ndarray:
+    xa = asarray(a)
+    xb = asarray(b)
+    dt = _common_float_dtype(xa, xb)
+    out_shape = _broadcast_shapes(xa.shape, xb.shape)
+    if dt in NATIVE_FLOAT_DTYPES and len(out_shape) <= 4 and math.prod(out_shape) > 0 and lib().vkn_ncnn_available():
+        ba = broadcast_to(xa.astype(_np.float32) if xa.dtype != _np.float32 else xa, out_shape).contiguous()
+        bb = broadcast_to(xb.astype(_np.float32) if xb.dtype != _np.float32 else xb, out_shape).contiguous()
+        out = ndarray._empty_uninit(out_shape, _np.float32)
+        rc = lib().vkn_ncnn_binary(
+            ncnn_op,
+            ba._buf.ptr, ba._offset,
+            bb._buf.ptr, bb._offset,
+            out.size,
+            out._buf.ptr, 0,
+            NP_TO_VKN_DTYPE[_np.dtype(_np.float32)],
+        )
+        check_rc(rc, "vkn_ncnn_binary")
+        return out.astype(dt) if dt != _np.float32 else out
+    return ndarray._from_numpy(_np.asarray(np_fn(xa.to_numpy(), xb.to_numpy())))
+
+
 def power(a: Any, b: Any) -> ndarray:
     if isinstance(a, ndarray) and _is_scalar(b) and a.dtype in NATIVE_FLOAT_DTYPES:
         exp_val = float(b)
@@ -426,9 +486,65 @@ def power(a: Any, b: Any) -> ndarray:
             return a.copy()
         if exp_val == -1.0:
             return divide(1.0, a)
+    return _ncnn_binary_gpu(NCNN_BIN_POW, _np.power, a, b)
+
+
+def arctan2(y: Any, x: Any) -> ndarray:
+    return _ncnn_binary_gpu(NCNN_BIN_ATAN2, _np.arctan2, y, x)
+
+
+def fmod(a: Any, b: Any) -> ndarray:
+    return _ncnn_binary_gpu(NCNN_BIN_FMOD, _np.fmod, a, b)
+
+
+def remainder(a: Any, b: Any) -> ndarray:
     xa = asarray(a)
     xb = asarray(b)
-    return ndarray._from_numpy(_np.asarray(_np.power(xa.to_numpy(), xb.to_numpy())))
+    if _common_float_dtype(xa, xb) in NATIVE_FLOAT_DTYPES:
+        # NumPy remainder uses floored division: a - floor(a / b) * b
+        return subtract(xa, multiply(floor(divide(xa, xb)), xb))
+    return ndarray._from_numpy(_np.asarray(_np.remainder(xa.to_numpy(), xb.to_numpy())))
+
+
+mod = remainder
+
+
+def floor_divide(a: Any, b: Any) -> ndarray:
+    return _ncnn_binary_gpu(NCNN_BIN_FLOOR_DIVIDE, _np.floor_divide, a, b)
+
+
+def logaddexp(a: Any, b: Any) -> ndarray:
+    return _ncnn_binary_gpu(NCNN_BIN_LOGADDEXP, _np.logaddexp, a, b)
+
+
+def arcsin(x: Any) -> ndarray:
+    return _ncnn_unary_gpu(NCNN_UNARY_ASIN, _np.arcsin, x)
+
+
+def arccos(x: Any) -> ndarray:
+    return _ncnn_unary_gpu(NCNN_UNARY_ACOS, _np.arccos, x)
+
+
+def arctan(x: Any) -> ndarray:
+    return _ncnn_unary_gpu(NCNN_UNARY_ATAN, _np.arctan, x)
+
+
+def arcsinh(x: Any) -> ndarray:
+    return _ncnn_unary_gpu(NCNN_UNARY_ASINH, _np.arcsinh, x)
+
+
+def arccosh(x: Any) -> ndarray:
+    xa = asarray(x)
+    if xa.dtype in NATIVE_FLOAT_DTYPES:
+        return log(add(xa, sqrt(subtract(square(xa), 1.0))))
+    return ndarray._from_numpy(_np.asarray(_np.arccosh(xa.to_numpy())))
+
+
+def arctanh(x: Any) -> ndarray:
+    xa = asarray(x)
+    if xa.dtype in NATIVE_FLOAT_DTYPES:
+        return _scale_bias(log(divide(add(1.0, xa), subtract(1.0, xa))), 0.5, 0.0)
+    return ndarray._from_numpy(_np.asarray(_np.arctanh(xa.to_numpy())))
 
 
 # ======================================================================
@@ -639,8 +755,7 @@ def maximum(a: Any, b: Any) -> ndarray:
         return clip(a, float(b), None)
     if _is_scalar(a) and isinstance(b, ndarray) and b.dtype in NATIVE_FLOAT_DTYPES:
         return clip(b, float(a), None)
-    xa, xb = asarray(a), asarray(b)
-    return ndarray._from_numpy(_np.asarray(_np.maximum(xa.to_numpy(), xb.to_numpy())))
+    return _binary_gpu(VKN_BIN_MAX, _np.maximum, a, b)
 
 
 def minimum(a: Any, b: Any) -> ndarray:
@@ -648,17 +763,132 @@ def minimum(a: Any, b: Any) -> ndarray:
         return clip(a, None, float(b))
     if _is_scalar(a) and isinstance(b, ndarray) and b.dtype in NATIVE_FLOAT_DTYPES:
         return clip(b, None, float(a))
-    xa, xb = asarray(a), asarray(b)
-    return ndarray._from_numpy(_np.asarray(_np.minimum(xa.to_numpy(), xb.to_numpy())))
+    return _binary_gpu(VKN_BIN_MIN, _np.minimum, a, b)
+
+
+def _compare_gpu(op_code: int, np_fn: Any, a: Any, b: Any) -> ndarray:
+    xa = asarray(a)
+    xb = asarray(b)
+    dt = _common_float_dtype(xa, xb)
+    out_shape = _broadcast_shapes(xa.shape, xb.shape)
+    if dt in NATIVE_FLOAT_DTYPES and len(out_shape) <= 4:
+        mask_f = _binary_gpu(op_code, np_fn, xa, xb)
+        return mask_f.astype(_np.bool_)
+    return ndarray._from_numpy(_np.asarray(np_fn(xa.to_numpy(), xb.to_numpy())))
+
+
+def greater(a: Any, b: Any) -> ndarray:
+    return _compare_gpu(VKN_BIN_GT, _np.greater, a, b)
+
+
+def less(a: Any, b: Any) -> ndarray:
+    return _compare_gpu(VKN_BIN_LT, _np.less, a, b)
+
+
+def greater_equal(a: Any, b: Any) -> ndarray:
+    return _compare_gpu(VKN_BIN_GE, _np.greater_equal, a, b)
+
+
+def less_equal(a: Any, b: Any) -> ndarray:
+    return _compare_gpu(VKN_BIN_LE, _np.less_equal, a, b)
+
+
+def equal(a: Any, b: Any) -> ndarray:
+    return _compare_gpu(VKN_BIN_EQ, _np.equal, a, b)
+
+
+def not_equal(a: Any, b: Any) -> ndarray:
+    return _compare_gpu(VKN_BIN_NE, _np.not_equal, a, b)
+
+
+def logical_not(x: Any) -> ndarray:
+    xa = asarray(x)
+    return equal(xa.astype(_np.float32), 0.0)
+
+
+def logical_and(a: Any, b: Any) -> ndarray:
+    xa = not_equal(asarray(a).astype(_np.float32), 0.0).astype(_np.float32)
+    xb = not_equal(asarray(b).astype(_np.float32), 0.0).astype(_np.float32)
+    return greater(multiply(xa, xb), 0.5)
+
+
+def logical_or(a: Any, b: Any) -> ndarray:
+    xa = not_equal(asarray(a).astype(_np.float32), 0.0).astype(_np.float32)
+    xb = not_equal(asarray(b).astype(_np.float32), 0.0).astype(_np.float32)
+    return greater(add(xa, xb), 0.5)
+
+
+def logical_xor(a: Any, b: Any) -> ndarray:
+    xa = not_equal(asarray(a).astype(_np.float32), 0.0).astype(_np.float32)
+    xb = not_equal(asarray(b).astype(_np.float32), 0.0).astype(_np.float32)
+    return not_equal(xa, xb)
+
+
+def count_nonzero(a: Any, axis: Any = None, keepdims: bool = False) -> Any:
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and (axis is None or isinstance(axis, int)):
+        nz = _binary_gpu(VKN_BIN_NE, _np.not_equal, xa, 0.0)
+        return sum(nz, axis=axis, keepdims=keepdims).astype(_np.int64)
+    return ndarray._from_numpy(_np.asarray(_np.count_nonzero(xa.to_numpy(), axis=axis, keepdims=keepdims)))
+
+
+def isclose(a: Any, b: Any, rtol: float = 1e-5, atol: float = 1e-8) -> ndarray:
+    xa = asarray(a)
+    xb = asarray(b)
+    if _common_float_dtype(xa, xb) in NATIVE_FLOAT_DTYPES:
+        return less_equal(abs(subtract(xa, xb)), add(atol, multiply(rtol, abs(xb))))
+    return ndarray._from_numpy(_np.asarray(_np.isclose(xa.to_numpy(), xb.to_numpy(), rtol=rtol, atol=atol)))
+
+
+def array_equal(a1: Any, a2: Any) -> bool:
+    xa, xb = asarray(a1), asarray(a2)
+    if xa.shape != xb.shape:
+        return False
+    if xa.size == 0:
+        return True
+    return bool(all(equal(xa, xb)).item())
 
 
 def where(condition: Any, x: Any = None, y: Any = None) -> Any:
-    cond = condition.to_numpy() if isinstance(condition, ndarray) else _np.asarray(condition)
     if x is None and y is None:
+        cond = condition.to_numpy() if isinstance(condition, ndarray) else _np.asarray(condition)
         return tuple(ndarray._from_numpy(idx) for idx in _np.where(cond))
-    xn = x.to_numpy() if isinstance(x, ndarray) else _np.asarray(x)
-    yn = y.to_numpy() if isinstance(y, ndarray) else _np.asarray(y)
-    return ndarray._from_numpy(_np.asarray(_np.where(cond, xn, yn)))
+
+    xc = asarray(condition)
+    xx = asarray(x)
+    xy = asarray(y)
+    dt = _common_float_dtype(xx, xy)
+    out_shape = _broadcast_shapes(_broadcast_shapes(xc.shape, xx.shape), xy.shape)
+
+    if dt in NATIVE_FLOAT_DTYPES and len(out_shape) <= 4:
+        cc = (xc.astype(_np.float32) if xc.dtype != _np.float32 else xc).contiguous()
+        cx = (xx.astype(dt) if xx.dtype != dt else xx).contiguous()
+        cy = (xy.astype(dt) if xy.dtype != dt else xy).contiguous()
+
+        if len(out_shape) == 0:
+            c_shp = x_shp = y_shp = o_shp = (1,)
+            ndim = 1
+        else:
+            ndim = len(out_shape)
+            c_shp = (1,) * (ndim - cc.ndim) + cc.shape
+            x_shp = (1,) * (ndim - cx.ndim) + cx.shape
+            y_shp = (1,) * (ndim - cy.ndim) + cy.shape
+            o_shp = out_shape
+
+        out = ndarray._empty_uninit(out_shape, dt)
+        if out.size > 0:
+            rc = lib().vkn_where(
+                cc._buf.ptr, cc._offset, i64_array(c_shp),
+                cx._buf.ptr, cx._offset, i64_array(x_shp),
+                cy._buf.ptr, cy._offset, i64_array(y_shp),
+                out._buf.ptr, 0, i64_array(o_shp),
+                ndim,
+                NP_TO_VKN_DTYPE[dt],
+            )
+            check_rc(rc, "vkn_where")
+        return out
+
+    return ndarray._from_numpy(_np.asarray(_np.where(xc.to_numpy(), xx.to_numpy(), xy.to_numpy())))
 
 
 # ======================================================================
@@ -807,24 +1037,82 @@ def argmin(a: Any, axis: Any = None, keepdims: bool = False) -> ndarray:
     return ndarray._from_numpy(_np.asarray(_np.argmin(xa.to_numpy(), axis=axis, keepdims=keepdims)))
 
 
+def _ncnn_reduce(ncnn_reduce_op: int, np_fn: Any, a: Any, axis: Any = None, keepdims: bool = False) -> ndarray:
+    xa = asarray(a)
+    if xa.dtype in NATIVE_FLOAT_DTYPES and xa.size > 0 and lib().vkn_ncnn_available():
+        if axis is None:
+            c = xa.astype(_np.float32) if xa.dtype != _np.float32 else xa.contiguous()
+            out_shape = (1,) * xa.ndim if keepdims else ()
+            out = ndarray._empty_uninit(out_shape, _np.float32)
+            rc = lib().vkn_ncnn_reduce_rows(
+                ncnn_reduce_op,
+                c._buf.ptr, c._offset,
+                1, c.size,
+                out._buf.ptr, 0,
+                NP_TO_VKN_DTYPE[_np.dtype(_np.float32)],
+            )
+            check_rc(rc, "vkn_ncnn_reduce_rows")
+            return out.astype(xa.dtype) if xa.dtype != _np.float32 else out
+
+        if isinstance(axis, int):
+            ax = axis + xa.ndim if axis < 0 else axis
+            if ax < 0 or ax >= xa.ndim:
+                raise ValueError(f"axis {axis} out of bounds")
+            orig_ndim = xa.ndim
+            if ax != orig_ndim - 1:
+                perm = [i for i in range(orig_ndim) if i != ax] + [ax]
+                xa = xa.transpose(perm)
+            c = xa.astype(_np.float32) if xa.dtype != _np.float32 else xa.contiguous()
+            cols = c.shape[-1]
+            rows = c.size // cols
+            reduced_shape = c.shape[:-1]
+            out = ndarray._empty_uninit(reduced_shape, _np.float32)
+            rc = lib().vkn_ncnn_reduce_rows(
+                ncnn_reduce_op,
+                c._buf.ptr, c._offset,
+                rows, cols,
+                out._buf.ptr, 0,
+                NP_TO_VKN_DTYPE[_np.dtype(_np.float32)],
+            )
+            check_rc(rc, "vkn_ncnn_reduce_rows")
+            if xa.dtype != _np.float32:
+                out = out.astype(xa.dtype)
+            if keepdims:
+                kshape = list(reduced_shape)
+                kshape.insert(ax, 1)
+                return out.reshape(tuple(kshape))
+            return out
+
+    return ndarray._from_numpy(_np.asarray(np_fn(xa.to_numpy(), axis=axis, keepdims=keepdims)))
+
+
 def max(a: Any, axis: Any = None, keepdims: bool = False) -> ndarray:
-    return ndarray._from_numpy(_np.asarray(_np.max(asarray(a).to_numpy(), axis=axis, keepdims=keepdims)))
+    return _ncnn_reduce(NCNN_REDUCE_MAX, _np.max, a, axis=axis, keepdims=keepdims)
 
 
 def min(a: Any, axis: Any = None, keepdims: bool = False) -> ndarray:
-    return ndarray._from_numpy(_np.asarray(_np.min(asarray(a).to_numpy(), axis=axis, keepdims=keepdims)))
+    return _ncnn_reduce(NCNN_REDUCE_MIN, _np.min, a, axis=axis, keepdims=keepdims)
 
 
 def prod(a: Any, axis: Any = None, keepdims: bool = False) -> ndarray:
-    return ndarray._from_numpy(_np.asarray(_np.prod(asarray(a).to_numpy(), axis=axis, keepdims=keepdims)))
+    return _ncnn_reduce(NCNN_REDUCE_PROD, _np.prod, a, axis=axis, keepdims=keepdims)
 
 
 def all(a: Any, axis: Any = None, keepdims: bool = False) -> ndarray:
-    return ndarray._from_numpy(_np.asarray(_np.all(asarray(a).to_numpy(), axis=axis, keepdims=keepdims)))
+    xa = asarray(a)
+    if xa.size > 0 and (axis is None or isinstance(axis, int)):
+        nz = _binary_gpu(VKN_BIN_NE, _np.not_equal, xa.astype(_np.float32), 0.0)
+        n = xa.size if axis is None else xa.shape[axis]
+        return equal(sum(nz, axis=axis, keepdims=keepdims), float(n))
+    return ndarray._from_numpy(_np.asarray(_np.all(xa.to_numpy(), axis=axis, keepdims=keepdims)))
 
 
 def any(a: Any, axis: Any = None, keepdims: bool = False) -> ndarray:
-    return ndarray._from_numpy(_np.asarray(_np.any(asarray(a).to_numpy(), axis=axis, keepdims=keepdims)))
+    xa = asarray(a)
+    if xa.size > 0 and (axis is None or isinstance(axis, int)):
+        nz = _binary_gpu(VKN_BIN_NE, _np.not_equal, xa.astype(_np.float32), 0.0)
+        return greater(sum(nz, axis=axis, keepdims=keepdims), 0.5)
+    return ndarray._from_numpy(_np.asarray(_np.any(xa.to_numpy(), axis=axis, keepdims=keepdims)))
 
 
 # ======================================================================

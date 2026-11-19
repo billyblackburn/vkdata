@@ -356,3 +356,77 @@ def test_phase1_solve_triangular():
     X_ref = np.linalg.solve(L_np, B_np)
     np.testing.assert_allclose(X_vk.to_numpy(), X_ref, rtol=1e-4, atol=1e-4)
 
+
+# ----------------------------------------------------------------------
+# Phase 2: ggml-vulkan comparisons/where/logicals + ncnn Vulkan kernels
+# ----------------------------------------------------------------------
+
+def test_phase2_comparisons_where_and_logicals():
+    a_np = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    b_np = np.array([[2.0, 2.0, 1.0], [5.0, 5.0, 2.0]], dtype=np.float32)
+    a, b = vnp.array(a_np), vnp.array(b_np)
+
+    np.testing.assert_array_equal((a > b).to_numpy(), a_np > b_np)
+    np.testing.assert_array_equal((a < b).to_numpy(), a_np < b_np)
+    np.testing.assert_array_equal((a >= b).to_numpy(), a_np >= b_np)
+    np.testing.assert_array_equal((a <= b).to_numpy(), a_np <= b_np)
+    np.testing.assert_array_equal((a == b).to_numpy(), a_np == b_np)
+    np.testing.assert_array_equal((a != b).to_numpy(), a_np != b_np)
+
+    np.testing.assert_allclose(vnp.maximum(a, b).to_numpy(), np.maximum(a_np, b_np), atol=1e-5)
+    np.testing.assert_allclose(vnp.minimum(a, b).to_numpy(), np.minimum(a_np, b_np), atol=1e-5)
+    np.testing.assert_allclose(vnp.where(a > b, a, b).to_numpy(), np.where(a_np > b_np, a_np, b_np))
+
+    m1 = a > 2.0
+    m2 = b < 5.0
+    np.testing.assert_array_equal(vnp.logical_and(m1, m2).to_numpy(), np.logical_and(a_np > 2.0, b_np < 5.0))
+    np.testing.assert_array_equal(vnp.logical_or(m1, m2).to_numpy(), np.logical_or(a_np > 2.0, b_np < 5.0))
+    np.testing.assert_array_equal(vnp.logical_xor(m1, m2).to_numpy(), np.logical_xor(a_np > 2.0, b_np < 5.0))
+    np.testing.assert_array_equal(vnp.logical_not(m1).to_numpy(), np.logical_not(a_np > 2.0))
+
+    assert bool(vnp.any(a > 5.0).item()) is True
+    assert bool(vnp.all(a > 0.0).item()) is True
+    assert bool(vnp.all(a > 2.0).item()) is False
+    assert int(vnp.count_nonzero(vnp.array([0.0, 1.0, 0.0, 3.5])).item()) == 2
+    assert vnp.array_equal(a, vnp.array(a_np)) is True
+    assert vnp.array_equal(a, b) is False
+    np.testing.assert_array_equal(vnp.isclose(a, b, atol=1.0).to_numpy(), np.isclose(a_np, b_np, atol=1.0))
+
+
+def test_phase2_ncnn_math_and_reductions():
+    from vknumpy._backend import lib
+    assert lib().vkn_ncnn_available() == 1
+
+    # Inverse trig & hyperbolic (ncnn Vulkan UnaryOp)
+    x_np = np.array([-0.8, -0.3, 0.0, 0.4, 0.9], dtype=np.float32)
+    x = vnp.array(x_np)
+    np.testing.assert_allclose(vnp.arcsin(x).to_numpy(), np.arcsin(x_np), rtol=1e-4, atol=1e-4)
+    np.testing.assert_allclose(vnp.arccos(x).to_numpy(), np.arccos(x_np), rtol=1e-4, atol=1e-4)
+    np.testing.assert_allclose(vnp.arctan(x).to_numpy(), np.arctan(x_np), rtol=1e-4, atol=1e-4)
+    np.testing.assert_allclose(vnp.arcsinh(x).to_numpy(), np.arcsinh(x_np), rtol=1e-4, atol=1e-4)
+    np.testing.assert_allclose(vnp.arctanh(x).to_numpy(), np.arctanh(x_np), rtol=1e-4, atol=1e-4)
+    c_np = np.array([1.2, 2.0, 3.5], dtype=np.float32)
+    np.testing.assert_allclose(vnp.arccosh(vnp.array(c_np)).to_numpy(), np.arccosh(c_np), rtol=1e-4, atol=1e-4)
+
+    # Binary math (ncnn Vulkan BinaryOp: pow, atan2, fmod, remainder, floor_divide, logaddexp)
+    a_np = np.array([1.5, 2.0, 3.5, 4.0], dtype=np.float32)
+    b_np = np.array([2.0, 3.0, 1.5, 0.5], dtype=np.float32)
+    a, b = vnp.array(a_np), vnp.array(b_np)
+    np.testing.assert_allclose(vnp.power(a, b).to_numpy(), np.power(a_np, b_np), rtol=1e-4, atol=1e-4)
+    np.testing.assert_allclose(vnp.arctan2(a, b).to_numpy(), np.arctan2(a_np, b_np), rtol=1e-4, atol=1e-4)
+    np.testing.assert_allclose(vnp.fmod(a, b).to_numpy(), np.fmod(a_np, b_np), rtol=1e-4, atol=1e-4)
+    np.testing.assert_allclose(vnp.remainder(a, b).to_numpy(), np.remainder(a_np, b_np), rtol=1e-4, atol=1e-4)
+    np.testing.assert_allclose(vnp.floor_divide(a, b).to_numpy(), np.floor_divide(a_np, b_np), rtol=1e-4, atol=1e-4)
+    np.testing.assert_allclose(vnp.logaddexp(a, b).to_numpy(), np.logaddexp(a_np, b_np), rtol=1e-4, atol=1e-4)
+
+    # Reductions (ncnn Vulkan Reduction: max, min, prod)
+    m_np = np.array([[1.0, 2.0, 3.0, 4.0], [2.0, -1.0, 0.5, 3.0]], dtype=np.float32)
+    m = vnp.array(m_np)
+    np.testing.assert_allclose(vnp.max(m).to_numpy(), np.max(m_np))
+    np.testing.assert_allclose(vnp.min(m).to_numpy(), np.min(m_np))
+    np.testing.assert_allclose(vnp.prod(m).to_numpy(), np.prod(m_np), rtol=1e-4)
+    np.testing.assert_allclose(vnp.max(m, axis=-1).to_numpy(), np.max(m_np, axis=-1))
+    np.testing.assert_allclose(vnp.min(m, axis=0).to_numpy(), np.min(m_np, axis=0))
+    np.testing.assert_allclose(vnp.prod(m, axis=-1).to_numpy(), np.prod(m_np, axis=-1), rtol=1e-4)
+
+

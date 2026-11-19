@@ -19,6 +19,14 @@ typedef enum {
     VKN_BIN_SUB = 1,
     VKN_BIN_MUL = 2,
     VKN_BIN_DIV = 3,
+    VKN_BIN_MAX = 4,
+    VKN_BIN_MIN = 5,
+    VKN_BIN_GT  = 6,
+    VKN_BIN_LT  = 7,
+    VKN_BIN_GE  = 8,
+    VKN_BIN_LE  = 9,
+    VKN_BIN_EQ  = 10,
+    VKN_BIN_NE  = 11,
 } VknBinaryOp;
 
 typedef enum {
@@ -270,6 +278,44 @@ int vkn_solve_tri(
     const VknBuffer* b, size_t b_off, const int64_t* b_shape,
     int ndim,
     int left, int lower, int unit_diag,
+    VknBuffer* out, size_t out_off,
+    int dtype
+);
+
+/* Phase 2A: Fused ggml-vulkan where (ternary select) */
+int vkn_where(
+    const VknBuffer* cond, size_t cond_off, const int64_t* cond_shape,
+    const VknBuffer* x,    size_t x_off,    const int64_t* x_shape,
+    const VknBuffer* y,    size_t y_off,    const int64_t* y_shape,
+    VknBuffer* out,        size_t out_off,  const int64_t* out_shape,
+    int ndim,
+    int dtype
+);
+
+/* Phase 2B: Battle-tested Tencent/ncnn Vulkan kernels (POW, ATAN2, ASIN/ACOS/ATAN, MAX/MIN/PROD) */
+int vkn_ncnn_available(void);
+
+int vkn_ncnn_unary(
+    int ncnn_op_type,
+    const VknBuffer* a, size_t a_off,
+    int64_t n,
+    VknBuffer* out, size_t out_off,
+    int dtype
+);
+
+int vkn_ncnn_binary(
+    int ncnn_op_type,
+    const VknBuffer* a, size_t a_off,
+    const VknBuffer* b, size_t b_off,
+    int64_t n,
+    VknBuffer* out, size_t out_off,
+    int dtype
+);
+
+int vkn_ncnn_reduce_rows(
+    int ncnn_reduce_op,
+    const VknBuffer* a, size_t a_off,
+    int64_t rows, int64_t cols,
     VknBuffer* out, size_t out_off,
     int dtype
 );
