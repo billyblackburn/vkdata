@@ -41,11 +41,11 @@ It is intentionally kept **separate from the core NumPy drop-in milestones** in 
 - Exact IEEE 754 `isnan`, `isinf`, `isfinite`, and `nan_to_num`.
 - GPU-accelerated `nan*` reductions (`nansum`, `nanmean`, `nanvar`, `nanstd`, `nanmax`, `nanmin`) plus 1D `ffill` and `bfill` via GPU `take`.
 
-### Track F — Multi-Key Sorting, Rolling Windows, Strings & Columnar I/O
-- Stable multi-column `lexsort` for `df.sort_values(["a", "b"])`.
-- Rolling window ops (`rolling(w).sum()/mean()/max()`) via GPU `cumsum` and `ggml_pool_1d` / `ggml_conv_1d`.
-- Dictionary-encoded string/categorical columns (`int32` codes on GPU + host string dictionary) so string `==`, `groupby`, `value_counts`, and `merge` run at full GPU `int32` speed.
-- Zero-copy `pyarrow` / Parquet / CSV columnar ingestion directly into `vknumpy` device buffers.
+### Track F — Multi-Key Sorting, Rolling Windows, Strings & Columnar I/O *(Done)*
+- Stable multi-column `lexsort` returning GPU `int32` indices for `df.sort_values(["a", "b"])`.
+- GPU `rolling_sum` & `rolling_mean` via `cumsum` (matching pandas leading `NaN` semantics).
+- Dictionary-encoded string/categorical columns via `factorize(values)` → `(codes_vk_i32, uniques)` so string `==`, `isin`, `unique`, `bincount`, `groupby_agg`, and `merge_indices` run at full GPU `int32` speed.
+- Optional `pyarrow` interop (`from_arrow`, `to_arrow`) for zero-copy Parquet/CSV columnar ingestion.
 
 ---
 

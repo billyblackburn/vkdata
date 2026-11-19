@@ -2007,6 +2007,95 @@ def bfill(a: Any) -> ndarray:
     return take(xa, ndarray._from_numpy(idx))
 
 
+# ======================================================================
+# Rolling Windows, Multi-Key Sort, Categoricals & Arrow (vkpandas Track F)
+# ======================================================================
+
+def rolling_sum(a: Any, window: int) -> ndarray:
+    """1D rolling window sum on GPU via cumsum (leading window-1 entries are NaN, matching pandas)."""
+    if window < 1:
+        raise ValueError("window must be >= 1")
+    from .creation import full, zeros
+    xa = asarray(a).ravel()
+    n = xa.size
+    if n == 0:
+        return ndarray._empty_uninit((0,), _np.float32)
+    if window > n:
+        return full((n,), _np.nan, dtype=_np.float32)
+
+    af = xa.astype(_np.float32) if xa.dtype != _np.float32 else xa
+    cs = concatenate([zeros((1,), dtype=_np.float32), cumsum(af, axis=0)], axis=0)
+    valid = subtract(cs[window:], cs[:-window])
+    if window == 1:
+        return valid
+    prefix = full((window - 1,), _np.nan, dtype=_np.float32)
+    return concatenate([prefix, valid], axis=0)
+
+
+def rolling_mean(a: Any, window: int) -> ndarray:
+    """1D rolling window mean on GPU via cumsum (leading window-1 entries are NaN, matching pandas)."""
+    return _scale_bias(rolling_sum(a, window), 1.0 / float(window), 0.0)
+
+
+def lexsort(keys: Sequence[Any]) -> ndarray:
+    """Perform indirect stable multi-key sort (last key is primary, matching numpy.lexsort)."""
+    key_list = [asarray(k).ravel() for k in keys]
+    if not key_list:
+        return ndarray._empty_uninit((0,), _np.int32)
+    np_keys = [k.to_numpy() for k in key_list]
+    order = _np.lexsort(np_keys).astype(_np.int32)
+    return ndarray._from_numpy(order)
+
+
+def factorize(values: Any, sort_uniques: bool = False) -> Tuple[ndarray, _np.ndarray]:
+    """Encode arbitrary 1D values (including strings) into GPU int32 codes + unique dictionary."""
+    arr = values.to_numpy() if isinstance(values, ndarray) else _np.asarray(values)
+    if sort_uniques:
+        uniques, codes = _np.unique(arr, return_inverse=True)
+        return ndarray._from_numpy(codes.astype(_np.int32)), uniques
+
+    # Preserve first-occurrence order (matching pandas.factorize)
+    seen: dict[Any, int] = {}
+    uniques_list: list[Any] = []
+    codes = _np.empty(arr.shape[0], dtype=_np.int32)
+    for i, val in enumerate(arr.tolist()):
+        idx = seen.get(val)
+        if idx is None:
+            idx = len(uniques_list)
+            seen[val] = idx
+            uniques_list.append(val)
+        codes[i] = idx
+    return ndarray._from_numpy(codes), _np.asarray(uniques_list)
+
+
+def from_arrow(arrow_array: Any) -> Any:
+    """Convert a pyarrow Array/ChunkedArray to a GPU vknumpy.ndarray (or (codes, dict) for strings)."""
+    try:
+        import pyarrow as pa
+    except ImportError as exc:
+        raise ImportError("pyarrow is required for from_arrow(); install it via `pixi add pyarrow` or `pip install pyarrow`") from exc
+
+    if isinstance(arrow_array, pa.ChunkedArray):
+        arrow_array = arrow_array.combine_chunks()
+    if pa.types.is_string(arrow_array.type) or pa.types.is_large_string(arrow_array.type):
+        return factorize(arrow_array.to_numpy(zero_copy_only=False))
+    np_arr = arrow_array.to_numpy(zero_copy_only=False)
+    if np_arr.dtype == _np.float64:
+        np_arr = np_arr.astype(_np.float32)
+    elif np_arr.dtype == _np.int64:
+        np_arr = np_arr.astype(_np.int32)
+    return ndarray._from_numpy(np_arr)
+
+
+def to_arrow(a: ndarray) -> Any:
+    """Convert a GPU vknumpy.ndarray to a pyarrow.Array."""
+    try:
+        import pyarrow as pa
+    except ImportError as exc:
+        raise ImportError("pyarrow is required for to_arrow(); install it via `pixi add pyarrow` or `pip install pyarrow`") from exc
+    return pa.array(a.to_numpy())
+
+
 def cumsum(a: Any, axis: Optional[int] = None) -> ndarray:
     """Cumulative sum on Vulkan GPU via ggml_cumsum (F32/F16/I32)."""
     xa = asarray(a)

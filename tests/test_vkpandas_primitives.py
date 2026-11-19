@@ -250,4 +250,34 @@ def test_track_e_nan_predicates_and_reductions():
     np.testing.assert_allclose(vnp.bfill(vnp.array(s2_np)).to_numpy(), [10.0, 10.0, 20.0, 20.0, 20.0])
 
 
+def test_track_f_rolling_lexsort_and_string_factorize():
+    # GPU rolling_sum & rolling_mean (matching pandas leading NaNs)
+    x_np = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float32)
+    rs = vnp.rolling_sum(vnp.array(x_np), window=3).to_numpy()
+    rm = vnp.rolling_mean(vnp.array(x_np), window=3).to_numpy()
+    assert np.isnan(rs[0]) and np.isnan(rs[1])
+    np.testing.assert_allclose(rs[2:], [6.0, 9.0, 12.0, 15.0], rtol=1e-5)
+    assert np.isnan(rm[0]) and np.isnan(rm[1])
+    np.testing.assert_allclose(rm[2:], [2.0, 3.0, 4.0, 5.0], rtol=1e-5)
+
+    # Multi-column lexsort (primary=dept, secondary=salary)
+    dept_np = np.array([2, 1, 2, 1, 1], dtype=np.int32)
+    sal_np = np.array([50.0, 90.0, 30.0, 60.0, 70.0], dtype=np.float32)
+    order = vnp.lexsort((vnp.array(sal_np), vnp.array(dept_np)))
+    ref_order = np.lexsort((sal_np, dept_np))
+    np.testing.assert_array_equal(order.to_numpy(), ref_order)
+
+    # Dictionary-encoded string column + GPU groupby_agg!
+    cities = ["nyc", "la", "nyc", "chi", "la", "nyc"]
+    sales = vnp.array([10.0, 20.0, 30.0, 5.0, 15.0, 50.0], dtype=vnp.float32)
+    codes, uniques = vnp.factorize(cities)
+    assert codes.dtype == np.int32
+    assert list(uniques) == ["nyc", "la", "chi"]
+
+    u_codes, totals = vnp.groupby_agg(codes, sales, op="sum")
+    result_map = {str(uniques[int(c)]): float(t) for c, t in zip(u_codes.to_numpy(), totals.to_numpy())}
+    assert result_map == {"nyc": 90.0, "la": 35.0, "chi": 5.0}
+
+
+
 
