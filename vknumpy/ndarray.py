@@ -179,6 +179,28 @@ class ndarray:
     def __str__(self) -> str:
         return str(self.to_numpy())
 
+    def head(self, n: int = 5) -> "ndarray":
+        """Return the first n elements along axis 0."""
+        if self.ndim == 0:
+            return self
+        return self[:n]
+
+    def tail(self, n: int = 5) -> "ndarray":
+        """Return the last n elements along axis 0."""
+        if self.ndim == 0:
+            return self
+        start = max(0, self._shape[0] - n)
+        return self[start:]
+
+    def show(self, n: int = 10) -> None:
+        """Print a preview of the first n elements along axis 0 with shape and dtype."""
+        preview = self.head(n).to_numpy()
+        print(preview)
+        if self.ndim >= 1 and self._shape[0] > n:
+            print(f"... (shape={self._shape}, dtype={self._dtype})")
+        else:
+            print(f"(shape={self._shape}, dtype={self._dtype})")
+
     # ------------------------------------------------------------------
     # Shape & type transformations
     # ------------------------------------------------------------------
