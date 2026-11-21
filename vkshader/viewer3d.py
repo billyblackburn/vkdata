@@ -210,7 +210,7 @@ function render({ model, el }) {
   wrap.appendChild(img);
 
   const hint = document.createElement("div");
-  hint.textContent = "Drag: 3D Orbit (Yaw/Pitch) | Wheel: Zoom | Dbl-click: Reset";
+  hint.textContent = "Drag: 3D Orbit | Shift/Right-Drag: Pan | Wheel: Zoom | Dbl-click: Reset";
   hint.style.position = "absolute";
   hint.style.left = "8px";
   hint.style.bottom = "6px";
@@ -237,17 +237,20 @@ function render({ model, el }) {
   updateImage();
 
   let lastSend = 0;
-  function sendCamera(yaw, pitch, dist, force = false) {
+  function sendCamera(yaw, pitch, dist, panX, panY, force = false) {
     const now = performance.now();
     if (!force && now - lastSend < 45) return;
     lastSend = now;
-    model.set("camera", [yaw, pitch, dist]);
+    model.set("camera", [yaw, pitch, dist, panX, panY]);
     model.save_changes();
   }
 
   let dragging = false;
+  let panMode = false;
   let sx = 0, sy = 0;
   let startCam = null;
+
+  wrap.addEventListener("contextmenu", (e) => e.preventDefault());
 
   wrap.addEventListener("pointerdown", (e) => {
     e.preventDefault();
@@ -255,42 +258,52 @@ function render({ model, el }) {
     sx = e.clientX; sy = e.clientY;
     startCam = [...model.get("camera")];
     dragging = true;
-    wrap.style.cursor = "grabbing";
+    panMode = (e.button === 2) || e.shiftKey;
+    wrap.style.cursor = panMode ? "move" : "grabbing";
   });
+
+  function applyMove(e, force) {
+    const dx = e.clientX - sx;
+    const dy = e.clientY - sy;
+    if (panMode) {
+      const yaw = startCam[0];
+      const dist = startCam[2];
+      const speed = 0.0022 * dist;
+      const rightX = Math.cos(yaw), rightY = Math.sin(yaw);
+      const fwdX = -Math.sin(yaw), fwdY = Math.cos(yaw);
+      const npx = startCam[3] + (-dx * rightX + dy * fwdX) * speed;
+      const npy = startCam[4] + (-dx * rightY + dy * fwdY) * speed;
+      sendCamera(startCam[0], startCam[1], startCam[2], npx, npy, force);
+    } else {
+      const nyaw = startCam[0] + dx * 0.008;
+      const npitch = Math.max(0.10, Math.min(1.46, startCam[1] + dy * 0.007));
+      sendCamera(nyaw, npitch, startCam[2], startCam[3], startCam[4], force);
+    }
+  }
 
   wrap.addEventListener("pointermove", (e) => {
     if (!dragging || !startCam) return;
-    const dx = e.clientX - sx;
-    const dy = e.clientY - sy;
-    const nyaw = startCam[0] + dx * 0.008;
-    const npitch = Math.max(0.10, Math.min(1.46, startCam[1] + dy * 0.007));
-    sendCamera(nyaw, npitch, startCam[2], false);
+    applyMove(e, false);
   });
 
   wrap.addEventListener("pointerup", (e) => {
     if (!dragging) return;
     dragging = false;
     wrap.style.cursor = "grab";
-    if (startCam) {
-      const dx = e.clientX - sx;
-      const dy = e.clientY - sy;
-      const nyaw = startCam[0] + dx * 0.008;
-      const npitch = Math.max(0.10, Math.min(1.46, startCam[1] + dy * 0.007));
-      sendCamera(nyaw, npitch, startCam[2], true);
-    }
+    if (startCam) applyMove(e, true);
     startCam = null;
   });
 
   wrap.addEventListener("wheel", (e) => {
     e.preventDefault();
-    const [yaw, pitch, dist] = model.get("camera");
+    const [yaw, pitch, dist, px, py] = model.get("camera");
     const factor = e.deltaY > 0 ? 1.12 : 0.89;
-    const ndist = Math.max(0.7, Math.min(7.5, dist * factor));
-    sendCamera(yaw, pitch, ndist, true);
+    const ndist = Math.max(0.55, Math.min(7.5, dist * factor));
+    sendCamera(yaw, pitch, ndist, px, py, true);
   }, { passive: false });
 
   wrap.addEventListener("dblclick", () => {
-    sendCamera(0.55, 0.52, 2.45, true);
+    sendCamera(0.45, 0.48, 2.25, 0.0, 0.0, true);
   });
 
   el.appendChild(wrap);
@@ -300,26 +313,26 @@ export default { render };
 
 
 class Interactive3DWidget(anywidget.AnyWidget):
-    """Drag-to-orbit & wheel-to-zoom 3D Vulkan GPU viewport widget."""
+    """Drag-to-orbit, Shift/Right-drag-to-pan & wheel-to-zoom 3D Vulkan GPU viewport widget."""
 
     _esm = _ESM_3D
     width = traitlets.Int(760).tag(sync=True)
     height = traitlets.Int(520).tag(sync=True)
     image_bytes = traitlets.Bytes(b"").tag(sync=True)
-    camera = traitlets.List(traitlets.Float(), default_value=[0.55, 0.52, 2.45]).tag(sync=True)
+    camera = traitlets.List(traitlets.Float(), default_value=[0.45, 0.48, 2.25, 0.0, 0.0]).tag(sync=True)
 
     def __init__(
         self,
         width: int,
         height: int,
-        camera: Tuple[float, float, float],
+        camera: Tuple[float, float, float, float, float],
         image_bytes: bytes,
-        on_camera_change: Callable[[float, float, float], None],
+        on_camera_change: Callable[[float, float, float, float, float], None],
     ) -> None:
         super().__init__(
             width=int(width),
             height=int(height),
-            camera=[float(camera[0]), float(camera[1]), float(camera[2])],
+            camera=[float(v) for v in camera],
             image_bytes=image_bytes,
         )
         self._on_camera_change = on_camera_change
@@ -327,8 +340,8 @@ class Interactive3DWidget(anywidget.AnyWidget):
 
     def _handle_cam(self, change: dict) -> None:
         cam = change["new"]
-        if len(cam) == 3:
-            self._on_camera_change(float(cam[0]), float(cam[1]), float(cam[2]))
+        if len(cam) == 5:
+            self._on_camera_change(float(cam[0]), float(cam[1]), float(cam[2]), float(cam[3]), float(cam[4]))
 
 
 def interact_3d(
@@ -361,9 +374,11 @@ def interact_3d(
         init_xr, init_yr = regions[first_reg]
 
     state: Dict[str, Any] = {
-        "yaw": 0.55,
-        "pitch": 0.52,
-        "dist": 2.45,
+        "yaw": 0.45,
+        "pitch": 0.48,
+        "dist": 2.25,
+        "pan_x": 0.0,
+        "pan_y": 0.0,
         "z_scale": float(z_scale),
         "xr": init_xr,
         "yr": init_yr,
@@ -374,10 +389,18 @@ def interact_3d(
     def _draw() -> Tuple[bytes, float]:
         t0 = time.perf_counter()
         col_by, col_key = modes[state["mode"]]
+        xr = state["xr"]
+        yr = state["yr"]
+        if xr is not None and yr is not None and (state["pan_x"] != 0.0 or state["pan_y"] != 0.0):
+            hs = 0.5 * max(xr[1] - xr[0], yr[1] - yr[0])
+            ox = state["pan_x"] * hs
+            oy = state["pan_y"] * hs
+            xr = (xr[0] + ox, xr[1] + ox)
+            yr = (yr[0] + oy, yr[1] + oy)
         img = render_3d(
             source, x, y, z,
             width=width, height=height,
-            x_range=state["xr"], y_range=state["yr"], z_range=z_range,
+            x_range=xr, y_range=yr, z_range=z_range,
             kind=kind, color_by=col_by, color_key=col_key,
             basemap=state["basemap"],
             yaw=state["yaw"], pitch=state["pitch"], dist=state["dist"],
@@ -402,13 +425,14 @@ def interact_3d(
             f"pitch={math.degrees(state['pitch']):.0f}° dist={state['dist']:.2f}"
         )
 
-    def _on_cam(yaw: float, pitch: float, dist: float) -> None:
+    def _on_cam(yaw: float, pitch: float, dist: float, px: float, py: float) -> None:
         state["yaw"], state["pitch"], state["dist"] = yaw, pitch, dist
+        state["pan_x"], state["pan_y"] = px, py
         _refresh()
 
     view_w = Interactive3DWidget(
         width=width, height=height,
-        camera=(state["yaw"], state["pitch"], state["dist"]),
+        camera=(state["yaw"], state["pitch"], state["dist"], 0.0, 0.0),
         image_bytes=jpg0,
         on_camera_change=_on_cam,
     )
@@ -416,7 +440,12 @@ def interact_3d(
     controls = []
     if regions:
         reg_dd = widgets.Dropdown(options=list(regions.keys()), value=next(iter(regions.keys())), description="Region:")
-        reg_dd.observe(lambda ch: (state.update({"xr": regions[ch["new"]][0], "yr": regions[ch["new"]][1]}), _refresh()), names="value")
+        def _on_reg(ch: dict) -> None:
+            state["xr"], state["yr"] = regions[ch["new"]]
+            state["pan_x"], state["pan_y"] = 0.0, 0.0
+            view_w.camera = [state["yaw"], state["pitch"], state["dist"], 0.0, 0.0]
+            _refresh()
+        reg_dd.observe(_on_reg, names="value")
         controls.append(reg_dd)
 
     if len(mode_names) > 1:
