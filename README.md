@@ -66,20 +66,27 @@ pixi run lab
 
 ## Example Notebooks (`examples/`)
 
-| Notebook | Packages Showcased | Description |
-|---|---|---|
-| [`vknumpy_demo.ipynb`](examples/vknumpy_demo.ipynb) | `vknumpy` | 1024×1024 GPU GEMM vs CPU, ufuncs, `einsum`, `linalg.solve`, 5M SPIR-V `bincount` / `histogram` / `histogram2d` |
-| [`vkpandas_demo.ipynb`](examples/vkpandas_demo.ipynb) | `vkpandas` | GPU `DataFrame` / `Series`, filtering, `groupby`, `merge`, Parquet I/O |
-| [`vkscipy_demo.ipynb`](examples/vkscipy_demo.ipynb) | `vkscipy`, `vkcolorcet` | 2048×2048 GPU `cdist`, `ndimage` Gaussian/Sobel, GPU GEMM chirp `spectrogram`, 200k-point `curve_fit` |
-| [`vkspatial_demo.ipynb`](examples/vkspatial_demo.ipynb) | `vkspatial`, `vkplot` | WGS84 ↔ Web Mercator, Haversine, 1M 2D Morton `GeoDataFrame`, `radius_query` & `point_in_polygon` |
-| [`vkcolorcet_demo.ipynb`](examples/vkcolorcet_demo.ipynb) | `vkcolorcet`, `vkshader` | Interactive swatch catalog + all 26 primary colormaps rendered on 2M GPU points |
-| [`vkpanel_demo.ipynb`](examples/vkpanel_demo.ipynb) | `vkpanel`, `vkshader`, `vkholoviews` | Reactive `pn.bind`, `Tabs`, `Card`, `DataTable`, sliders & dropdowns on 2M GPU points |
-| [`vkplot_demo.ipynb`](examples/vkplot_demo.ipynb) | `vkplot`, `vkspatial` | `hvPlot`-style `.vkplot` accessor across 11.84M NYC Taxi + 10.23M OpenSky flights (2D + 3D) |
-| [`vkgeoviews_demo.ipynb`](examples/vkgeoviews_demo.ipynb) | `vkgeoviews`, `vkspatial` | Single-pass GPU `sjoin()` on 11.84M NYC trips → dark-canvas Mean-Fare Choropleth & Esri satellite overlay |
-| [`nyc_taxi_vkshader.ipynb`](examples/nyc_taxi_vkshader.ipynb) | `vkshader` | Terse 5-line interactive 11.84M-point NYC Taxi map |
-| [`nyc_taxi_holoviews.ipynb`](examples/nyc_taxi_holoviews.ipynb) | `vkholoviews`, `vkspatial`, `vkpanel` | 4-panel HoloViz dashboard + live cross-filtered map + NYC neighborhood polygon & landmark radius explorer |
-| [`nyc_taxi_ml.ipynb`](examples/nyc_taxi_ml.ipynb) | `vklearn` | GPU Fare & Card-Tip (`$`) prediction, Tip classifier, K-Means hotspots, and interactive trip predictor |
-| [`opensky_vkdata.ipynb`](examples/opensky_vkdata.ipynb) | `vkshader`, `vkholoviews`, `vkpanel` | 10.23M OpenSky flight trajectories: density, country of origin, ascending/descending, velocity, 6-city airport close-ups, & full-Europe 3D orbit |
-| [`earthquakes_3d_vkdata.ipynb`](examples/earthquakes_3d_vkdata.ipynb) | `vkshader` (3D), `vkgeoviews`, `vkspatial`, `vklearn` | 2.12M real USGS earthquakes: global seismic map, tectonic `sjoin` choropleth, 3D subduction-zone explorer (depth up to 650 km), & GPU K-Means hotspots |
-| [`vkastro_milky_way_3d.ipynb`](examples/vkastro_milky_way_3d.ipynb) | `vkastro`, `vkshader` (3D), `vkplot` | 400,000 real ESA Gaia DR3 stars: Hertzsprung–Russell diagram, all-sky Galactic Aitoff map, 3D Solar Neighborhood fly-through, Pleiades cone search, & `FlatLambdaCDM` cosmology |
-| [`sdss_cosmic_web_3d.ipynb`](examples/sdss_cosmic_web_3d.ipynb) | `vkastro`, `vkshader` (3D), `vklearn`, `vkplot` | 150,000 real SDSS DR17 galaxies: Color–Magnitude Diagram (Red Sequence vs. Blue Cloud), 2D/3D Cosmic Web in Megaparsecs, & GPU K-Means supercluster finder |
+### Astronomy & Astrophysics (`examples/astronomy/`)
+- [`vkastro_milky_way_3d.ipynb`](examples/astronomy/vkastro_milky_way_3d.ipynb) — 400,000 real ESA Gaia DR3 stars: Hertzsprung–Russell diagram, all-sky Galactic Aitoff map, 3D Solar Neighborhood fly-through, Pleiades cone search, & `FlatLambdaCDM` cosmology
+- [`sdss_cosmic_web_3d.ipynb`](examples/astronomy/sdss_cosmic_web_3d.ipynb) — 150,000 real SDSS DR17 galaxies: Color–Magnitude Diagram (Red Sequence vs. Blue Cloud), 2D/3D Cosmic Web in Megaparsecs, & GPU K-Means 3D cluster regions
+
+### Geoscience & Geospatial (`examples/geoscience/`)
+- [`earthquakes_3d_vkdata.ipynb`](examples/geoscience/earthquakes_3d_vkdata.ipynb) — 2.12M real USGS earthquakes: global seismic map, tectonic `sjoin` choropleth, 3D subduction-zone explorer (depth up to 650 km), & GPU K-Means hotspots
+- [`vkgeoviews_demo.ipynb`](examples/geoscience/vkgeoviews_demo.ipynb) — Single-pass GPU `sjoin()` on 11.84M NYC trips → dark-canvas Mean-Fare Choropleth & Esri satellite overlay
+- [`vkspatial_demo.ipynb`](examples/geoscience/vkspatial_demo.ipynb) — WGS84 ↔ Web Mercator, Haversine, 1M 2D Morton `GeoDataFrame`, `radius_query` & `point_in_polygon`
+
+### Transportation & Mobility (`examples/transportation/`)
+- [`opensky_vkdata.ipynb`](examples/transportation/opensky_vkdata.ipynb) — 10.23M OpenSky flight trajectories: density, country of origin, ascending/descending, velocity, 6-city airport close-ups, & full-Europe 3D orbit
+- [`nyc_taxi_holoviews.ipynb`](examples/transportation/nyc_taxi_holoviews.ipynb) — 4-panel HoloViz dashboard + live cross-filtered map + NYC neighborhood polygon & landmark radius explorer
+- [`nyc_taxi_vkshader.ipynb`](examples/transportation/nyc_taxi_vkshader.ipynb) — Terse 5-line interactive 11.84M-point NYC Taxi map
+
+### Machine Learning (`examples/machine_learning/`)
+- [`nyc_taxi_ml.ipynb`](examples/machine_learning/nyc_taxi_ml.ipynb) — GPU Fare & Card-Tip (`$`) prediction, Tip classifier, K-Means hotspots, and interactive trip predictor (`vklearn`)
+
+### Core Compute & Visualization (`examples/core_and_viz/`)
+- [`vknumpy_demo.ipynb`](examples/core_and_viz/vknumpy_demo.ipynb) — 1024×1024 GPU GEMM vs CPU, ufuncs, `einsum`, `linalg.solve`, 5M SPIR-V `bincount` / `histogram` / `histogram2d`
+- [`vkpandas_demo.ipynb`](examples/core_and_viz/vkpandas_demo.ipynb) — GPU `DataFrame` / `Series`, filtering, `groupby`, `merge`, Parquet I/O
+- [`vkscipy_demo.ipynb`](examples/core_and_viz/vkscipy_demo.ipynb) — 2048×2048 GPU `cdist`, `ndimage` Gaussian/Sobel, GPU GEMM chirp `spectrogram`, 200k-point `curve_fit`
+- [`vkcolorcet_demo.ipynb`](examples/core_and_viz/vkcolorcet_demo.ipynb) — Interactive swatch catalog + all 26 primary colormaps rendered on 2M GPU points
+- [`vkpanel_demo.ipynb`](examples/core_and_viz/vkpanel_demo.ipynb) — Reactive `pn.bind`, `Tabs`, `Card`, `DataTable`, sliders & dropdowns on 2M GPU points
+- [`vkplot_demo.ipynb`](examples/core_and_viz/vkplot_demo.ipynb) — `hvPlot`-style `.vkplot` accessor across 11.84M NYC Taxi + 10.23M OpenSky flights (2D + 3D)
