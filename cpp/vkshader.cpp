@@ -191,7 +191,7 @@ int vks_init(
 
     bool ok1 = create_pipe(g_st, vks_spv_shade_stats, sizeof(vks_spv_shade_stats), 2, 2 * sizeof(uint32_t), g_st.p_stats);
     bool ok2 = create_pipe(g_st, vks_spv_shade_cdf, sizeof(vks_spv_shade_cdf), 2, 0, g_st.p_cdf);
-    bool ok3 = create_pipe(g_st, vks_spv_shade_composite, sizeof(vks_spv_shade_composite), 5, 15 * sizeof(uint32_t), g_st.p_comp);
+    bool ok3 = create_pipe(g_st, vks_spv_shade_composite, sizeof(vks_spv_shade_composite), 6, 15 * sizeof(uint32_t), g_st.p_comp);
     bool ok4 = create_pipe(g_st, vks_spv_line_raster, sizeof(vks_spv_line_raster), 6, 12 * sizeof(uint32_t), g_st.p_line);
     bool ok5 = create_pipe(g_st, vks_spv_shade_cat_composite, sizeof(vks_spv_shade_cat_composite), 4, 15 * sizeof(uint32_t), g_st.p_aux_comp);
     bool ok6 = create_pipe(g_st, vks_spv_raster_3d, sizeof(vks_spv_raster_3d), 8, 8 * sizeof(uint32_t), g_st.p_r3d);
@@ -211,10 +211,11 @@ int vks_shade_rgba(
     float uv_left, float uv_top, float uv_right, float uv_bottom,
     void* stats_vkbuf,
     void* cdf_vkbuf,
+    void* lut_vkbuf,
     void* out_vkbuf, size_t out_off
 ) {
     std::lock_guard<std::mutex> lock(g_mutex);
-    if (!g_st.ready || !grid_vkbuf || !stats_vkbuf || !cdf_vkbuf || !out_vkbuf) return -1;
+    if (!g_st.ready || !grid_vkbuf || !stats_vkbuf || !cdf_vkbuf || !lut_vkbuf || !out_vkbuf) return -1;
     if (width <= 0 || height <= 0 || (grid_off % 4 != 0) || (bg_off % 4 != 0) || (out_off % 4 != 0)) {
         return -1;
     }
@@ -222,6 +223,7 @@ int vks_shade_rgba(
     VkBuffer gb  = static_cast<VkBuffer>(grid_vkbuf);
     VkBuffer sb  = static_cast<VkBuffer>(stats_vkbuf);
     VkBuffer cb  = static_cast<VkBuffer>(cdf_vkbuf);
+    VkBuffer lb  = static_cast<VkBuffer>(lut_vkbuf);
     VkBuffer ob  = static_cast<VkBuffer>(out_vkbuf);
     VkBuffer bgb = (bg_vkbuf && bg_w > 0 && bg_h > 0) ? static_cast<VkBuffer>(bg_vkbuf) : sb;
 
@@ -231,7 +233,7 @@ int vks_shade_rgba(
 
     update_set(g_st.p_stats, { gb, sb });
     update_set(g_st.p_cdf,   { sb, cb });
-    update_set(g_st.p_comp,  { gb, sb, cb, bgb, ob });
+    update_set(g_st.p_comp,  { gb, sb, cb, bgb, ob, lb });
 
     VkCommandBuffer cmd = g_st.cmd_buf;
     if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS) return -1;

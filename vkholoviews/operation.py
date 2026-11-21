@@ -18,6 +18,7 @@ class DatashadedPoints(Element):
         points: Points,
         how: str = "eq_hist",
         alpha: int = 235,
+        cmap: Any = "fire",
         **opts: Any,
     ) -> None:
         merged_opts = {**points._opts, **opts}
@@ -25,6 +26,7 @@ class DatashadedPoints(Element):
         self.points = points
         self.how = how
         self.alpha = int(alpha)
+        self.cmap = cmap
         self._spatial: Optional[vks.SpatialPoints] = None
 
     def get_spatial(self) -> vks.SpatialPoints:
@@ -42,11 +44,12 @@ class DatashadedPoints(Element):
         y_range: Tuple[float, float],
         basemap: Optional[str] = None,
         how: Optional[str] = None,
+        cmap: Optional[Any] = None,
     ) -> vks.ShadedImage:
         cvs = vks.Canvas(width, height, x_range=x_range, y_range=y_range)
         sp = self.get_spatial()
         agg = cvs.points(sp, x_range=x_range, y_range=y_range)
-        return vks.shade(agg, how=how or self.how, alpha=self.alpha, basemap=basemap)
+        return vks.shade(agg, how=how or self.how, alpha=self.alpha, basemap=basemap, cmap=cmap if cmap is not None else self.cmap)
 
     def __repr__(self) -> str:
         return f"DatashadedPoints({self.kdims}, how={self.how!r})"
@@ -91,6 +94,7 @@ class DatashadedPaths(Element):
         basemap: Optional[str] = None,
         how: Optional[str] = None,
         spread_px: Optional[int] = None,
+        cmap: Optional[Any] = None,
     ) -> vks.ShadedImage:
         cvs = vks.Canvas(width, height, x_range=x_range, y_range=y_range)
         agg_res = cvs.line(
@@ -112,7 +116,7 @@ class DatashadedPaths(Element):
             alpha=self.alpha,
             basemap=basemap,
             spread_px=sp,
-            cmap=self.cmap,
+            cmap=cmap if cmap is not None else self.cmap,
         )
 
     def __repr__(self) -> str:

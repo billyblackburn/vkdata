@@ -44,6 +44,7 @@ def _load_lib() -> ctypes.CDLL:
         c_float, c_float, c_float, c_float,
         c_void_p,
         c_void_p,
+        c_void_p,
         c_void_p, c_size_t,
     ]
     lib.vks_shade_rgba.restype = c_int
@@ -140,14 +141,17 @@ def shade_rgba_gpu(
     bg: Optional[vnp.ndarray] = None,
     uv_rect: Tuple[float, float, float, float] = (0.0, 0.0, 1.0, 1.0),
     spread_px: int = 0,
+    cmap: object = "fire",
 ) -> vnp.ndarray:
-    """Shade a 2D int32 count grid with Fire colormap + optional GPU basemap compositing.
+    """Shade a 2D int32 count grid with any vkcolorcet colormap + optional GPU basemap compositing.
 
     Runs 100% on vknumpy's VkDevice with zero host intermediate copies.
     Returns a GPU int32 array of shape (H, W) whose bytes are packed RGBA8.
     """
     if how not in _SHADE_HOW_MAP:
         raise ValueError(f"Unsupported how={how!r}; expected one of {tuple(_SHADE_HOW_MAP)}")
+
+    from vkcolorcet import get_lut_gpu
 
     lib = _ensure_init()
     vl = vkn_lib()
@@ -174,6 +178,9 @@ def shade_rgba_gpu(
     stats_vkbuf = vl.vkn_vk_get_raw_buffer(_scratch_stats._buf.ptr)
     cdf_vkbuf = vl.vkn_vk_get_raw_buffer(_scratch_cdf._buf.ptr)
 
+    lut_g = get_lut_gpu(cmap)
+    lut_vkbuf = vl.vkn_vk_get_raw_buffer(lut_g._buf.ptr)
+
     out = vnp.ndarray._empty_uninit((height, width), _np.int32)
     out_vkbuf = vl.vkn_vk_get_raw_buffer(out._buf.ptr)
 
@@ -187,6 +194,7 @@ def shade_rgba_gpu(
         float(uv_rect[0]), float(uv_rect[1]), float(uv_rect[2]), float(uv_rect[3]),
         stats_vkbuf,
         cdf_vkbuf,
+        lut_vkbuf,
         out_vkbuf, 0,
     )
     if rc != 0:

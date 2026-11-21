@@ -38,6 +38,7 @@ int vks_shade_rgba(
     float uv_left, float uv_top, float uv_right, float uv_bottom,
     void* stats_vkbuf,
     void* cdf_vkbuf,
+    void* lut_vkbuf,
     void* out_vkbuf, size_t out_off
 );
 

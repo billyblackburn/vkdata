@@ -352,7 +352,7 @@ def shade(
     if agg.mode == "count":
         rgba_gpu = shade_rgba_gpu(
             agg.grid, how=how, alpha=float(alpha) / 255.0,
-            bg=bg_gpu, uv_rect=uv_rect, spread_px=spread_px,
+            bg=bg_gpu, uv_rect=uv_rect, spread_px=spread_px, cmap=cmap,
         )
     elif agg.mode == "mean":
         assert agg.aux is not None

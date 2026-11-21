@@ -75,13 +75,14 @@ class vkPlot:
         datashade: bool = True,
         how: str = "eq_hist",
         alpha: int = 235,
+        cmap: Any = "fire",
         **opts: Any,
     ) -> Any:
-        """2D GPU point cloud / scatter plot (with optional Esri tiles & datashading)."""
+        """2D GPU point cloud / scatter plot (with optional Esri/dark tiles & vkcolorcet cmap)."""
         rx, ry = self._resolve_xy(x, y)
         elem: Any = hv.Points(self._df, [rx, ry])
         if datashade:
-            elem = hv.datashade(elem, how=how, alpha=alpha)
+            elem = hv.datashade(elem, how=how, alpha=alpha, cmap=cmap)
         t = _normalize_tiles(tiles)
         if t:
             elem = hv.Tiles(t) * elem

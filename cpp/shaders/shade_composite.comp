@@ -6,6 +6,7 @@ layout(set = 0, binding = 1) readonly buffer StatsBuf { uint stats[]; };
 layout(set = 0, binding = 2) readonly buffer CdfBuf   { float cdf[]; };
 layout(set = 0, binding = 3) readonly buffer BgBuf    { uint bg_rgba[]; };
 layout(set = 0, binding = 4) writeonly buffer OutBuf  { uint out_rgba[]; };
+layout(set = 0, binding = 5) readonly buffer LutBuf   { uint lut_rgba[]; };
 
 layout(push_constant) uniform PC {
     uint width;
@@ -58,14 +59,11 @@ vec3 sample_bg_bilinear(uint px, uint py) {
     return mix(mix(c00, c10, tx), mix(c01, c11, tx), ty);
 }
 
-vec3 fire_colormap(float s) {
-    s = clamp(s, 0.0, 1.0);
-    if (s < 0.18) return mix(vec3(0.0, 0.0, 0.0),     vec3(60.0, 0.0, 20.0),    s / 0.18);
-    if (s < 0.36) return mix(vec3(60.0, 0.0, 20.0),   vec3(145.0, 10.0, 10.0),  (s - 0.18) / 0.18);
-    if (s < 0.55) return mix(vec3(145.0, 10.0, 10.0), vec3(220.0, 65.0, 0.0),   (s - 0.36) / 0.19);
-    if (s < 0.74) return mix(vec3(220.0, 65.0, 0.0),  vec3(255.0, 155.0, 0.0),  (s - 0.55) / 0.19);
-    if (s < 0.89) return mix(vec3(255.0, 155.0, 0.0), vec3(255.0, 230.0, 80.0), (s - 0.74) / 0.15);
-    return mix(vec3(255.0, 230.0, 80.0), vec3(255.0, 255.0, 255.0), (s - 0.89) / 0.11);
+vec3 sample_lut(float s) {
+    float f = clamp(s, 0.0, 1.0) * 255.0;
+    uint i0 = uint(floor(f));
+    uint i1 = min(i0 + 1u, 255u);
+    return mix(unpack_rgb(lut_rgba[i0]), unpack_rgb(lut_rgba[i1]), f - float(i0));
 }
 
 void main() {
@@ -120,7 +118,7 @@ void main() {
             } else {
                 s = v / max_v;
             }
-            vec3 fg = fire_colormap(s);
+            vec3 fg = sample_lut(s);
             rgb = mix(rgb, fg, p.alpha);
         }
 

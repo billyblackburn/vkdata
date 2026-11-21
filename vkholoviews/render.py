@@ -224,7 +224,7 @@ def _render_spatial_overlay(layers: List[Viewable], opts: dict) -> Image.Image:
 
     if ds_layer is not None:
         xr, yr = _infer_ranges(ds_layer, opts)
-        shaded = ds_layer.render_gpu(w, h, xr, yr, basemap=basemap, how=opts.get("how"))
+        shaded = ds_layer.render_gpu(w, h, xr, yr, basemap=basemap, how=opts.get("how"), cmap=opts.get("cmap"))
         pil_img = shaded.to_pil()
     else:
         xr = opts.get("xlim") or poly_layers[0].get_opt("xlim")
@@ -378,6 +378,7 @@ def interact_viewable(obj: Viewable, jpeg_quality: int = 85) -> Any:
         "xr": init_xr,
         "yr": init_yr,
         "how": opts.get("how", ds_layer.how),
+        "cmap": opts.get("cmap", getattr(ds_layer, "cmap", "fire")),
         "spread": 0 if is_paths else -1,  # -1 = GPU auto dynspread for points; 0 = crisp lines for paths
     }
 
@@ -386,7 +387,7 @@ def interact_viewable(obj: Viewable, jpeg_quality: int = 85) -> Any:
         xr, yr = state["xr"], state["yr"]
         if is_paths:
             shaded = ds_layer.render_gpu(
-                w, h, xr, yr, basemap=basemap, how=state["how"], spread_px=state["spread"]
+                w, h, xr, yr, basemap=basemap, how=state["how"], spread_px=state["spread"], cmap=state["cmap"]
             )
             map_jpg = shaded.to_jpeg(quality=jpeg_quality)
             hist_pngs: List[bytes] = []
@@ -406,7 +407,7 @@ def interact_viewable(obj: Viewable, jpeg_quality: int = 85) -> Any:
 
         assert sp is not None
         agg = cvs.points(sp, x_range=xr, y_range=yr)
-        shaded = vks.shade(agg, how=state["how"], alpha=ds_layer.alpha, basemap=basemap, spread_px=state["spread"])
+        shaded = vks.shade(agg, how=state["how"], alpha=ds_layer.alpha, basemap=basemap, spread_px=state["spread"], cmap=state["cmap"])
         map_jpg = shaded.to_jpeg(quality=jpeg_quality)
 
         hist_pngs = []
@@ -469,17 +470,21 @@ def interact_viewable(obj: Viewable, jpeg_quality: int = 85) -> Any:
 
     btn_reset = widgets.Button(description="Reset", button_style="primary")
     how_dd = widgets.Dropdown(options=["eq_hist", "log", "cbrt", "linear"], value=state["how"], description="Shade:")
+    cmap_opts = ["fire", "bmy", "bgy", "kbc", "viridis", "inferno", "plasma", "magma", "turbo", "coolwarm", "rainbow", "gray"]
+    cur_cmap = state["cmap"] if isinstance(state["cmap"], str) and state["cmap"] in cmap_opts else "fire"
+    cmap_dd = widgets.Dropdown(options=cmap_opts, value=cur_cmap, description="Cmap:")
     spread_dd = widgets.Dropdown(
         options=[("auto (dynspread)", -1), ("0 (off)", 0), ("1 (3x3)", 1), ("2 (5x5)", 2)],
-        value=-1,
+        value=state["spread"],
         description="Spread:",
     )
 
     btn_reset.on_click(_on_reset)
     how_dd.observe(lambda ch: (state.update({"how": ch["new"]}), _update_views()), names="value")
+    cmap_dd.observe(lambda ch: (state.update({"cmap": ch["new"]}), _update_views()), names="value")
     spread_dd.observe(lambda ch: (state.update({"spread": ch["new"]}), _update_views()), names="value")
 
-    toolbar = widgets.HBox([btn_reset, how_dd, spread_dd])
+    toolbar = widgets.HBox([btn_reset, how_dd, cmap_dd, spread_dd])
     body = widgets.HBox([map_widget, widgets.VBox(hist_widgets)]) if hist_widgets else map_widget
     box = widgets.VBox([toolbar, status, body])
     display(box)

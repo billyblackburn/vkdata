@@ -115,6 +115,7 @@ class Polygons(Element):
         polygons: Union[Dict[str, Any], Sequence[Any]],
         values: Optional[Union[Dict[str, float], Sequence[float]]] = None,
         crs: Optional[str] = "EPSG:4326",
+        cmap: Any = "fire",
         alpha: int = 165,
         line_color: Tuple[int, int, int, int] = (255, 255, 255, 225),
         show_labels: bool = True,
@@ -123,6 +124,7 @@ class Polygons(Element):
     ) -> None:
         super().__init__(data=polygons, opts=opts)
         self.crs = crs
+        self.cmap = cmap
         self.alpha = int(alpha)
         self.line_color = line_color
         self.show_labels = bool(show_labels)
@@ -196,8 +198,11 @@ class Polygons(Element):
                 for x, y in ring
             ]
             if self.values is not None:
-                s = (self.values[idx] - vmin) / (vmax - vmin)
-                r, g, b = _fire_rgb(s)
+                from vkcolorcet import get_rgb_lut
+                s = max(0.0, min(1.0, (self.values[idx] - vmin) / (vmax - vmin)))
+                lut = get_rgb_lut(self.cmap)
+                rgb = lut[int(round(s * 255.0))]
+                r, g, b = int(rgb[0]), int(rgb[1]), int(rgb[2])
             else:
                 r, g, b = (65, 165, 255)
             draw.polygon(pts, fill=(r, g, b, self.alpha), outline=self.line_color)
