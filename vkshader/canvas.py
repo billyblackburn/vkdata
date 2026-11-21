@@ -11,8 +11,69 @@ import numpy as np
 from PIL import Image
 import vknumpy as vnp
 
-from ._backend import shade_rgba_gpu
+from ._backend import raster_lines_gpu, shade_aux_rgba_gpu, shade_rgba_gpu
 from .basemap import get_esri_mosaic_gpu
+
+
+_NAMED_COLORS = {
+    "red": (255, 65, 54),
+    "blue": (60, 145, 255),
+    "green": (46, 204, 64),
+    "orange": (255, 133, 27),
+    "yellow": (255, 220, 0),
+    "purple": (177, 13, 201),
+    "teal": (57, 204, 204),
+    "cyan": (0, 220, 255),
+    "magenta": (255, 65, 180),
+    "white": (255, 255, 255),
+}
+
+
+def _parse_color_u32(c: Any) -> int:
+    if isinstance(c, str):
+        s = c.strip().lower()
+        if s in _NAMED_COLORS:
+            r, g, b = _NAMED_COLORS[s]
+        elif s.startswith("#") and len(s) == 7:
+            r, g, b = int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16)
+        else:
+            r, g, b = 255, 180, 50
+    else:
+        r, g, b = int(c[0]), int(c[1]), int(c[2])
+    return (r & 0xFF) | ((g & 0xFF) << 8) | ((b & 0xFF) << 16) | (0xFF << 24)
+
+
+def _hsv_palette_u32(n: int = 256, reverse: bool = True) -> np.ndarray:
+    """Build a 256-entry packed RGBA uint32 HSV palette (matching matplotlib hsv_r)."""
+    out = np.zeros(256, dtype=np.uint32)
+    m = max(1, min(int(n), 256))
+    for i in range(256):
+        h = (1.0 - (i % m) / float(m)) if reverse else ((i % m) / float(m))
+        h6 = (h % 1.0) * 6.0
+        k = int(h6) % 6
+        f = h6 - int(h6)
+        if k == 0:   rgb = (1.0, f, 0.0)
+        elif k == 1: rgb = (1.0 - f, 1.0, 0.0)
+        elif k == 2: rgb = (0.0, 1.0, f)
+        elif k == 3: rgb = (0.0, 1.0 - f, 1.0)
+        elif k == 4: rgb = (f, 0.0, 1.0)
+        else:        rgb = (1.0, 0.0, 1.0 - f)
+        r, g, b = int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255)
+        out[i] = r | (g << 8) | (b << 16) | (0xFF << 24)
+    return out
+
+
+def _build_palette_gpu(color_key: Any, n_cats: int = 256) -> vnp.ndarray:
+    if color_key is None or color_key == "hsv_r":
+        pal = _hsv_palette_u32(n_cats, reverse=True)
+    elif color_key == "hsv":
+        pal = _hsv_palette_u32(n_cats, reverse=False)
+    else:
+        pal = np.zeros(256, dtype=np.uint32)
+        colors = list(color_key)
+        for i in range(256):
+            pal[i] = _parse_color_u32(colors[i % len(colors)])
+    return vnp.array(pal.view(np.int32), dtype=np.int32)
 
 
 def _extract_gpu_col(source: Any, col: str) -> vnp.ndarray:
@@ -69,11 +130,15 @@ class SpatialPoints:
 
 @dataclass
 class AggResult:
-    """2D GPU count grid produced by Canvas.points()."""
+    """2D GPU aggregation grid produced by Canvas.points() or Canvas.line()."""
 
     grid: vnp.ndarray
     x_range: Tuple[float, float]
     y_range: Tuple[float, float]
+    aux: Optional[vnp.ndarray] = None
+    mode: str = "count"
+    vmin: float = 0.0
+    vmax: float = 250.0
 
 
 @dataclass
@@ -160,6 +225,83 @@ class Canvas:
         )
         return AggResult(grid=grid, x_range=(float(xr[0]), float(xr[1])), y_range=(float(yr[0]), float(yr[1])))
 
+    def line(
+        self,
+        source: Any,
+        x: str,
+        y: str,
+        agg: str = "count",
+        column: Optional[str] = None,
+        color_key: Any = None,
+        x_range: Optional[Tuple[float, float]] = None,
+        y_range: Optional[Tuple[float, float]] = None,
+        vmin: Optional[float] = None,
+        vmax: Optional[float] = None,
+    ) -> AggResult:
+        """Rasterize NaN-separated polylines (trajectories) on Vulkan GPU.
+
+        Supports ``agg='count'``, ``agg='mean'`` (with ``column``), and
+        ``agg='by'`` (categorical coloring with ``column`` and optional ``color_key``).
+        """
+        xr = x_range or self.x_range
+        yr = y_range or self.y_range
+        xs = _extract_gpu_col(source, x).astype(np.float32)
+        ys = _extract_gpu_col(source, y).astype(np.float32)
+        if xr is None:
+            xr = (float(vnp.nanmin(xs).item()), float(vnp.nanmax(xs).item()))
+        if yr is None:
+            yr = (float(vnp.nanmin(ys).item()), float(vnp.nanmax(ys).item()))
+
+        if agg == "count":
+            grid, _ = raster_lines_gpu(xs, ys, self.plot_width, self.plot_height, xr, yr, mode=0)
+            return AggResult(grid=grid, x_range=(float(xr[0]), float(xr[1])), y_range=(float(yr[0]), float(yr[1])), mode="count")
+
+        if column is None:
+            raise ValueError(f"column is required for agg={agg!r}")
+
+        if agg == "mean":
+            vals = _extract_gpu_col(source, column).astype(np.float32)
+            grid, aux = raster_lines_gpu(xs, ys, self.plot_width, self.plot_height, xr, yr, mode=1, vals=vals)
+            lo = float(vmin) if vmin is not None else float(vnp.nanmin(vals).item())
+            hi = float(vmax) if vmax is not None else float(vnp.nanmax(vals).item())
+            return AggResult(
+                grid=grid, aux=aux,
+                x_range=(float(xr[0]), float(xr[1])), y_range=(float(yr[0]), float(yr[1])),
+                mode="mean", vmin=lo, vmax=hi,
+            )
+
+        if agg == "by":
+            col_obj = source[column]
+            if hasattr(col_obj, "values") and isinstance(col_obj.values, vnp.ndarray):
+                codes = col_obj.values.astype(np.int32)
+                n_cats = max(2, int(vnp.max(codes).item()) + 1)
+            elif hasattr(col_obj, "_codes") and isinstance(col_obj._codes, vnp.ndarray):
+                codes = col_obj._codes.astype(np.int32)
+                n_cats = max(2, len(getattr(col_obj, "_categories", [])) or int(vnp.max(codes).item()) + 1)
+            else:
+                arr = np.asarray(col_obj)
+                if arr.dtype == np.bool_ or np.issubdtype(arr.dtype, np.integer):
+                    codes = vnp.array(arr.astype(np.int32), dtype=np.int32)
+                    n_cats = max(2, int(arr.max()) + 1) if arr.size else 2
+                else:
+                    _, inv = np.unique(arr, return_inverse=True)
+                    codes = vnp.array(inv.astype(np.int32), dtype=np.int32)
+                    n_cats = max(2, int(inv.max()) + 1) if inv.size else 2
+
+            pal_gpu = _build_palette_gpu(color_key, n_cats=n_cats)
+            grid, aux = raster_lines_gpu(
+                xs, ys, self.plot_width, self.plot_height, xr, yr,
+                mode=2, vals=codes, palette=pal_gpu,
+            )
+            max_c = float(vnp.max(grid).item()) if grid.size else 1.0
+            return AggResult(
+                grid=grid, aux=aux,
+                x_range=(float(xr[0]), float(xr[1])), y_range=(float(yr[0]), float(yr[1])),
+                mode="cat", vmin=0.0, vmax=max(max_c, 1.0),
+            )
+
+        raise ValueError(f"Unsupported agg={agg!r}; expected 'count', 'mean', or 'by'")
+
 
 def shade(
     agg: AggResult,
@@ -168,6 +310,7 @@ def shade(
     basemap: Optional[str] = None,
     zoom: Optional[int] = None,
     spread_px: int = -1,
+    cmap: str = "fire",
 ) -> ShadedImage:
     """Shade a GPU AggResult (and optionally composite over an Esri basemap) 100% on GPU.
 
@@ -181,9 +324,25 @@ def shade(
         res = get_esri_mosaic_gpu(agg.x_range, agg.y_range, w, h, zoom=zoom)
         if res is not None:
             bg_gpu, uv_rect = res
-    rgba_gpu = shade_rgba_gpu(
-        agg.grid, how=how, alpha=float(alpha) / 255.0,
-        bg=bg_gpu, uv_rect=uv_rect, spread_px=spread_px,
-    )
+    if agg.mode == "count":
+        rgba_gpu = shade_rgba_gpu(
+            agg.grid, how=how, alpha=float(alpha) / 255.0,
+            bg=bg_gpu, uv_rect=uv_rect, spread_px=spread_px,
+        )
+    elif agg.mode == "mean":
+        assert agg.aux is not None
+        m = 2 if cmap == "fire_r" else 1
+        rgba_gpu = shade_aux_rgba_gpu(
+            agg.grid, agg.aux, mode=m, alpha=float(alpha) / 255.0,
+            vmin=agg.vmin, vmax=agg.vmax, bg=bg_gpu, uv_rect=uv_rect,
+        )
+    elif agg.mode == "cat":
+        assert agg.aux is not None
+        rgba_gpu = shade_aux_rgba_gpu(
+            agg.grid, agg.aux, mode=3, alpha=float(alpha) / 255.0,
+            vmin=agg.vmin, vmax=agg.vmax, bg=bg_gpu, uv_rect=uv_rect,
+        )
+    else:
+        raise ValueError(f"Unsupported agg.mode={agg.mode!r}")
     rgba = rgba_gpu.to_numpy().view(np.uint8).reshape(h, w, 4)
     return ShadedImage(rgba=rgba, x_range=agg.x_range, y_range=agg.y_range)

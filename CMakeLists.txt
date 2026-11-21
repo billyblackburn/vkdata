@@ -96,10 +96,14 @@ set(VKS_SPV_HEADERS
     "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_stats.h"
     "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_cdf.h"
     "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_composite.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_line_raster.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_cat_composite.h"
 )
-vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/shade_stats.comp"     vks_spv_shade_stats     "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_stats.h")
-vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/shade_cdf.comp"       vks_spv_shade_cdf       "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_cdf.h")
-vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/shade_composite.comp" vks_spv_shade_composite "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_composite.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/shade_stats.comp"         vks_spv_shade_stats         "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_stats.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/shade_cdf.comp"           vks_spv_shade_cdf           "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_cdf.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/shade_composite.comp"     vks_spv_shade_composite     "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_composite.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/line_raster.comp"         vks_spv_line_raster         "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_line_raster.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/shade_cat_composite.comp" vks_spv_shade_cat_composite "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_cat_composite.h")
 
 add_library(vkshader SHARED
     cpp/vkshader.cpp

@@ -51,6 +51,27 @@ class Points(Element):
         return f"Points(kdims={self.kdims})"
 
 
+class Path(Element):
+    """2D polyline / trajectory Element (NaN-separated paths) backed by GPU columns."""
+
+    def __init__(
+        self,
+        data: Any,
+        kdims: Optional[Sequence[str]] = None,
+        vdims: Optional[Sequence[str]] = None,
+        **opts: Any,
+    ) -> None:
+        if kdims is None:
+            if hasattr(data, "columns") and len(data.columns) >= 2:
+                kdims = list(data.columns[:2])
+            else:
+                kdims = ["x", "y"]
+        super().__init__(data=data, kdims=kdims, vdims=vdims, opts=opts)
+
+    def __repr__(self) -> str:
+        return f"Path(kdims={self.kdims})"
+
+
 class Histogram(Element):
     """1D GPU-accelerated Histogram Element computed via vknumpy.bincount."""
 

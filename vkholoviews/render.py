@@ -12,8 +12,8 @@ import vknumpy as vnp
 import vkshader as vks
 
 from .core import Layout, Overlay, Viewable
-from .elements import Bars, Curve, Histogram, Points, Tiles, _col_to_vk
-from .operation import DatashadedPoints
+from .elements import Bars, Curve, Histogram, Path, Points, Tiles, _col_to_vk
+from .operation import DatashadedPaths, DatashadedPoints
 
 _BG_DARK = (18, 20, 26, 255)
 _PLOT_BG = (24, 27, 36, 255)
@@ -205,14 +205,16 @@ def _render_spatial_overlay(layers: List[Viewable], opts: dict) -> Image.Image:
     title = opts.get("title", "")
 
     basemap: Optional[str] = None
-    ds_layer: Optional[DatashadedPoints] = None
+    ds_layer: Optional[Any] = None
     for lyr in layers:
         if isinstance(lyr, Tiles):
             basemap = lyr.source
-        elif isinstance(lyr, DatashadedPoints):
+        elif isinstance(lyr, (DatashadedPoints, DatashadedPaths)):
             ds_layer = lyr
         elif isinstance(lyr, Points):
             ds_layer = DatashadedPoints(lyr, how=opts.get("how", "eq_hist"))
+        elif isinstance(lyr, Path):
+            ds_layer = DatashadedPaths(lyr, how=opts.get("how", "eq_hist"))
 
     if ds_layer is None:
         return Image.new("RGBA", (w, h), _BG_DARK)
@@ -267,7 +269,7 @@ def render_viewable(obj: Viewable) -> Image.Image:
         return _render_layout(obj)
     if isinstance(obj, Overlay):
         return _render_spatial_overlay(obj.layers, obj._opts)
-    if isinstance(obj, (DatashadedPoints, Points)):
+    if isinstance(obj, (DatashadedPoints, Points, DatashadedPaths, Path)):
         return _render_spatial_overlay([obj], obj._opts)
     if isinstance(obj, Bars):
         return _render_bars(obj)
@@ -312,14 +314,16 @@ def interact_viewable(obj: Viewable, jpeg_quality: int = 85) -> Any:
     opts = spatial_obj._opts
 
     basemap: Optional[str] = None
-    ds_layer: Optional[DatashadedPoints] = None
+    ds_layer: Optional[Any] = None
     for lyr in layers:
         if isinstance(lyr, Tiles):
             basemap = lyr.source
-        elif isinstance(lyr, DatashadedPoints):
+        elif isinstance(lyr, (DatashadedPoints, DatashadedPaths)):
             ds_layer = lyr
         elif isinstance(lyr, Points):
             ds_layer = DatashadedPoints(lyr, how=opts.get("how", "eq_hist"))
+        elif isinstance(lyr, Path):
+            ds_layer = DatashadedPaths(lyr, how=opts.get("how", "eq_hist"))
 
     if ds_layer is None:
         display(obj)
@@ -329,35 +333,59 @@ def interact_viewable(obj: Viewable, jpeg_quality: int = 85) -> Any:
     h = int(opts.get("height", ds_layer.get_opt("height", 640)))
     init_xr, init_yr = _infer_ranges(ds_layer, opts)
 
-    # Pre-sort (x, y) + any linked histogram columns once on GPU for instant viewport slicing
-    extra_cols = {}
-    for h_elem in linked_hists:
-        col_name = h_elem.kdims[0]
-        if col_name not in extra_cols:
-            extra_cols[col_name] = _col_to_vk(h_elem.data, col_name)
+    is_paths = isinstance(ds_layer, DatashadedPaths)
+    sp = None
+    if not is_paths:
+        # Pre-sort (x, y) + any linked histogram columns once on GPU for instant viewport slicing
+        extra_cols = {}
+        for h_elem in linked_hists:
+            col_name = h_elem.kdims[0]
+            if col_name not in extra_cols:
+                extra_cols[col_name] = _col_to_vk(h_elem.data, col_name)
 
-    sp = vks.SpatialPoints(
-        _col_to_vk(ds_layer.data, ds_layer.kdims[0]),
-        _col_to_vk(ds_layer.data, ds_layer.kdims[1]),
-        extra=extra_cols if extra_cols else None,
-    )
+        sp = vks.SpatialPoints(
+            _col_to_vk(ds_layer.data, ds_layer.kdims[0]),
+            _col_to_vk(ds_layer.data, ds_layer.kdims[1]),
+            extra=extra_cols if extra_cols else None,
+        )
     cvs = vks.Canvas(w, h, x_range=init_xr, y_range=init_yr)
 
     state = {
         "xr": init_xr,
         "yr": init_yr,
         "how": opts.get("how", ds_layer.how),
-        "spread": -1,  # -1 = GPU auto dynspread
+        "spread": 0 if is_paths else -1,  # -1 = GPU auto dynspread for points; 0 = crisp lines for paths
     }
 
     def _render_all() -> Tuple[bytes, List[bytes], float, float]:
         t0 = time.perf_counter()
         xr, yr = state["xr"], state["yr"]
+        if is_paths:
+            shaded = ds_layer.render_gpu(
+                w, h, xr, yr, basemap=basemap, how=state["how"], spread_px=state["spread"]
+            )
+            map_jpg = shaded.to_jpeg(quality=jpeg_quality)
+            hist_pngs: List[bytes] = []
+            xs = _col_to_vk(ds_layer.data, ds_layer.kdims[0])
+            ys = _col_to_vk(ds_layer.data, ds_layer.kdims[1])
+            for h_elem in linked_hists:
+                col = h_elem.kdims[0]
+                counts, edges = h_elem.compute_gpu(xy=(xs, ys), x_range=xr, y_range=yr)
+                n_in = int(counts.sum())
+                base_title = h_elem.get_opt("title", f"Histogram: {col}")
+                im = _render_histogram(h_elem, counts_edges=(counts, edges), title_override=f"{base_title} (n={n_in:,})")
+                buf = io.BytesIO()
+                im.convert("RGB").save(buf, format="JPEG", quality=88)
+                hist_pngs.append(buf.getvalue())
+            total_ms = (time.perf_counter() - t0) * 1000.0
+            return map_jpg, hist_pngs, total_ms, float(xs.size)
+
+        assert sp is not None
         agg = cvs.points(sp, x_range=xr, y_range=yr)
         shaded = vks.shade(agg, how=state["how"], alpha=ds_layer.alpha, basemap=basemap, spread_px=state["spread"])
         map_jpg = shaded.to_jpeg(quality=jpeg_quality)
 
-        hist_pngs: List[bytes] = []
+        hist_pngs = []
         xs, ys = sp.slice_x(xr[0], xr[1])
         for h_elem in linked_hists:
             col = h_elem.kdims[0]

@@ -41,6 +41,39 @@ int vks_shade_rgba(
     void* out_vkbuf, size_t out_off
 );
 
+/**
+ * Zero-copy GPU line/trajectory rasterizer (NaN-separated polylines).
+ * mode: 0=count, 1=mean (vals_vkbuf=float32), 2=cat (vals_vkbuf=int32, palette_vkbuf=256x uint32 RGBA).
+ */
+int vks_raster_lines(
+    void* x_vkbuf, size_t x_off,
+    void* y_vkbuf, size_t y_off,
+    void* vals_vkbuf, size_t vals_off,
+    void* palette_vkbuf,
+    uint32_t n,
+    int width, int height,
+    int mode,
+    float xmin, float xmax, float ymin, float ymax,
+    void* count_vkbuf,
+    void* aux_vkbuf
+);
+
+/**
+ * Zero-copy GPU shading for mean (mode=1 fire, mode=2 fire_r) or categorical RGB (mode=3)
+ * grids produced by vks_raster_lines(), with optional bilinear GPU basemap compositing.
+ */
+int vks_shade_aux_rgba(
+    void* count_vkbuf,
+    void* aux_vkbuf,
+    int width, int height,
+    int mode, float alpha,
+    float vmin, float vmax,
+    void* bg_vkbuf, size_t bg_off,
+    int bg_w, int bg_h,
+    float uv_left, float uv_top, float uv_right, float uv_bottom,
+    void* out_vkbuf, size_t out_off
+);
+
 #ifdef __cplusplus
 }
 #endif

@@ -27,3 +27,36 @@ def test_canvas_and_spatial_points_gpu_shading():
 
     jpg = img.to_jpeg(quality=85)
     assert jpg[:2] == b"\xff\xd8"
+
+
+def test_canvas_line_raster_and_holoviews_path():
+    import vkholoviews as hv
+
+    # Two NaN-separated trajectories: diagonal (cat=0, vel=50) and anti-diagonal (cat=1, vel=250)
+    xs = vnp.array(np.array([-5.0, 5.0, np.nan, -5.0, 5.0], dtype=np.float32))
+    ys = vnp.array(np.array([-5.0, 5.0, np.nan, 5.0, -5.0], dtype=np.float32))
+    vel = vnp.array(np.array([50.0, 50.0, 0.0, 250.0, 250.0], dtype=np.float32))
+    cat = vnp.array(np.array([0, 0, 0, 1, 1], dtype=np.int32))
+    src = {"x": xs, "y": ys, "vel": vel, "cat": cat}
+
+    cvs = vks.Canvas(64, 64, x_range=(-6.0, 6.0), y_range=(-6.0, 6.0))
+
+    agg_cnt = cvs.line(src, "x", "y", agg="count")
+    assert int(vnp.count_nonzero(agg_cnt.grid).item()) > 80
+    img_cnt = vks.shade(agg_cnt, how="eq_hist", spread_px=0)
+    assert img_cnt.rgba.shape == (64, 64, 4)
+
+    agg_mean = cvs.line(src, "x", "y", agg="mean", column="vel", vmin=0.0, vmax=300.0)
+    img_mean = vks.shade(agg_mean, cmap="fire_r")
+    assert int(img_mean.rgba[:, :, 0].max()) > 100
+
+    agg_cat = cvs.line(src, "x", "y", agg="by", column="cat", color_key=["red", "blue"])
+    img_cat = vks.shade(agg_cat)
+    assert int(img_cat.rgba[:, :, 0].max()) > 100  # red channel present
+    assert int(img_cat.rgba[:, :, 2].max()) > 100  # blue channel present
+
+    # Declarative vkholoviews.Path + datashade
+    pil = hv.datashade(hv.Path(src, ["x", "y"]), agg="by", column="cat", color_key=["red", "blue"]).opts(
+        width=64, height=64, xlim=(-6.0, 6.0), ylim=(-6.0, 6.0), title="Paths"
+    ).render()
+    assert pil.size == (64, 64 + 28)

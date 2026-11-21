@@ -1,0 +1,140 @@
+#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer XBuf    { float xs[]; };
+layout(set = 0, binding = 1) readonly buffer YBuf    { float ys[]; };
+layout(set = 0, binding = 2) readonly buffer VBuf    { uint  vals[]; };
+layout(set = 0, binding = 3) readonly buffer PalBuf  { uint  palette[]; };
+layout(set = 0, binding = 4) buffer CountBuf         { int   grid_count[]; };
+layout(set = 0, binding = 5) buffer AuxBuf           { int   grid_aux[]; };
+
+layout(push_constant) uniform PC {
+    uint  n;
+    uint  width;
+    uint  height;
+    uint  mode;      // 0=count, 1=mean (vals=float), 2=cat (vals=uint id)
+    uint  x_base;
+    uint  y_base;
+    uint  v_base;
+    uint  _pad;
+    float xmin;
+    float xmax;
+    float ymin;
+    float ymax;
+} p;
+
+bool clip_segment(inout float x0, inout float y0, inout float x1, inout float y1, float max_x, float max_y) {
+    float dx = x1 - x0;
+    float dy = y1 - y0;
+    float t0 = 0.0;
+    float t1 = 1.0;
+
+    float ps[4] = float[4](-dx, dx, -dy, dy);
+    float qs[4] = float[4](x0, max_x - x0, y0, max_y - y0);
+
+    for (int k = 0; k < 4; ++k) {
+        float pk = ps[k];
+        float qk = qs[k];
+        if (abs(pk) < 1e-9) {
+            if (qk < 0.0) return false;
+        } else {
+            float r = qk / pk;
+            if (pk < 0.0) {
+                if (r > t1) return false;
+                if (r > t0) t0 = r;
+            } else {
+                if (r < t0) return false;
+                if (r < t1) t1 = r;
+            }
+        }
+    }
+    float nx0 = x0 + t0 * dx;
+    float ny0 = y0 + t0 * dy;
+    float nx1 = x0 + t1 * dx;
+    float ny1 = y0 + t1 * dy;
+    x0 = nx0; y0 = ny0; x1 = nx1; y1 = ny1;
+    return true;
+}
+
+void main() {
+    if (p.n < 2u || p.width == 0u || p.height == 0u) return;
+    uint n_segs = p.n - 1u;
+    uint stride = gl_NumWorkGroups.x * 256u;
+
+    float inv_dx = 1.0 / max(p.xmax - p.xmin, 1e-12);
+    float inv_dy = 1.0 / max(p.ymax - p.ymin, 1e-12);
+    float wf = float(p.width);
+    float hf = float(p.height);
+    float max_x = wf - 1e-3;
+    float max_y = hf - 1e-3;
+    int max_steps = int(max(p.width, p.height) * 2u);
+
+    for (uint i = gl_GlobalInvocationID.x; i < n_segs; i += stride) {
+        float x0 = xs[p.x_base + i];
+        float y0 = ys[p.y_base + i];
+        float x1 = xs[p.x_base + i + 1u];
+        float y1 = ys[p.y_base + i + 1u];
+
+        if (isnan(x0) || isnan(y0) || isnan(x1) || isnan(y1)) continue;
+
+        float fx0 = (x0 - p.xmin) * inv_dx * wf;
+        float fy0 = (p.ymax - y0) * inv_dy * hf;
+        float fx1 = (x1 - p.xmin) * inv_dx * wf;
+        float fy1 = (p.ymax - y1) * inv_dy * hf;
+
+        if (max(fx0, fx1) < 0.0 || min(fx0, fx1) >= wf ||
+            max(fy0, fy1) < 0.0 || min(fy0, fy1) >= hf) {
+            continue;
+        }
+
+        if (!clip_segment(fx0, fy0, fx1, fy1, max_x, max_y)) continue;
+
+        int v_fixed = 0;
+        bool v_valid = true;
+        int cr = 0, cg = 0, cb = 0;
+        if (p.mode == 1u) {
+            float vf = uintBitsToFloat(vals[p.v_base + i]);
+            if (isnan(vf) || isinf(vf)) {
+                v_valid = false;
+            } else {
+                v_fixed = int(round(clamp(vf, -1e6, 1e6) * 256.0));
+            }
+        } else if (p.mode == 2u) {
+            uint cat = vals[p.v_base + i] & 255u;
+            uint packed = palette[cat];
+            cr = int(packed & 0xFFu);
+            cg = int((packed >> 8u) & 0xFFu);
+            cb = int((packed >> 16u) & 0xFFu);
+        }
+
+        float ddx = fx1 - fx0;
+        float ddy = fy1 - fy0;
+        int steps = clamp(int(ceil(max(abs(ddx), abs(ddy)))), 1, max_steps);
+        float sx = ddx / float(steps);
+        float sy = ddy / float(steps);
+
+        int prev_idx = -1;
+        for (int s = 0; s <= steps; ++s) {
+            int px = clamp(int(floor(fx0 + sx * float(s))), 0, int(p.width) - 1);
+            int py = clamp(int(floor(fy0 + sy * float(s))), 0, int(p.height) - 1);
+            int idx = py * int(p.width) + px;
+            if (idx == prev_idx) continue;
+            prev_idx = idx;
+
+            if (p.mode == 0u) {
+                atomicAdd(grid_count[idx], 1);
+            } else if (p.mode == 1u) {
+                if (v_valid) {
+                    atomicAdd(grid_count[idx], 1);
+                    atomicAdd(grid_aux[idx], v_fixed);
+                }
+            } else {
+                atomicAdd(grid_count[idx], 1);
+                int b3 = idx * 3;
+                atomicAdd(grid_aux[b3 + 0], cr);
+                atomicAdd(grid_aux[b3 + 1], cg);
+                atomicAdd(grid_aux[b3 + 2], cb);
+            }
+        }
+    }
+}
