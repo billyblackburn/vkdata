@@ -42,3 +42,55 @@ def test_morton_2d_and_point_in_polygon_gpu():
     pip_hit = gdf.within_polygon(diamond)
     expected_pip = (np.abs(x_np) + np.abs(y_np)) < 4.0
     assert abs(len(pip_hit) - int(expected_pip.sum())) <= 5
+
+
+def test_sjoin_crs_cx_nearest_geojson_and_geometry_ops(tmp_path):
+    # 1. Single-pass GPU multi-polygon spatial join
+    zones = {
+        "west": np.array([[-5.0, -5.0], [-1.0, -5.0], [-1.0, 5.0], [-5.0, 5.0]], dtype=np.float32),
+        "east": np.array([[ 1.0, -5.0], [ 5.0, -5.0], [ 5.0, 5.0], [ 1.0, 5.0]], dtype=np.float32),
+    }
+    pts = vpd.DataFrame({
+        "x": np.array([-3.0, 0.0, 3.0, 8.0], dtype=np.float32),
+        "y": np.array([ 0.0, 0.0, 2.0, 0.0], dtype=np.float32),
+    })
+    gdf = vksp.GeoDataFrame(pts, x="x", y="y")
+    joined = gdf.sjoin(zones, zone_col="zone", how="left")
+    np.testing.assert_array_equal(joined["zone"].to_numpy(), np.array([0, -1, 1, -1], dtype=np.int32))
+    joined_inner = gdf.sjoin(zones, zone_col="zone", how="inner")
+    assert len(joined_inner) == 2
+
+    # 2. cx spatial slicer, total_bounds, and nearest-k
+    assert gdf.total_bounds == (-3.0, 0.0, 8.0, 2.0)
+    sliced = gdf.cx[-4.0:4.0, -1.0:3.0]
+    assert len(sliced) == 3
+    nn = gdf.nearest(2.9, 2.0, k=2)
+    assert len(nn) == 2
+    assert float(nn["distance"].to_numpy().min()) < 0.2
+
+    # 3. CRS conversion (EPSG:4326 <-> EPSG:3857) + GeoJSON round-trip
+    geo_df = vksp.GeoDataFrame(
+        vpd.DataFrame({"lon": np.array([-73.9855], dtype=np.float32), "lat": np.array([40.7580], dtype=np.float32), "name": ["TS"]}),
+        x="lon", y="lat", crs="EPSG:4326",
+    )
+    merc = geo_df.to_crs("EPSG:3857")
+    assert merc.crs == "EPSG:3857"
+    back = merc.to_crs("EPSG:4326")
+    np.testing.assert_allclose(back["lon"].to_numpy(), [-73.9855], atol=1e-3)
+
+    gj_path = tmp_path / "pts.geojson"
+    vksp.to_geojson(merc, gj_path)
+    loaded = vksp.read_geojson(gj_path, to_mercator=False)
+    assert len(loaded) == 1
+    assert loaded.crs == "EPSG:4326"
+
+    # 4. Geometry & trajectory ops (bearing, euclidean, point_to_segment, area, centroid)
+    b = vksp.bearing(np.array([0.0], dtype=np.float32), np.array([0.0], dtype=np.float32),
+                     np.array([0.0], dtype=np.float32), np.array([1.0], dtype=np.float32)).to_numpy()[0]
+    assert abs(float(b) - 0.0) < 1e-2 or abs(float(b) - 360.0) < 1e-2
+    assert abs(float(vksp.euclidean_distance([0.0], [0.0], [3.0], [4.0]).to_numpy()[0]) - 5.0) < 1e-4
+    d_seg = vksp.point_to_segment_distance([5.0], [3.0], 0.0, 0.0, 10.0, 0.0).to_numpy()[0]
+    assert abs(float(d_seg) - 3.0) < 1e-4
+    assert abs(vksp.polygon_area(zones["east"]) - 40.0) < 1e-4
+    cx, cy = vksp.polygon_centroid(zones["east"])
+    assert abs(cx - 3.0) < 1e-4 and abs(cy - 0.0) < 1e-4

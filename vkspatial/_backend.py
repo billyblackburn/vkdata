@@ -47,6 +47,18 @@ def _load_lib() -> ctypes.CDLL:
     ]
     lib.vksp_point_in_polygon.restype = c_int
 
+    lib.vksp_sjoin_polygons.argtypes = [
+        c_void_p, c_size_t,
+        c_void_p, c_size_t,
+        c_int64,
+        c_void_p,
+        c_void_p,
+        c_void_p,
+        c_int,
+        c_void_p, c_size_t,
+    ]
+    lib.vksp_sjoin_polygons.restype = c_int
+
     _lib = lib
     return lib
 
@@ -126,4 +138,40 @@ def point_in_polygon_gpu(x: vnp.ndarray, y: vnp.ndarray, poly_xy: vnp.ndarray) -
     )
     if rc != 0:
         raise RuntimeError(f"vksp_point_in_polygon failed (rc={rc})")
+    return out
+
+
+def sjoin_polygons_gpu(
+    x: vnp.ndarray,
+    y: vnp.ndarray,
+    verts_xy: vnp.ndarray,
+    offsets: vnp.ndarray,
+    bboxes: vnp.ndarray,
+    n_polys: int,
+) -> vnp.ndarray:
+    """Single-pass zero-copy GPU multi-polygon spatial join; returns int32 zone_id (-1 if outside)."""
+    lib = _ensure_init()
+    vl = vkn_lib()
+    xx = vnp.asarray(x, dtype=_np.float32).ravel().contiguous()
+    yy = vnp.asarray(y, dtype=_np.float32).ravel().contiguous()
+    vv = vnp.asarray(verts_xy, dtype=_np.float32).ravel().contiguous()
+    oo = vnp.asarray(offsets, dtype=_np.int32).ravel().contiguous()
+    bb = vnp.asarray(bboxes, dtype=_np.float32).ravel().contiguous()
+    if xx.size != yy.size:
+        raise ValueError("x and y must have the same length")
+    out = vnp.ndarray._empty_uninit((xx.size,), _np.int32)
+    if xx.size == 0 or n_polys <= 0:
+        return out
+    rc = lib.vksp_sjoin_polygons(
+        vl.vkn_vk_get_raw_buffer(xx._buf.ptr), xx._offset,
+        vl.vkn_vk_get_raw_buffer(yy._buf.ptr), yy._offset,
+        xx.size,
+        vl.vkn_vk_get_raw_buffer(vv._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(oo._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(bb._buf.ptr),
+        int(n_polys),
+        vl.vkn_vk_get_raw_buffer(out._buf.ptr), 0,
+    )
+    if rc != 0:
+        raise RuntimeError(f"vksp_sjoin_polygons failed (rc={rc})")
     return out

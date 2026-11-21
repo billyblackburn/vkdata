@@ -130,9 +130,11 @@ set_target_properties(vkshader PROPERTIES
 set(VKSP_SPV_HEADERS
     "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_morton_2d.h"
     "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_point_in_polygon.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_sjoin_polygons.h"
 )
 vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/morton_2d.comp"        vksp_spv_morton_2d        "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_morton_2d.h")
 vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/point_in_polygon.comp" vksp_spv_point_in_polygon "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_point_in_polygon.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/sjoin_polygons.comp"   vksp_spv_sjoin_polygons   "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_sjoin_polygons.h")
 
 add_library(vkspatial SHARED
     cpp/vkspatial.cpp

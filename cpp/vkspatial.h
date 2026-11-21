@@ -36,6 +36,17 @@ int vksp_point_in_polygon(
     void* out_vkbuf, size_t out_off
 );
 
+int vksp_sjoin_polygons(
+    void* x_vkbuf, size_t x_off,
+    void* y_vkbuf, size_t y_off,
+    int64_t n,
+    void* verts_vkbuf,
+    void* offsets_vkbuf,
+    void* bboxes_vkbuf,
+    int n_polys,
+    void* out_vkbuf, size_t out_off
+);
+
 #ifdef __cplusplus
 }
 #endif

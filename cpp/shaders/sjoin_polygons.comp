@@ -1,0 +1,60 @@
+#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer XBuf      { float xs[]; };
+layout(set = 0, binding = 1) readonly buffer YBuf      { float ys[]; };
+layout(set = 0, binding = 2) readonly buffer VertsBuf  { float verts[]; };
+layout(set = 0, binding = 3) readonly buffer OffBuf    { int   offsets[]; };
+layout(set = 0, binding = 4) readonly buffer BboxBuf   { float bboxes[]; };
+layout(set = 0, binding = 5) writeonly buffer OutBuf   { int   out_zone[]; };
+
+layout(push_constant) uniform PC {
+    uint n;
+    uint n_polys;
+    uint x_base;
+    uint y_base;
+    uint out_base;
+} p;
+
+void main() {
+    uint stride = gl_NumWorkGroups.x * 256u;
+    for (uint i = gl_GlobalInvocationID.x; i < p.n; i += stride) {
+        float px = xs[p.x_base + i];
+        float py = ys[p.y_base + i];
+        int hit = -1;
+
+        if (!isnan(px) && !isnan(py)) {
+            for (uint k = 0u; k < p.n_polys; ++k) {
+                uint b4 = k * 4u;
+                if (px < bboxes[b4 + 0u] || px > bboxes[b4 + 1u] ||
+                    py < bboxes[b4 + 2u] || py > bboxes[b4 + 3u]) {
+                    continue;
+                }
+                int s = offsets[k];
+                int e = offsets[k + 1u];
+                int m = e - s;
+                if (m < 3) continue;
+
+                bool inside = false;
+                int j = m - 1;
+                for (int v = 0; v < m; ++v) {
+                    int iv = (s + v) * 2;
+                    int ij = (s + j) * 2;
+                    float xi = verts[iv];
+                    float yi = verts[iv + 1];
+                    float xj = verts[ij];
+                    float yj = verts[ij + 1];
+                    bool cond = ((yi > py) != (yj > py)) &&
+                                (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+                    if (cond) inside = !inside;
+                    j = v;
+                }
+                if (inside) {
+                    hit = int(k);
+                    break;
+                }
+            }
+        }
+        out_zone[p.out_base + i] = hit;
+    }
+}

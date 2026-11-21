@@ -4,6 +4,7 @@
 
 #include "vksp_spv_morton_2d.h"
 #include "vksp_spv_point_in_polygon.h"
+#include "vksp_spv_sjoin_polygons.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -33,6 +34,7 @@ struct State {
 
     Pipe p_morton;
     Pipe p_pip;
+    Pipe p_sjoin;
 };
 
 std::mutex g_mutex;
@@ -182,19 +184,20 @@ int vksp_init(
 
     VkDescriptorPoolSize pool_size{};
     pool_size.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    pool_size.descriptorCount = 16;
+    pool_size.descriptorCount = 32;
 
     VkDescriptorPoolCreateInfo dp_ci{};
     dp_ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    dp_ci.maxSets = 4;
+    dp_ci.maxSets = 8;
     dp_ci.poolSizeCount = 1;
     dp_ci.pPoolSizes = &pool_size;
     if (vkCreateDescriptorPool(g_st.dev, &dp_ci, nullptr, &g_st.desc_pool) != VK_SUCCESS) return -1;
 
     bool ok1 = create_pipe(g_st, vksp_spv_morton_2d, sizeof(vksp_spv_morton_2d), 3, 8 * sizeof(uint32_t), g_st.p_morton);
     bool ok2 = create_pipe(g_st, vksp_spv_point_in_polygon, sizeof(vksp_spv_point_in_polygon), 4, 6 * sizeof(uint32_t), g_st.p_pip);
+    bool ok3 = create_pipe(g_st, vksp_spv_sjoin_polygons, sizeof(vksp_spv_sjoin_polygons), 6, 5 * sizeof(uint32_t), g_st.p_sjoin);
 
-    g_st.ready = ok1 && ok2;
+    g_st.ready = ok1 && ok2 && ok3;
     return g_st.ready ? 0 : -1;
 }
 
@@ -273,6 +276,50 @@ int vksp_point_in_polygon(
             static_cast<VkBuffer>(x_vkbuf),
             static_cast<VkBuffer>(y_vkbuf),
             static_cast<VkBuffer>(poly_vkbuf),
+            static_cast<VkBuffer>(out_vkbuf),
+        },
+        &pc, sizeof(pc), n
+    );
+}
+
+int vksp_sjoin_polygons(
+    void* x_vkbuf, size_t x_off,
+    void* y_vkbuf, size_t y_off,
+    int64_t n,
+    void* verts_vkbuf,
+    void* offsets_vkbuf,
+    void* bboxes_vkbuf,
+    int n_polys,
+    void* out_vkbuf, size_t out_off
+) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (!g_st.ready || !x_vkbuf || !y_vkbuf || !verts_vkbuf || !offsets_vkbuf || !bboxes_vkbuf || !out_vkbuf ||
+        n < 0 || n_polys <= 0 || (x_off % 4 != 0) || (y_off % 4 != 0) || (out_off % 4 != 0)) {
+        return -1;
+    }
+
+    struct {
+        uint32_t n;
+        uint32_t n_polys;
+        uint32_t x_base;
+        uint32_t y_base;
+        uint32_t out_base;
+    } pc = {
+        static_cast<uint32_t>(n),
+        static_cast<uint32_t>(n_polys),
+        static_cast<uint32_t>(x_off / 4),
+        static_cast<uint32_t>(y_off / 4),
+        static_cast<uint32_t>(out_off / 4),
+    };
+
+    return dispatch_pipe(
+        g_st.p_sjoin,
+        {
+            static_cast<VkBuffer>(x_vkbuf),
+            static_cast<VkBuffer>(y_vkbuf),
+            static_cast<VkBuffer>(verts_vkbuf),
+            static_cast<VkBuffer>(offsets_vkbuf),
+            static_cast<VkBuffer>(bboxes_vkbuf),
             static_cast<VkBuffer>(out_vkbuf),
         },
         &pc, sizeof(pc), n
