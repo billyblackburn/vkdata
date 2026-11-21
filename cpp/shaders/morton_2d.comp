@@ -1,0 +1,38 @@
+#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer XBuf { float xs[]; };
+layout(set = 0, binding = 1) readonly buffer YBuf { float ys[]; };
+layout(set = 0, binding = 2) writeonly buffer OutBuf { int codes[]; };
+
+layout(push_constant) uniform PC {
+    uint n;
+    uint x_base;
+    uint y_base;
+    uint out_base;
+    float xmin;
+    float inv_dx;
+    float ymin;
+    float inv_dy;
+} p;
+
+// Spread 12 bits into even bit positions (24-bit result fits exactly in float32 for ggml_argsort)
+uint part1by1_12(uint v) {
+    v &= 0x0FFFu;
+    v = (v | (v << 8u)) & 0x00FF00FFu;
+    v = (v | (v << 4u)) & 0x0F0F0F0Fu;
+    v = (v | (v << 2u)) & 0x33333333u;
+    v = (v | (v << 1u)) & 0x55555555u;
+    return v;
+}
+
+void main() {
+    uint stride = gl_NumWorkGroups.x * 256u;
+    for (uint i = gl_GlobalInvocationID.x; i < p.n; i += stride) {
+        float u = clamp((xs[p.x_base + i] - p.xmin) * p.inv_dx, 0.0, 1.0);
+        float v = clamp((ys[p.y_base + i] - p.ymin) * p.inv_dy, 0.0, 1.0);
+        uint qx = min(uint(u * 4095.0), 4095u);
+        uint qy = min(uint(v * 4095.0), 4095u);
+        codes[p.out_base + i] = int(part1by1_12(qx) | (part1by1_12(qy) << 1u));
+    }
+}

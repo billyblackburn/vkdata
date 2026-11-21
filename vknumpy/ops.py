@@ -806,24 +806,38 @@ def not_equal(a: Any, b: Any) -> ndarray:
 
 def logical_not(x: Any) -> ndarray:
     xa = asarray(x)
+    if xa.dtype == _np.dtype(_np.bool_):
+        return ndarray._from_numpy(_np.logical_not(xa.to_numpy()))
     return equal(xa.astype(_np.float32), 0.0)
 
 
 def logical_and(a: Any, b: Any) -> ndarray:
-    xa = not_equal(asarray(a).astype(_np.float32), 0.0).astype(_np.float32)
-    xb = not_equal(asarray(b).astype(_np.float32), 0.0).astype(_np.float32)
+    xa_raw = asarray(a)
+    xb_raw = asarray(b)
+    if xa_raw.dtype == _np.dtype(_np.bool_) and xb_raw.dtype == _np.dtype(_np.bool_):
+        return ndarray._from_numpy(_np.logical_and(xa_raw.to_numpy(), xb_raw.to_numpy()))
+    xa = xa_raw.astype(_np.float32) if xa_raw.dtype == _np.dtype(_np.bool_) else _binary_gpu(VKN_BIN_NE, _np.not_equal, xa_raw.astype(_np.float32), 0.0)
+    xb = xb_raw.astype(_np.float32) if xb_raw.dtype == _np.dtype(_np.bool_) else _binary_gpu(VKN_BIN_NE, _np.not_equal, xb_raw.astype(_np.float32), 0.0)
     return greater(multiply(xa, xb), 0.5)
 
 
 def logical_or(a: Any, b: Any) -> ndarray:
-    xa = not_equal(asarray(a).astype(_np.float32), 0.0).astype(_np.float32)
-    xb = not_equal(asarray(b).astype(_np.float32), 0.0).astype(_np.float32)
+    xa_raw = asarray(a)
+    xb_raw = asarray(b)
+    if xa_raw.dtype == _np.dtype(_np.bool_) and xb_raw.dtype == _np.dtype(_np.bool_):
+        return ndarray._from_numpy(_np.logical_or(xa_raw.to_numpy(), xb_raw.to_numpy()))
+    xa = xa_raw.astype(_np.float32) if xa_raw.dtype == _np.dtype(_np.bool_) else _binary_gpu(VKN_BIN_NE, _np.not_equal, xa_raw.astype(_np.float32), 0.0)
+    xb = xb_raw.astype(_np.float32) if xb_raw.dtype == _np.dtype(_np.bool_) else _binary_gpu(VKN_BIN_NE, _np.not_equal, xb_raw.astype(_np.float32), 0.0)
     return greater(add(xa, xb), 0.5)
 
 
 def logical_xor(a: Any, b: Any) -> ndarray:
-    xa = not_equal(asarray(a).astype(_np.float32), 0.0).astype(_np.float32)
-    xb = not_equal(asarray(b).astype(_np.float32), 0.0).astype(_np.float32)
+    xa_raw = asarray(a)
+    xb_raw = asarray(b)
+    if xa_raw.dtype == _np.dtype(_np.bool_) and xb_raw.dtype == _np.dtype(_np.bool_):
+        return ndarray._from_numpy(_np.logical_xor(xa_raw.to_numpy(), xb_raw.to_numpy()))
+    xa = xa_raw.astype(_np.float32) if xa_raw.dtype == _np.dtype(_np.bool_) else _binary_gpu(VKN_BIN_NE, _np.not_equal, xa_raw.astype(_np.float32), 0.0)
+    xb = xb_raw.astype(_np.float32) if xb_raw.dtype == _np.dtype(_np.bool_) else _binary_gpu(VKN_BIN_NE, _np.not_equal, xb_raw.astype(_np.float32), 0.0)
     return not_equal(xa, xb)
 
 

@@ -118,6 +118,31 @@ set_target_properties(vkshader PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vkshader/_lib"
 )
 
+# Build libvkspatial.so (zero-copy GPU 2D Morton Z-order & point-in-polygon on vknumpy's VkDevice)
+set(VKSP_SPV_HEADERS
+    "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_morton_2d.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_point_in_polygon.h"
+)
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/morton_2d.comp"        vksp_spv_morton_2d        "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_morton_2d.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/point_in_polygon.comp" vksp_spv_point_in_polygon "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_point_in_polygon.h")
+
+add_library(vkspatial SHARED
+    cpp/vkspatial.cpp
+    ${VKSP_SPV_HEADERS}
+)
+
+target_include_directories(vkspatial PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpp
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+target_link_libraries(vkspatial PRIVATE Vulkan::Vulkan)
+
+set_target_properties(vkspatial PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vkspatial/_lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vkspatial/_lib"
+)
+
 # Install rules for scikit-build-core wheel packaging (only our shared libs, not static ggml/ncnn archives)
 install(TARGETS vknumpy
     LIBRARY DESTINATION vknumpy/_lib COMPONENT vkdata
@@ -126,4 +151,8 @@ install(TARGETS vknumpy
 install(TARGETS vkshader
     LIBRARY DESTINATION vkshader/_lib COMPONENT vkdata
     RUNTIME DESTINATION vkshader/_lib COMPONENT vkdata
+)
+install(TARGETS vkspatial
+    LIBRARY DESTINATION vkspatial/_lib COMPONENT vkdata
+    RUNTIME DESTINATION vkspatial/_lib COMPONENT vkdata
 )

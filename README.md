@@ -12,8 +12,10 @@
 |---|---|---|
 | **`vknumpy`** | `NumPy` / `CuPy` | GPU `ndarray`, GEMM/BLAS, ufuncs, reductions, `argsort`, `top_k`, `groupby_agg`, `searchsorted`, `merge_indices`, zero-copy O(N) `bincount` / `histogram` / `histogram2d`, and C Vulkan buffer interop |
 | **`vkpandas`** | `pandas` / `cuDF` | GPU `Series`, `DataFrame`, `read_parquet` / `read_csv`, filtering, `groupby`, `merge`, `sort_values`, `rolling`, `value_counts`, dictionary-encoded strings |
+| **`vkspatial`** | `SpatialPandas` / `cuSpatial` | Zero-copy GPU 2D Morton Z-order spatial partitioning (`GeoDataFrame`), GPU `point_in_polygon`, `lonlat_to_mercator` / `mercator_to_lonlat`, `haversine_distance`, `bbox` & `radius_query` |
 | **`vkshader`** | `Datashader` | Zero-copy GPU `Canvas`, `SpatialPoints`, GPU `eq_hist` / `log` / `cbrt` / `linear` shading, GPU `dynspread`, Fire colormap, VRAM-cached Esri World Imagery basemaps, and `anywidget` mouse/touch/box-zoom map |
 | **`vkholoviews`** | `HoloViews` | Declarative `Points`, `Tiles`, `Histogram`, `Bars`, `Curve`, `*` Overlay, `+` Layout, `.opts()`, `datashade()` / `rasterize()`, and live GPU-linked cross-filtering |
+| **`vkpanel`** | `Panel` | Reactive `Row`, `Column`, `Card`, `Tabs`, `Pane`, `DataTable`, sliders/dropdowns, and `pn.bind(...)` dashboards |
 | **`vklearn`** | `scikit-learn` / `cuML` | `StandardScaler`, `MinMaxScaler`, `LinearRegression`, `Ridge`, `LogisticRegression` (Newton-IRLS), `PCA`, `KMeans` (k-means++ + O(N) GPU `bincount`), `NearestNeighbors`, `KNeighborsClassifier`, `train_test_split`, `Pipeline`, and GPU metrics |
 
 ---

@@ -1,0 +1,37 @@
+#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer XBuf    { float xs[]; };
+layout(set = 0, binding = 1) readonly buffer YBuf    { float ys[]; };
+layout(set = 0, binding = 2) readonly buffer PolyBuf { float poly[]; }; // [x0, y0, x1, y1, ...]
+layout(set = 0, binding = 3) writeonly buffer OutBuf { int inside[]; };
+
+layout(push_constant) uniform PC {
+    uint n;
+    uint n_verts;
+    uint x_base;
+    uint y_base;
+    uint poly_base;
+    uint out_base;
+} p;
+
+void main() {
+    uint stride = gl_NumWorkGroups.x * 256u;
+    for (uint i = gl_GlobalInvocationID.x; i < p.n; i += stride) {
+        float px = xs[p.x_base + i];
+        float py = ys[p.y_base + i];
+        bool c = false;
+        uint j = p.n_verts - 1u;
+        for (uint k = 0u; k < p.n_verts; ++k) {
+            float xk = poly[p.poly_base + 2u * k];
+            float yk = poly[p.poly_base + 2u * k + 1u];
+            float xj = poly[p.poly_base + 2u * j];
+            float yj = poly[p.poly_base + 2u * j + 1u];
+            bool cond = ((yk > py) != (yj > py)) &&
+                        (px < (xj - xk) * (py - yk) / (yj - yk + 1e-20) + xk);
+            if (cond) c = !c;
+            j = k;
+        }
+        inside[p.out_base + i] = c ? 1 : 0;
+    }
+}
