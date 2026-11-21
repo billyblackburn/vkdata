@@ -40,7 +40,7 @@ pixi run test
 # 4. Build & auditwheel-repair a manylinux wheel (for PyPI / pip install)
 pixi run wheel
 
-# 5. Launch JupyterLab with all 14 example notebooks
+# 5. Launch JupyterLab with all 15 example notebooks
 pixi run lab
 ```
 
@@ -82,3 +82,4 @@ pixi run lab
 | [`opensky_vkdata.ipynb`](examples/opensky_vkdata.ipynb) | `vkshader`, `vkholoviews`, `vkpanel` | 10.23M OpenSky flight trajectories: density, country of origin, ascending/descending, velocity, 6-city airport close-ups, & full-Europe 3D orbit |
 | [`earthquakes_3d_vkdata.ipynb`](examples/earthquakes_3d_vkdata.ipynb) | `vkshader` (3D), `vkgeoviews`, `vkspatial`, `vklearn` | 2.12M real USGS earthquakes: global seismic map, tectonic `sjoin` choropleth, 3D subduction-zone explorer (depth up to 650 km), & GPU K-Means hotspots |
 | [`vkastro_milky_way_3d.ipynb`](examples/vkastro_milky_way_3d.ipynb) | `vkastro`, `vkshader` (3D), `vkplot` | 400,000 real ESA Gaia DR3 stars: Hertzsprung–Russell diagram, all-sky Galactic Aitoff map, 3D Solar Neighborhood fly-through, Pleiades cone search, & `FlatLambdaCDM` cosmology |
+| [`sdss_cosmic_web_3d.ipynb`](examples/sdss_cosmic_web_3d.ipynb) | `vkastro`, `vkshader` (3D), `vklearn`, `vkplot` | 150,000 real SDSS DR17 galaxies: Color–Magnitude Diagram (Red Sequence vs. Blue Cloud), 2D/3D Cosmic Web in Megaparsecs, & GPU K-Means supercluster finder |
