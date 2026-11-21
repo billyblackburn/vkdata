@@ -66,6 +66,9 @@ pixi run lab
 
 ## Example Notebooks (`examples/`)
 
+### Physics & Simulation (`examples/physics/`)
+- [`ocean_fft_3d.ipynb`](examples/physics/ocean_fft_3d.ipynb) — Vulkan GPU recreation of NVIDIA's CUDA `oceanFFT` (Tessendorf Phillips-spectrum 256×256 2D IFFT in ~25 ms, sunlit Fresnel wave shading, live time-stepping `vkpanel` app, & 3D wave mesh orbit)
+
 ### Structural Biology & Molecular (`examples/biology/`)
 - [`protein_molecule_3d.ipynb`](examples/biology/protein_molecule_3d.ipynb) — Real RCSB PDB proteins (`6VXX` 23.7k-atom SARS-CoV-2 Spike Trimer, `6M0J` Spike+ACE2, `4HHB` Hemoglobin) rendered as Vulkan 3D Blinn–Phong shaded sphere impostors + GPU `vkscipy.cdist` protein contact map
 
