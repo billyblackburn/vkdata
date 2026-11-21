@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout vkdata
+        uses: actions/checkout@v4
+
+      - name: Install Vulkan loader, Lavapipe software GPU & glslang
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libvulkan-dev vulkan-tools mesa-vulkan-drivers glslang-tools
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          pixi-version: latest
+          cache: true
+
+      - name: Clone & patch third_party (llama.cpp + ncnn)
+        run: pixi run setup
+
+      - name: Build libvknumpy.so & libvkshader.so
+        run: pixi run build
+
+      - name: Run full vkdata test suite (Lavapipe Vulkan)
+        run: pixi run test
+
+      - name: Build Python wheel with scikit-build-core
+        run: pixi run wheel
+
+      - name: Verify wheel metadata & contents
+        run: |
+          pixi run python -m zipfile -l dist/*.whl
+          pixi run twine check dist/*.whl
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vkdata-linux-wheel
+          path: dist/*.whl

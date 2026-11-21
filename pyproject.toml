@@ -1,18 +1,46 @@
 [build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "vkdata"
-version = "0.1.0"
+version = "0.1.0a1"
 description = "Vulkan GPU-accelerated PyData, HoloViz, and scikit-learn stack — no CUDA required"
+readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.10"
+authors = [{ name = "Billy Blackburn" }]
+keywords = ["vulkan", "gpu", "numpy", "pandas", "datashader", "holoviews", "scikit-learn", "ggml"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "Topic :: Scientific/Engineering",
+]
 dependencies = [
     "numpy>=1.26",
 ]
 
-[tool.setuptools.packages.find]
-include = ["vknumpy*", "vkpandas*", "vkshader*", "vkholoviews*", "vklearn*"]
+[project.optional-dependencies]
+io = ["pyarrow>=15.0"]
+viz = ["pillow>=10.0", "requests>=2.31", "ipywidgets>=8.0", "anywidget>=0.9"]
+all = ["pyarrow>=15.0", "pillow>=10.0", "requests>=2.31", "ipywidgets>=8.0", "anywidget>=0.9"]
+
+[project.urls]
+Homepage = "https://github.com/billyblackburn/vkdata"
+Repository = "https://github.com/billyblackburn/vkdata"
+
+[tool.scikit-build]
+cmake.version = ">=3.26"
+cmake.build-type = "Release"
+ninja.make-fallback = false
+install.components = ["vkdata"]
+wheel.packages = ["vknumpy", "vkpandas", "vkshader", "vkholoviews", "vklearn"]
+wheel.exclude = ["**/__pycache__/**", "**/*.pyc"]
+sdist.exclude = ["build/**", ".pixi/**", "third_party/**", "dist/**", "**/*.so"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

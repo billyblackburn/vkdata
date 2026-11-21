@@ -117,3 +117,13 @@ set_target_properties(vkshader PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vkshader/_lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vkshader/_lib"
 )
+
+# Install rules for scikit-build-core wheel packaging (only our shared libs, not static ggml/ncnn archives)
+install(TARGETS vknumpy
+    LIBRARY DESTINATION vknumpy/_lib COMPONENT vkdata
+    RUNTIME DESTINATION vknumpy/_lib COMPONENT vkdata
+)
+install(TARGETS vkshader
+    LIBRARY DESTINATION vkshader/_lib COMPONENT vkdata
+    RUNTIME DESTINATION vkshader/_lib COMPONENT vkdata
+)
