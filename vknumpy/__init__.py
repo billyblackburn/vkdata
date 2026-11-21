@@ -105,6 +105,8 @@ from .ops import (
     greater_equal,
     groupby_agg,
     heaviside,
+    histogram,
+    histogram2d,
     hsplit,
     hstack,
     inner,

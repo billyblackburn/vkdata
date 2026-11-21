@@ -16,9 +16,33 @@ set(GGML_STATIC ON CACHE BOOL "" FORCE)
 
 add_subdirectory(third_party/llama.cpp/ggml)
 
+find_program(GLSLANG_VALIDATOR glslangValidator REQUIRED)
+
+function(vkn_add_shader SHADER_SRC VAR_NAME OUT_HEADER)
+    add_custom_command(
+        OUTPUT "${OUT_HEADER}"
+        COMMAND "${GLSLANG_VALIDATOR}" -V --vn "${VAR_NAME}" -o "${OUT_HEADER}" "${SHADER_SRC}"
+        DEPENDS "${SHADER_SRC}"
+        COMMENT "Compiling Vulkan shader ${SHADER_SRC} -> ${OUT_HEADER}"
+    )
+endfunction()
+
+set(VKN_SPV_HEADERS
+    "${CMAKE_CURRENT_BINARY_DIR}/vkn_spv_bincount_i32.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vkn_spv_bincount_wf32.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vkn_spv_histogram2d_f32.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vkn_spv_histogram1d_f32.h"
+)
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/bincount_i32.comp"    vkn_spv_bincount_i32    "${CMAKE_CURRENT_BINARY_DIR}/vkn_spv_bincount_i32.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/bincount_wf32.comp"   vkn_spv_bincount_wf32   "${CMAKE_CURRENT_BINARY_DIR}/vkn_spv_bincount_wf32.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/histogram2d_f32.comp" vkn_spv_histogram2d_f32 "${CMAKE_CURRENT_BINARY_DIR}/vkn_spv_histogram2d_f32.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/histogram1d_f32.comp" vkn_spv_histogram1d_f32 "${CMAKE_CURRENT_BINARY_DIR}/vkn_spv_histogram1d_f32.h")
+
 set(VKNUMPY_SOURCES
     cpp/vknumpy_ggml.cpp
     cpp/vknumpy_ncnn.cpp
+    cpp/vknumpy_vk_direct.cpp
+    ${VKN_SPV_HEADERS}
 )
 
 set(VKNUMPY_LIBS
@@ -51,7 +75,11 @@ endif()
 
 target_include_directories(vknumpy PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/cpp
+    ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llama.cpp/ggml/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llama.cpp/ggml/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llama.cpp/ggml/src/ggml-vulkan
+    ${CMAKE_CURRENT_BINARY_DIR}/third_party/llama.cpp/ggml/src/ggml-vulkan
 )
 
 target_link_libraries(vknumpy PRIVATE ${VKNUMPY_LIBS})
@@ -60,4 +88,32 @@ target_link_libraries(vknumpy PRIVATE ${VKNUMPY_LIBS})
 set_target_properties(vknumpy PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vknumpy/_lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vknumpy/_lib"
+)
+
+# Build libvkshader.so (zero-copy GPU shading & basemap compositing on vknumpy's VkDevice)
+find_package(Vulkan REQUIRED)
+set(VKS_SPV_HEADERS
+    "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_stats.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_cdf.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_composite.h"
+)
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/shade_stats.comp"     vks_spv_shade_stats     "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_stats.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/shade_cdf.comp"       vks_spv_shade_cdf       "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_cdf.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/shade_composite.comp" vks_spv_shade_composite "${CMAKE_CURRENT_BINARY_DIR}/vks_spv_shade_composite.h")
+
+add_library(vkshader SHARED
+    cpp/vkshader.cpp
+    ${VKS_SPV_HEADERS}
+)
+
+target_include_directories(vkshader PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpp
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+target_link_libraries(vkshader PRIVATE Vulkan::Vulkan)
+
+set_target_properties(vkshader PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vkshader/_lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vkshader/_lib"
 )

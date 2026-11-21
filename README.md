@@ -1,116 +1,56 @@
-# vknumpy
+# vkdata
 
-**`vknumpy`** is a GPU-accelerated **NumPy drop-in** powered by [`llama.cpp`](https://github.com/ggml-org/llama.cpp)'s **`ggml-vulkan`** GEMM and BLAS compute shaders.
+**Vulkan GPU-accelerated PyData, HoloViz, and scikit-learn — no CUDA required.**
 
-It lets you run matrix multiplications, batched GEMM, `einsum` contractions, elementwise ufuncs, and reductions directly on **any Vulkan 1.3+ GPU** (AMD RADV, NVIDIA, Intel, Apple/MoltenVK) using familiar NumPy syntax — no CUDA or ROCm required.
+`vkdata` is a unified Vulkan 1.3+ GPU data science, machine learning, and interactive visualization stack built on `llama.cpp`'s `ggml-vulkan` (plus `Tencent/ncnn` and direct SPIR-V compute shaders). Every package shares a **single `VkDevice` and zero-copy `VkBuffer`s**, running on AMD, Intel, NVIDIA, Apple (MoltenVK), and Steam Deck APUs.
 
-> **Status / Limitations:** This project is an early prototype — **most of the NumPy API is not implemented yet.** GPU acceleration currently covers `float32`/`float16` GEMM & BLAS (`matmul`, `dot`, `outer`, 2-operand `einsum`, `linalg.solve_triangular`), GPU creation/manipulation/sorting (`zeros`, `full`, `arange`, `diag`, `tril`/`triu`, `concatenate`, `pad`, `roll`, `tile`, `take`, `cumsum`, `argsort`, `top_k`), elementwise ufuncs/comparisons/`where`/logicals, and `Tencent/ncnn`-backed Vulkan math & reductions (`max`, `min`, `prod`, `power`, `arctan2`, `arcsin`/`arccos`/`arctan`, `fmod`, `floor_divide`, `logaddexp`). Unsupported dtypes (such as `float64`/`int64`) and some higher-level routines (such as `linalg.solve`, `svd`, `qr`) currently fall back to CPU NumPy under the hood. See [docs/ROADMAP.md](docs/ROADMAP.md) for the full phase-by-phase breakdown.
+---
 
-## What It Does
+## Packages
 
-- **Direct `ggml-vulkan` C/C++ bridge (`libvknumpy.so`)**: Allocates GPU-resident buffers (`VknBuffer`) and dispatches compute graphs (`ggml_cgraph` + persistent `ggml_gallocr`) directly to `llama.cpp`'s Vulkan shaders, with automatic `ggml-cpu` fallback if no Vulkan GPU is available.
-- **Zero-copy transposed views**: `B.T` and `swapaxes(-1, -2)` track transposed layout lazily, so `A @ B.T` passes straight into `ggml_mul_mat` without an extra transpose copy.
-- **GEMM & BLAS**: `matmul` / `@` (2D, 3D, 4D batched + batch broadcasting, `float32` & `float16`), `dot`, `vdot`, `inner`, `outer`, `tensordot`, `einsum` (automatic GPU GEMM lowering for 2-operand contractions), and `linalg` (`norm`, `multi_dot`, `matrix_power`, `solve`, `inv`, `svd`, `qr`, `eigh`, etc.).
-- **Elementwise ufuncs & reductions**: `+`, `-`, `*`, `/` with broadcasting and fused scalar `scale_bias`, `abs`, `negative`, `square`, `sqrt`, `exp`, `log`, `sin`, `cos`, `tan`, `tanh`, `clip`, ML activations (`relu`, `sigmoid`, `silu`, `gelu`), and `sum`, `mean`, `var`, `std`, `argmax`, `argmin`.
-- **Precision control**:
-  - Defaults to **full IEEE FP32 precision** (`GGML_VK_DISABLE_F16=1`) for NumPy drop-in parity.
-  - Set `VKNUMPY_FAST_FP16=1` to enable `ggml-vulkan`'s FP16-dot2 GEMM path (~1.0–1.2 TFLOPS on AMD RADV VanGogh / Steam Deck).
+| Package | Mirrors | What It Provides |
+|---|---|---|
+| **`vknumpy`** | `NumPy` / `CuPy` | GPU `ndarray`, GEMM/BLAS, ufuncs, reductions, `argsort`, `top_k`, `groupby_agg`, `searchsorted`, `merge_indices`, zero-copy O(N) `bincount` / `histogram` / `histogram2d`, and C Vulkan buffer interop |
+| **`vkpandas`** | `pandas` / `cuDF` | GPU `Series`, `DataFrame`, `read_parquet` / `read_csv`, filtering, `groupby`, `merge`, `sort_values`, `rolling`, `value_counts`, dictionary-encoded strings |
+| **`vkshader`** | `Datashader` | Zero-copy GPU `Canvas`, `SpatialPoints`, GPU `eq_hist` / `log` / `cbrt` / `linear` shading, GPU `dynspread`, Fire colormap, VRAM-cached Esri World Imagery basemaps, and `anywidget` mouse/touch/box-zoom map |
+| **`vkholoviews`** | `HoloViews` | Declarative `Points`, `Tiles`, `Histogram`, `Bars`, `Curve`, `*` Overlay, `+` Layout, `.opts()`, `datashade()` / `rasterize()`, and live GPU-linked cross-filtering |
+| **`vklearn`** | `scikit-learn` / `cuML` | `StandardScaler`, `MinMaxScaler`, `LinearRegression`, `Ridge`, `LogisticRegression` (Newton-IRLS), `PCA`, `KMeans` (k-means++ + O(N) GPU `bincount`), `NearestNeighbors`, `KNeighborsClassifier`, `train_test_split`, `Pipeline`, and GPU metrics |
 
-## Installation
+---
 
-### Prerequisites
-- A Vulkan-capable GPU + driver (`libvulkan.so`) and `glslc` (from `shaderc` or the [Vulkan SDK](https://vulkan.lunarg.com/) >= 1.4).
-- [`pixi`](https://pixi.sh/) (recommended — installs Python, NumPy, CMake, Ninja, GCC, and SPIRV-Headers automatically), **or** a system C++17 compiler, CMake >= 3.20, Ninja, Vulkan 1.4+ headers, SPIRV-Headers, and Python >= 3.10 with NumPy.
-
-### Using `pixi` (Recommended)
+## Quick Start
 
 ```bash
-git clone https://github.com/billyblackburn/vknumpy.git
-cd vknumpy
-
-# 1. Install Python & C++ build toolchain into the workspace
-pixi install
-
-# 2. Fetch llama.cpp (shallow clone)
+# 1. Clone third_party (llama.cpp + ncnn) if needed
 pixi run setup
 
-# 3. Build ggml-vulkan + libvknumpy.so
-#    If your system Vulkan headers are < 1.4, point VULKAN_SDK to your Vulkan 1.4+ SDK:
-#    export VULKAN_SDK=/path/to/vulkansdk/1.4.x/x86_64
+# 2. Build both libvknumpy.so and libvkshader.so using all CPU cores
 pixi run build
 
-# 4. Install vknumpy in editable mode (optional, or use PYTHONPATH=.)
-pixi run pip install --no-build-isolation --no-deps -e .
-
-# 5. Run tests & GEMM benchmark
+# 3. Run all 49 tests across all 5 packages
 pixi run test
-pixi run bench
+
+# 4. Launch JupyterLab with all example notebooks
+pixi run lab
 ```
 
-### Manual Build (without `pixi`)
+---
 
-```bash
-git clone --depth 1 https://github.com/ggml-org/llama.cpp.git third_party/llama.cpp
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-pip install --no-build-isolation --no-deps -e .
-```
+## Measured Benchmarks (AMD Steam Deck APU `RADV VANGOGH`, 11.84M Real NYC Taxi Trips)
 
-## Short Example
+- **Parquet → GPU `vkpandas` load (`nyc_taxi_wide.parq`):** `0.38s`
+- **Zero-copy 2D point rasterization (`vknumpy.histogram2d`):** `5–10 ms`
+- **GPU `eq_hist` + Fire LUT + bilinear Esri composite + `dynspread` (`vkshader`):** `1.75 ms`
+- **Live linked 1D viewport histogram (`vknumpy.histogram` on 11.5M rows):** `1.2–7.0 ms`
+- **End-to-end interactive Jupyter pan/zoom (including JPEG):** `15–24 ms` (~42–65 FPS)
+- **GPU `Ridge` fare prediction (800k train / 200k test):** `0.13s` (`R² = 0.878`, `RMSE = $2.02`)
+- **GPU `LogisticRegression` Newton-IRLS (800k train, 4 iters):** `0.25s`
+- **GPU `KMeans` (`K=8` on 1,000,000 pickups, 20 iters):** `8.38s`
 
-```python
-import vknumpy as np
+---
 
-np.random.seed(0)
-print("Device:", np.device_info())
-
-# Allocate GPU-resident float32 arrays
-x = np.random.randn(1024, 1024)
-w = np.random.randn(1024, 1024)
-
-# GEMM on Vulkan GPU via llama.cpp (w.T uses zero-copy transposed fast path)
-y = x @ w.T
-
-# Chained elementwise ufuncs & reductions stay on GPU
-z = np.relu(y * 0.5 + 0.1)
-row_means = z.mean(axis=-1)
-
-# Batched attention-style contraction lowered directly to GPU GEMM
-q = np.random.randn(2, 4, 64, 64)
-k = np.random.randn(2, 4, 64, 64)
-scores = np.einsum("bhqd,bhkd->bhqk", q, k)
-
-# Download back to standard NumPy when needed
-host_arr = row_means.to_numpy()
-print("Output shape:", host_arr.shape, "mean:", round(float(row_means.mean()), 4), "scores shape:", scores.shape)
-```
-
-Output:
-
-```text
-ggml_vulkan: Found 1 Vulkan devices:
-ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 | fp16: 0 | bf16: 0 | fp4: 0 | warp size: 32 | shared memory: 65536 | int dot: 1 | matrix cores: none
-Device: {'backend': 'ggml-vulkan', 'vulkan': True, 'name': 'AMD Custom GPU 0405 (RADV VANGOGH)', 'free_memory_mb': 11524.56, 'total_memory_mb': 12288.0}
-Output shape: (1024,) mean: 6.433 scores shape: (2, 4, 64, 64)
-```
-
-## Benchmarks (AMD Custom GPU 0405 / RADV VanGogh)
-
-| Size / Dtype | Mode | NumPy CPU | `vknumpy` (`A @ B`) | `vknumpy` (`A @ B.T`) | Speedup (`B.T`) |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| `1024×1024` `float32` | IEEE FP32 (default) | 9.34 ms (230 GFLOPS) | 4.48 ms (479 GFLOPS) | 4.06 ms (529 GFLOPS) | **2.30x** |
-| `2048×2048` `float32` | IEEE FP32 (default) | 67.12 ms (256 GFLOPS) | 29.18 ms (589 GFLOPS) | 22.77 ms (755 GFLOPS) | **2.95x** |
-| `2048×2048` `float32` | `VKNUMPY_FAST_FP16=1` | 70.75 ms (243 GFLOPS) | 18.80 ms (914 GFLOPS) | 17.10 ms (**1.00 TFLOPS**) | **4.14x** |
-| `2048×2048` `float16` | `VKNUMPY_FAST_FP16=1` | *(slow scalar CPU)* | 15.61 ms (1.10 TFLOPS) | 14.52 ms (**1.18 TFLOPS**) | — |
-
-## Project Layout
-
-- [`cpp/vknumpy_ggml.h`](cpp/vknumpy_ggml.h) / [`cpp/vknumpy_ggml.cpp`](cpp/vknumpy_ggml.cpp): C ABI wrapping `ggml-vulkan` buffers and compute graphs.
-- [`cpp/vknumpy_ncnn.cpp`](cpp/vknumpy_ncnn.cpp): Optional `Tencent/ncnn` Vulkan bridge for extended reductions (`max`, `min`, `prod`) and math (`power`, `arctan2`, inverse trig, `fmod`, `floor_divide`, `logaddexp`).
-- [`docs/ROADMAP.md`](docs/ROADMAP.md): Phased implementation roadmap and summary of completed phases (Phase 0–2).
-- [`vknumpy/_backend.py`](vknumpy/_backend.py): `ctypes` loader and RAII `DeviceBuffer`.
-- [`vknumpy/ndarray.py`](vknumpy/ndarray.py): GPU-resident `ndarray` with NumPy operators and protocols.
-- [`vknumpy/ops.py`](vknumpy/ops.py): GEMM/BLAS, `einsum` lowering, ufuncs, reductions, and shape ops.
-- [`vknumpy/linalg.py`](vknumpy/linalg.py): Linear algebra routines.
-- [`vknumpy/creation.py`](vknumpy/creation.py): Array constructors and `random` submodule.
-- [`tests/test_vknumpy.py`](tests/test_vknumpy.py) & [`benchmarks/bench_gemm.py`](benchmarks/bench_gemm.py): Verification suite and GEMM benchmark.
+## Example Notebooks (`examples/`)
+- [`examples/vkpandas_demo.ipynb`](examples/vkpandas_demo.ipynb) — Full `vkpandas` DataFrame walkthrough
+- [`examples/nyc_taxi_vkshader.ipynb`](examples/nyc_taxi_vkshader.ipynb) — Terse 5-line interactive NYC Taxi map (`vkshader`)
+- [`examples/nyc_taxi_holoviews.ipynb`](examples/nyc_taxi_holoviews.ipynb) — 4-panel Vulkan HoloViz dashboard + live linked cross-filtering (`vkholoviews`)
+- [`examples/nyc_taxi_ml.ipynb`](examples/nyc_taxi_ml.ipynb) — GPU Fare & Tip (`$`) prediction, Tip classifier, K-Means hotspots, and interactive trip predictor (`vklearn`)

@@ -1,0 +1,32 @@
+#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer XBuf { int xs[]; };
+layout(set = 0, binding = 1) readonly buffer WBuf { float ws[]; };
+layout(set = 0, binding = 2) buffer OutBuf { uint sums[]; };
+
+layout(push_constant) uniform PC {
+    uint n;
+    uint out_len;
+    uint x_base;
+    uint w_base;
+    uint out_base;
+} p;
+
+void main() {
+    uint stride = gl_NumWorkGroups.x * 256u;
+    for (uint i = gl_GlobalInvocationID.x; i < p.n; i += stride) {
+        int b = xs[p.x_base + i];
+        if (b >= 0 && uint(b) < p.out_len) {
+            float w = ws[p.w_base + i];
+            uint idx = p.out_base + uint(b);
+            uint old_bits = sums[idx];
+            for (;;) {
+                uint new_bits = floatBitsToUint(uintBitsToFloat(old_bits) + w);
+                uint prev = atomicCompSwap(sums[idx], old_bits, new_bits);
+                if (prev == old_bits) break;
+                old_bits = prev;
+            }
+        }
+    }
+}

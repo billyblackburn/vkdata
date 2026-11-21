@@ -1,0 +1,22 @@
+#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer XBuf { int xs[]; };
+layout(set = 0, binding = 1) buffer OutBuf { int counts[]; };
+
+layout(push_constant) uniform PC {
+    uint n;
+    uint out_len;
+    uint x_base;
+    uint out_base;
+} p;
+
+void main() {
+    uint stride = gl_NumWorkGroups.x * 256u;
+    for (uint i = gl_GlobalInvocationID.x; i < p.n; i += stride) {
+        int b = xs[p.x_base + i];
+        if (b >= 0 && uint(b) < p.out_len) {
+            atomicAdd(counts[p.out_base + uint(b)], 1);
+        }
+    }
+}

@@ -337,6 +337,82 @@ int vkn_scatter_nonzero(
     VknBuffer* out_idx_i32, size_t out_off
 );
 
+/* Zero-copy O(N) Vulkan atomicAdd bincount & 2D histogram directly on ggml-vulkan's VkDevice / VkBuffer */
+int vkn_vk_direct_available(void);
+
+int vkn_vk_bincount_i32(
+    const VknBuffer* x_i32, size_t x_off,
+    int64_t n,
+    VknBuffer* out_i32, size_t out_off,
+    int64_t out_len
+);
+
+int vkn_vk_bincount_weighted_f32(
+    const VknBuffer* x_i32, size_t x_off,
+    const VknBuffer* w_f32, size_t w_off,
+    int64_t n,
+    VknBuffer* out_f32, size_t out_off,
+    int64_t out_len
+);
+
+int vkn_vk_histogram2d_f32(
+    const VknBuffer* x_f32, size_t x_off,
+    const VknBuffer* y_f32, size_t y_off,
+    int64_t n,
+    float xmin, float xmax,
+    float ymin, float ymax,
+    int width, int height,
+    int flip_y,
+    VknBuffer* out_i32, size_t out_off
+);
+
+int vkn_vk_histogram1d_f32(
+    const VknBuffer* v_f32, size_t v_off,
+    const VknBuffer* x_f32, size_t x_off,
+    const VknBuffer* y_f32, size_t y_off,
+    int64_t n,
+    int bins,
+    float vmin, float vmax,
+    int has_bbox,
+    float xmin, float xmax,
+    float ymin, float ymax,
+    VknBuffer* out_i32, size_t out_off
+);
+
+/* General-purpose zero-copy Vulkan interop for downstream libraries (e.g. vkshader) */
+void*    vkn_vk_get_device(void);
+uint32_t vkn_vk_get_compute_queue_family(void);
+void*    vkn_vk_get_raw_buffer(const VknBuffer* buf);
+int      vkn_vk_submit_compute(void* cmd_buf, void* fence);
+void     vkn_vk_synchronize(void);
+
+/* Fast O(N) Vulkan atomicAdd bincount & 2D histogram via ncnn Vulkan pipeline */
+int vkn_ncnn_bincount_i32(
+    const VknBuffer* x_i32, size_t x_off,
+    int64_t n,
+    VknBuffer* out_i32, size_t out_off,
+    int64_t out_len
+);
+
+int vkn_ncnn_bincount_weighted_f32(
+    const VknBuffer* x_i32, size_t x_off,
+    const VknBuffer* w_f32, size_t w_off,
+    int64_t n,
+    VknBuffer* out_f32, size_t out_off,
+    int64_t out_len
+);
+
+int vkn_ncnn_histogram2d_f32(
+    const VknBuffer* x_f32, size_t x_off,
+    const VknBuffer* y_f32, size_t y_off,
+    int64_t n,
+    float xmin, float xmax,
+    float ymin, float ymax,
+    int width, int height,
+    int flip_y,
+    VknBuffer* out_i32, size_t out_off
+);
+
 #ifdef __cplusplus
 }
 #endif

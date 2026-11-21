@@ -1,0 +1,43 @@
+#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer VBuf { float vals[]; };
+layout(set = 0, binding = 1) readonly buffer XBuf { float xs[]; };
+layout(set = 0, binding = 2) readonly buffer YBuf { float ys[]; };
+layout(set = 0, binding = 3) buffer OutBuf { int counts[]; };
+
+layout(push_constant) uniform PC {
+    uint n;
+    uint bins;
+    uint has_bbox;
+    uint v_base;
+    uint x_base;
+    uint y_base;
+    uint out_base;
+    float vmin;
+    float vmax;
+    float inv_dv;
+    float xmin;
+    float xmax;
+    float ymin;
+    float ymax;
+} p;
+
+void main() {
+    uint stride = gl_NumWorkGroups.x * 256u;
+    for (uint i = gl_GlobalInvocationID.x; i < p.n; i += stride) {
+        if (p.has_bbox != 0u) {
+            float xv = xs[p.x_base + i];
+            float yv = ys[p.y_base + i];
+            if (!(xv >= p.xmin && xv < p.xmax && yv >= p.ymin && yv < p.ymax)) {
+                continue;
+            }
+        }
+        float v = vals[p.v_base + i];
+        if (v >= p.vmin && v <= p.vmax) {
+            float u = (v - p.vmin) * p.inv_dv;
+            uint b = min(uint(u * float(p.bins)), p.bins - 1u);
+            atomicAdd(counts[p.out_base + b], 1);
+        }
+    }
+}

@@ -1710,15 +1710,61 @@ def groupby_agg(keys: Any, values: Any, op: str = "sum") -> Tuple[ndarray, ndarr
 
 
 def bincount(x: Any, weights: Any = None, minlength: int = 0) -> ndarray:
-    """Count occurrences of each non-negative int value on GPU via groupby_agg + scatter."""
+    """Count occurrences of each non-negative int value on GPU (zero-copy O(N) Vulkan atomicAdd)."""
     from .creation import zeros
-    xx = asarray(x, dtype=_np.int32).ravel()
+    xx = asarray(x, dtype=_np.int32).ravel().contiguous()
     if xx.size == 0:
         out_dt = _np.float32 if weights is not None else _np.int32
         return zeros((minlength,), dtype=out_dt)
 
     max_val = int(max(xx.astype(_np.float32)).item())
-    out_len = builtins.max(minlength, max_val + 1)
+    out_len = builtins.max(int(minlength), max_val + 1)
+
+    if lib().vkn_vk_direct_available():
+        if weights is None:
+            out = ndarray._empty_uninit((out_len,), _np.int32)
+            rc = lib().vkn_vk_bincount_i32(
+                xx._buf.ptr, xx._offset, xx.size,
+                out._buf.ptr, 0, out_len,
+            )
+            if rc == 0:
+                return out
+        else:
+            ww = asarray(weights, dtype=_np.float32).ravel().contiguous()
+            if ww.size != xx.size:
+                raise ValueError("weights and x must have the same length")
+            out = ndarray._empty_uninit((out_len,), _np.float32)
+            rc = lib().vkn_vk_bincount_weighted_f32(
+                xx._buf.ptr, xx._offset,
+                ww._buf.ptr, ww._offset,
+                xx.size,
+                out._buf.ptr, 0, out_len,
+            )
+            if rc == 0:
+                return out
+
+    if lib().vkn_ncnn_available():
+        if weights is None:
+            out = ndarray._empty_uninit((out_len,), _np.int32)
+            rc = lib().vkn_ncnn_bincount_i32(
+                xx._buf.ptr, xx._offset, xx.size,
+                out._buf.ptr, 0, out_len,
+            )
+            if rc == 0:
+                return out
+        else:
+            ww = asarray(weights, dtype=_np.float32).ravel().contiguous()
+            if ww.size != xx.size:
+                raise ValueError("weights and x must have the same length")
+            out = ndarray._empty_uninit((out_len,), _np.float32)
+            rc = lib().vkn_ncnn_bincount_weighted_f32(
+                xx._buf.ptr, xx._offset,
+                ww._buf.ptr, ww._offset,
+                xx.size,
+                out._buf.ptr, 0, out_len,
+            )
+            if rc == 0:
+                return out
 
     if weights is None:
         u_keys, counts = unique(xx, return_counts=True)
@@ -1730,6 +1776,173 @@ def bincount(x: Any, weights: Any = None, minlength: int = 0) -> ndarray:
     out = zeros((out_len,), dtype=_np.float32)
     put(out, u_keys, g_sums)
     return out
+
+
+def histogram2d(
+    x: Any,
+    y: Any,
+    bins: Any = 10,
+    range: Any = None,
+    flip_y: bool = False,
+) -> Tuple[ndarray, ndarray, ndarray]:
+    """Compute a 2D histogram on the Vulkan GPU in a single zero-copy O(N) atomicAdd pass.
+
+    When ``flip_y=False`` (default), matches ``numpy.histogram2d`` with output shape
+    ``(nx, ny)`` (x along axis 0, y along axis 1).
+    When ``flip_y=True``, uses image/canvas orientation with shape ``(height, width)``
+    where ``bins=(height, width)`` and row 0 corresponds to ``ymax``.
+    """
+    from .creation import linspace, zeros
+
+    xx = asarray(x, dtype=_np.float32).ravel().contiguous()
+    yy = asarray(y, dtype=_np.float32).ravel().contiguous()
+    if xx.size != yy.size:
+        raise ValueError("x and y must have the same length")
+
+    if isinstance(bins, int):
+        b0 = b1 = int(bins)
+    else:
+        b0, b1 = int(bins[0]), int(bins[1])
+
+    if range is None:
+        if xx.size == 0:
+            xmin, xmax, ymin, ymax = 0.0, 1.0, 0.0, 1.0
+        else:
+            xmin = float(nanmin(xx).item())
+            xmax = float(nanmax(xx).item())
+            ymin = float(nanmin(yy).item())
+            ymax = float(nanmax(yy).item())
+            if xmax <= xmin:
+                xmax = xmin + 1.0
+            if ymax <= ymin:
+                ymax = ymin + 1.0
+    else:
+        (xmin, xmax), (ymin, ymax) = (float(range[0][0]), float(range[0][1])), (float(range[1][0]), float(range[1][1]))
+
+    use_direct = bool(lib().vkn_vk_direct_available())
+    use_ncnn = (not use_direct) and bool(lib().vkn_ncnn_available())
+
+    if flip_y:
+        height, width = b0, b1
+        if xx.size > 0 and (use_direct or use_ncnn):
+            out = ndarray._empty_uninit((height, width), _np.int32)
+            fn = lib().vkn_vk_histogram2d_f32 if use_direct else lib().vkn_ncnn_histogram2d_f32
+            rc = fn(
+                xx._buf.ptr, xx._offset,
+                yy._buf.ptr, yy._offset,
+                xx.size,
+                xmin, xmax, ymin, ymax,
+                width, height, 1,
+                out._buf.ptr, 0,
+            )
+            check_rc(rc, "vkn_vk_histogram2d_f32" if use_direct else "vkn_ncnn_histogram2d_f32")
+        elif xx.size > 0:
+            h_np, _, _ = _np.histogram2d(
+                xx.to_numpy(), yy.to_numpy(),
+                bins=(width, height), range=((xmin, xmax), (ymin, ymax)),
+            )
+            out = ndarray._from_numpy(_np.ascontiguousarray(h_np.T[::-1], dtype=_np.int32))
+        else:
+            out = zeros((height, width), dtype=_np.int32)
+        xedges = linspace(xmin, xmax, width + 1)
+        yedges = linspace(ymin, ymax, height + 1)
+        return out, xedges, yedges
+
+    nx, ny = b0, b1
+    if xx.size > 0 and (use_direct or use_ncnn):
+        out = ndarray._empty_uninit((nx, ny), _np.int32)
+        fn = lib().vkn_vk_histogram2d_f32 if use_direct else lib().vkn_ncnn_histogram2d_f32
+        # Pass (y, x) with (width=ny, height=nx) so out[ix, iy] = out[ix * ny + iy]
+        rc = fn(
+            yy._buf.ptr, yy._offset,
+            xx._buf.ptr, xx._offset,
+            xx.size,
+            ymin, ymax, xmin, xmax,
+            ny, nx, 0,
+            out._buf.ptr, 0,
+        )
+        check_rc(rc, "vkn_vk_histogram2d_f32" if use_direct else "vkn_ncnn_histogram2d_f32")
+    elif xx.size > 0:
+        h_np, _, _ = _np.histogram2d(
+            xx.to_numpy(), yy.to_numpy(),
+            bins=(nx, ny), range=((xmin, xmax), (ymin, ymax)),
+        )
+        out = ndarray._from_numpy(_np.ascontiguousarray(h_np, dtype=_np.int32))
+    else:
+        out = zeros((nx, ny), dtype=_np.int32)
+    xedges = linspace(xmin, xmax, nx + 1)
+    yedges = linspace(ymin, ymax, ny + 1)
+    return out, xedges, yedges
+
+
+def histogram(
+    a: Any,
+    bins: int = 10,
+    range: Optional[Tuple[float, float]] = None,
+    xy: Optional[Tuple[Any, Any]] = None,
+    x_range: Optional[Tuple[float, float]] = None,
+    y_range: Optional[Tuple[float, float]] = None,
+) -> Tuple[ndarray, ndarray]:
+    """Compute a 1D histogram in a single zero-copy O(N) Vulkan atomicAdd pass.
+
+    Optionally accepts ``xy=(x, y), x_range=(xmin, xmax), y_range=(ymin, ymax)`` to
+    compute a spatially cross-filtered 1D histogram directly in GPU VRAM with zero
+    intermediate mask allocations.
+    """
+    from .creation import linspace, zeros
+
+    vv = asarray(a, dtype=_np.float32).ravel().contiguous()
+    nbins = int(bins)
+    if range is None:
+        if vv.size == 0:
+            vmin, vmax = 0.0, 1.0
+        else:
+            vmin = float(nanmin(vv).item())
+            vmax = float(nanmax(vv).item())
+            if vmax <= vmin:
+                vmax = vmin + 1.0
+    else:
+        vmin, vmax = float(range[0]), float(range[1])
+
+    edges = linspace(vmin, vmax, nbins + 1)
+    if vv.size == 0:
+        return zeros((nbins,), dtype=_np.int32), edges
+
+    has_bbox = xy is not None and x_range is not None and y_range is not None
+    if has_bbox:
+        xx = asarray(xy[0], dtype=_np.float32).ravel().contiguous()
+        yy = asarray(xy[1], dtype=_np.float32).ravel().contiguous()
+        if xx.size != vv.size or yy.size != vv.size:
+            raise ValueError("xy coordinates must have the same length as a")
+        xmin, xmax = float(x_range[0]), float(x_range[1])
+        ymin, ymax = float(y_range[0]), float(y_range[1])
+    else:
+        xx = yy = None
+        xmin = xmax = ymin = ymax = 0.0
+
+    if lib().vkn_vk_direct_available():
+        out = ndarray._empty_uninit((nbins,), _np.int32)
+        rc = lib().vkn_vk_histogram1d_f32(
+            vv._buf.ptr, vv._offset,
+            xx._buf.ptr if xx is not None else None, xx._offset if xx is not None else 0,
+            yy._buf.ptr if yy is not None else None, yy._offset if yy is not None else 0,
+            vv.size,
+            nbins,
+            vmin, vmax,
+            1 if has_bbox else 0,
+            xmin, xmax, ymin, ymax,
+            out._buf.ptr, 0,
+        )
+        check_rc(rc, "vkn_vk_histogram1d_f32")
+        return out, edges
+
+    v_np = vv.to_numpy()
+    if has_bbox and xx is not None and yy is not None:
+        x_np, y_np = xx.to_numpy(), yy.to_numpy()
+        m = (x_np >= xmin) & (x_np < xmax) & (y_np >= ymin) & (y_np < ymax)
+        v_np = v_np[m]
+    h_np, _ = _np.histogram(v_np, bins=nbins, range=(vmin, vmax))
+    return ndarray._from_numpy(h_np.astype(_np.int32)), edges
 
 
 def searchsorted(a: Any, v: Any, side: str = "left") -> ndarray:

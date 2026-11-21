@@ -462,6 +462,99 @@ class _LibHandle:
         ]
         lib.vkn_scatter_nonzero.restype = c_int
 
+        # Zero-copy O(N) Vulkan atomicAdd bincount & 2D histogram directly on ggml-vulkan's VkDevice
+        lib.vkn_vk_direct_available.argtypes = []
+        lib.vkn_vk_direct_available.restype = c_int
+
+        lib.vkn_vk_bincount_i32.argtypes = [
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+        ]
+        lib.vkn_vk_bincount_i32.restype = c_int
+
+        lib.vkn_vk_bincount_weighted_f32.argtypes = [
+            c_void_p, c_size_t,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+        ]
+        lib.vkn_vk_bincount_weighted_f32.restype = c_int
+
+        lib.vkn_vk_histogram2d_f32.argtypes = [
+            c_void_p, c_size_t,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+            c_float, c_float,
+            c_float, c_float,
+            c_int, c_int,
+            c_int,
+            c_void_p, c_size_t,
+        ]
+        lib.vkn_vk_histogram2d_f32.restype = c_int
+
+        lib.vkn_vk_histogram1d_f32.argtypes = [
+            c_void_p, c_size_t,
+            c_void_p, c_size_t,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+            c_int,
+            c_float, c_float,
+            c_int,
+            c_float, c_float,
+            c_float, c_float,
+            c_void_p, c_size_t,
+        ]
+        lib.vkn_vk_histogram1d_f32.restype = c_int
+
+        # General-purpose zero-copy Vulkan interop hooks (for downstream libs like vkshader)
+        lib.vkn_vk_get_device.argtypes = []
+        lib.vkn_vk_get_device.restype = c_void_p
+
+        lib.vkn_vk_get_compute_queue_family.argtypes = []
+        lib.vkn_vk_get_compute_queue_family.restype = ctypes.c_uint32
+
+        lib.vkn_vk_get_raw_buffer.argtypes = [c_void_p]
+        lib.vkn_vk_get_raw_buffer.restype = c_void_p
+
+        lib.vkn_vk_submit_compute.argtypes = [c_void_p, c_void_p]
+        lib.vkn_vk_submit_compute.restype = c_int
+
+        lib.vkn_vk_synchronize.argtypes = []
+        lib.vkn_vk_synchronize.restype = None
+
+        # Fast O(N) Vulkan atomicAdd bincount & 2D histogram
+        lib.vkn_ncnn_bincount_i32.argtypes = [
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+        ]
+        lib.vkn_ncnn_bincount_i32.restype = c_int
+
+        lib.vkn_ncnn_bincount_weighted_f32.argtypes = [
+            c_void_p, c_size_t,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+        ]
+        lib.vkn_ncnn_bincount_weighted_f32.restype = c_int
+
+        lib.vkn_ncnn_histogram2d_f32.argtypes = [
+            c_void_p, c_size_t,
+            c_void_p, c_size_t,
+            ctypes.c_int64,
+            c_float, c_float,
+            c_float, c_float,
+            c_int, c_int,
+            c_int,
+            c_void_p, c_size_t,
+        ]
+        lib.vkn_ncnn_histogram2d_f32.restype = c_int
+
 
 _handle = _LibHandle()
 

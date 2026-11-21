@@ -1,0 +1,45 @@
+#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer StatsBuf { uint stats[]; };
+layout(set = 0, binding = 1) buffer CdfBuf { float cdf[]; };
+
+shared uint s_chunk_sum[256];
+
+void main() {
+    uint tid = gl_LocalInvocationID.x;
+    uint base = tid * 8u;
+
+    // Local prefix sum of 8 bins per thread
+    uint local_vals[8];
+    uint running = 0u;
+    for (uint k = 0u; k < 8u; ++k) {
+        running += stats[base + k];
+        local_vals[k] = running;
+    }
+    s_chunk_sum[tid] = running;
+    barrier();
+
+    // Hillis-Steele inclusive scan across 256 chunk sums
+    for (uint offset = 1u; offset < 256u; offset <<= 1u) {
+        uint v = s_chunk_sum[tid];
+        if (tid >= offset) {
+            v += s_chunk_sum[tid - offset];
+        }
+        barrier();
+        s_chunk_sum[tid] = v;
+        barrier();
+    }
+
+    uint prev_total = (tid > 0u) ? s_chunk_sum[tid - 1u] : 0u;
+    uint total_nz = max(stats[2049], 1u);
+    float inv_total = 1.0 / float(total_nz);
+
+    for (uint k = 0u; k < 8u; ++k) {
+        uint bin_count = stats[base + k];
+        uint cum = prev_total + local_vals[k];
+        // Midpoint CDF rank in [0.05, 1.0]
+        float rank = (float(cum) - 0.5 * float(bin_count)) * inv_total;
+        cdf[base + k] = clamp(0.05 + 0.95 * rank, 0.05, 1.0);
+    }
+}

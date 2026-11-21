@@ -1491,3 +1491,14 @@ int vkn_scatter_nonzero(
 }
 
 } // extern "C"
+
+/* Internal C++ accessors for zero-copy ggml-vulkan direct shaders */
+ggml_backend_t vkn_internal_get_backend() {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (ensure_init_locked() != 0) return nullptr;
+    return g_backend;
+}
+
+ggml_backend_buffer_t vkn_internal_get_buffer(const VknBuffer* buf) {
+    return buf ? buf->buf : nullptr;
+}

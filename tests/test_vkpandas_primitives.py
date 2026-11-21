@@ -279,5 +279,50 @@ def test_track_f_rolling_lexsort_and_string_factorize():
     assert result_map == {"nyc": 90.0, "la": 35.0, "chi": 5.0}
 
 
+def test_fast_atomic_bincount_and_histogram2d():
+    rng = np.random.default_rng(123)
+
+    # Large unweighted & weighted bincount (exercises O(N) Vulkan atomicAdd + CAS)
+    bins_np = rng.integers(0, 500, size=200_000, dtype=np.int32)
+    w_np = rng.uniform(0.1, 5.0, size=200_000).astype(np.float32)
+
+    bc = vnp.bincount(vnp.array(bins_np), minlength=600)
+    np.testing.assert_array_equal(bc.to_numpy(), np.bincount(bins_np, minlength=600))
+
+    bc_w = vnp.bincount(vnp.array(bins_np), weights=vnp.array(w_np), minlength=600)
+    np.testing.assert_allclose(bc_w.to_numpy(), np.bincount(bins_np, weights=w_np, minlength=600), rtol=1e-4, atol=1e-3)
+
+    # Standard histogram2d (flip_y=False) matching numpy.histogram2d
+    x_np = rng.uniform(-10.0, 10.0, size=100_000).astype(np.float32)
+    y_np = rng.uniform(0.0, 20.0, size=100_000).astype(np.float32)
+    xr, yr = (-8.0, 8.0), (2.0, 18.0)
+
+    h_vk, xe_vk, ye_vk = vnp.histogram2d(vnp.array(x_np), vnp.array(y_np), bins=(32, 48), range=(xr, yr))
+    h_np, xe_np, ye_np = np.histogram2d(x_np, y_np, bins=(32, 48), range=(xr, yr))
+    np.testing.assert_array_equal(h_vk.to_numpy(), h_np.astype(np.int32))
+    np.testing.assert_allclose(xe_vk.to_numpy(), xe_np, rtol=1e-5)
+    np.testing.assert_allclose(ye_vk.to_numpy(), ye_np, rtol=1e-5)
+
+    # Canvas/image orientation histogram2d (flip_y=True)
+    h_img, _, _ = vnp.histogram2d(vnp.array(x_np), vnp.array(y_np), bins=(48, 32), range=(xr, yr), flip_y=True)
+    np.testing.assert_array_equal(h_img.to_numpy(), h_np.T[::-1].astype(np.int32))
+
+    # Fast 1D histogram + spatial bbox cross-filtered histogram1d
+    v_np = rng.uniform(0.0, 100.0, size=100_000).astype(np.float32)
+    h1_vk, e1_vk = vnp.histogram(vnp.array(v_np), bins=25, range=(0.0, 100.0))
+    h1_np, e1_np = np.histogram(v_np, bins=25, range=(0.0, 100.0))
+    np.testing.assert_array_equal(h1_vk.to_numpy(), h1_np.astype(np.int32))
+    np.testing.assert_allclose(e1_vk.to_numpy(), e1_np, rtol=1e-5)
+
+    h1_box_vk, _ = vnp.histogram(
+        vnp.array(v_np), bins=25, range=(0.0, 100.0),
+        xy=(vnp.array(x_np), vnp.array(y_np)), x_range=xr, y_range=yr,
+    )
+    mask = (x_np >= xr[0]) & (x_np < xr[1]) & (y_np >= yr[0]) & (y_np < yr[1])
+    h1_box_np, _ = np.histogram(v_np[mask], bins=25, range=(0.0, 100.0))
+    np.testing.assert_array_equal(h1_box_vk.to_numpy(), h1_box_np.astype(np.int32))
+
+
+
 
 

@@ -1,0 +1,25 @@
+#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer GridBuf { int counts[]; };
+layout(set = 0, binding = 1) buffer StatsBuf { uint stats[]; }; // [0..2047] hist, [2048] max_v, [2049] total_nz
+
+layout(push_constant) uniform PC {
+    uint n;
+    uint grid_base;
+} p;
+
+void main() {
+    uint stride = gl_NumWorkGroups.x * 256u;
+    for (uint i = gl_GlobalInvocationID.x; i < p.n; i += stride) {
+        int c = counts[p.grid_base + i];
+        if (c > 0) {
+            uint uc = uint(c);
+            atomicMax(stats[2048], uc);
+            atomicAdd(stats[2049], 1u);
+            float lv = log2(1.0 + float(uc));
+            uint b = min(uint(lv * (2047.0 / 24.0)), 2047u);
+            atomicAdd(stats[b], 1u);
+        }
+    }
+}
