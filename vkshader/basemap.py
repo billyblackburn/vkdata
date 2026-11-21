@@ -14,28 +14,37 @@ import requests
 import vknumpy as vnp
 
 _MERCATOR_HALF = 20037508.342789244
-_ESRI_URL = (
-    "https://server.arcgisonline.com/ArcGIS/rest/services/"
-    "World_Imagery/MapServer/tile/{z}/{y}/{x}"
-)
+_TILE_SOURCES: Dict[str, str] = {
+    "esri": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    "esri_imagery": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    "esri_street": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    "carto_dark": "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+    "carto_light": "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+    "osm": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+}
 _HTTP_SESSION = requests.Session()
-_TILE_MEM_CACHE: Dict[Tuple[int, int, int], Image.Image] = {}
-_MOSAIC_GPU_CACHE: Dict[Tuple[int, int, int, int, int], Tuple[vnp.ndarray, float, float, float, float]] = {}
+_TILE_MEM_CACHE: Dict[Tuple[str, int, int, int], Image.Image] = {}
+_MOSAIC_GPU_CACHE: Dict[Tuple[str, int, int, int, int, int], Tuple[vnp.ndarray, float, float, float, float]] = {}
 
 
 def _fetch_one_tile(
+    source: str,
     zoom: int,
     ty: int,
     tx: int,
     cache_dir: Path,
     alt_caches: Tuple[Path, ...],
 ) -> Tuple[int, int, Optional[Image.Image]]:
-    tile_key = (zoom, ty, tx)
+    src = source.lower()
+    url_tpl = _TILE_SOURCES.get(src, _TILE_SOURCES["esri"])
+    prefix = "esri" if src in ("esri", "esri_imagery") else src
+    tile_key = (prefix, zoom, ty, tx)
     tile = _TILE_MEM_CACHE.get(tile_key)
     if tile is not None:
         return ty, tx, tile
 
-    fname = f"esri_{zoom}_{ty}_{tx}.jpg"
+    ext = "jpg" if prefix.startswith("esri") else "png"
+    fname = f"{prefix}_{zoom}_{ty}_{tx}.{ext}"
     for d in (cache_dir, *alt_caches):
         cand = d / fname
         if cand.is_file():
@@ -45,9 +54,9 @@ def _fetch_one_tile(
 
     try:
         resp = _HTTP_SESSION.get(
-            _ESRI_URL.format(z=zoom, y=ty, x=tx),
+            url_tpl.format(z=zoom, y=ty, x=tx),
             timeout=5,
-            headers={"User-Agent": "vkshader/0.1"},
+            headers={"User-Agent": "vkdata-vkshader/0.1 (https://github.com/billyblackburn/vkdata)"},
         )
         resp.raise_for_status()
     except requests.RequestException:
@@ -59,15 +68,17 @@ def _fetch_one_tile(
     return ty, tx, tile
 
 
-def get_esri_mosaic_gpu(
+def get_tile_mosaic_gpu(
     x_range: Tuple[float, float],
     y_range: Tuple[float, float],
     width: int,
     height: int,
+    source: str = "esri",
     zoom: Optional[int] = None,
     cache_dir: Path = Path("/tmp/vkshader_esri_cache"),
 ) -> Optional[Tuple[vnp.ndarray, Tuple[float, float, float, float]]]:
-    """Fetch/cache an Esri World Imagery mosaic in GPU VRAM and return (bg_gpu_i32, uv_rect)."""
+    """Fetch/cache a Web Mercator tile mosaic in GPU VRAM and return (bg_gpu_i32, uv_rect)."""
+    src = source.lower()
     alt_caches = (Path("/tmp/vkpandas_esri_cache"), Path("/tmp/vupy_esri_cache"))
     cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -86,7 +97,7 @@ def get_esri_mosaic_gpu(
             break
         zoom -= 1
 
-    mosaic_key = (zoom, tx0, tx1, ty0, ty1)
+    mosaic_key = (src, zoom, tx0, tx1, ty0, ty1)
     cached = _MOSAIC_GPU_CACHE.get(mosaic_key)
     if cached is not None:
         bg_gpu, bx0, bx1, by0, by1 = cached
@@ -99,10 +110,10 @@ def get_esri_mosaic_gpu(
         ]
         canvas = Image.new("RGBA", ((tx1 - tx0 + 1) * 256, (ty1 - ty0 + 1) * 256))
         if len(coords) <= 1:
-            results = [_fetch_one_tile(zoom, ty, tx, cache_dir, alt_caches) for ty, tx in coords]
+            results = [_fetch_one_tile(src, zoom, ty, tx, cache_dir, alt_caches) for ty, tx in coords]
         else:
             with ThreadPoolExecutor(max_workers=min(8, len(coords))) as pool:
-                results = list(pool.map(lambda c: _fetch_one_tile(zoom, c[0], c[1], cache_dir, alt_caches), coords))
+                results = list(pool.map(lambda c: _fetch_one_tile(src, zoom, c[0], c[1], cache_dir, alt_caches), coords))
 
         for ty, tx, tile in results:
             if tile is None:
@@ -126,3 +137,15 @@ def get_esri_mosaic_gpu(
     uv_top = (by1 - y_range[1]) / (by1 - by0)
     uv_bottom = (by1 - y_range[0]) / (by1 - by0)
     return bg_gpu, (uv_left, uv_top, uv_right, uv_bottom)
+
+
+def get_esri_mosaic_gpu(
+    x_range: Tuple[float, float],
+    y_range: Tuple[float, float],
+    width: int,
+    height: int,
+    zoom: Optional[int] = None,
+    cache_dir: Path = Path("/tmp/vkshader_esri_cache"),
+) -> Optional[Tuple[vnp.ndarray, Tuple[float, float, float, float]]]:
+    """Fetch/cache an Esri World Imagery mosaic in GPU VRAM (backwards-compatible wrapper)."""
+    return get_tile_mosaic_gpu(x_range, y_range, width, height, source="esri", zoom=zoom, cache_dir=cache_dir)

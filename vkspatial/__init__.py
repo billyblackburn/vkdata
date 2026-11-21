@@ -2,6 +2,8 @@
 
 from .geodataframe import GeoDataFrame
 from .io import read_geojson, to_geojson
+
+read_file = read_geojson  # GeoPandas-compatible alias
 from .ops import (
     bearing,
     euclidean_distance,

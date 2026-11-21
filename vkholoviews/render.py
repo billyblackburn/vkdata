@@ -206,6 +206,7 @@ def _render_spatial_overlay(layers: List[Viewable], opts: dict) -> Image.Image:
 
     basemap: Optional[str] = None
     ds_layer: Optional[Any] = None
+    poly_layers: List[Any] = []
     for lyr in layers:
         if isinstance(lyr, Tiles):
             basemap = lyr.source
@@ -215,13 +216,34 @@ def _render_spatial_overlay(layers: List[Viewable], opts: dict) -> Image.Image:
             ds_layer = DatashadedPoints(lyr, how=opts.get("how", "eq_hist"))
         elif isinstance(lyr, Path):
             ds_layer = DatashadedPaths(lyr, how=opts.get("how", "eq_hist"))
+        elif hasattr(lyr, "draw_onto") and hasattr(lyr, "bounds_mercator"):
+            poly_layers.append(lyr)
 
-    if ds_layer is None:
+    if ds_layer is None and not poly_layers:
         return Image.new("RGBA", (w, h), _BG_DARK)
 
-    xr, yr = _infer_ranges(ds_layer, opts)
-    shaded = ds_layer.render_gpu(w, h, xr, yr, basemap=basemap, how=opts.get("how"))
-    pil_img = shaded.to_pil()
+    if ds_layer is not None:
+        xr, yr = _infer_ranges(ds_layer, opts)
+        shaded = ds_layer.render_gpu(w, h, xr, yr, basemap=basemap, how=opts.get("how"))
+        pil_img = shaded.to_pil()
+    else:
+        xr = opts.get("xlim") or poly_layers[0].get_opt("xlim")
+        yr = opts.get("ylim") or poly_layers[0].get_opt("ylim")
+        if xr is None or yr is None:
+            bxr, byr = poly_layers[0].bounds_mercator()
+            xr = xr or bxr
+            yr = yr or byr
+        xr = (float(xr[0]), float(xr[1]))
+        yr = (float(yr[0]), float(yr[1]))
+        if basemap:
+            empty_agg = vks.AggResult(grid=vnp.zeros((h, w), dtype=np.int32), x_range=xr, y_range=yr)
+            pil_img = vks.shade(empty_agg, basemap=basemap, spread_px=0).to_pil()
+        else:
+            pil_img = Image.new("RGBA", (w, h), _BG_DARK)
+
+    for plyr in poly_layers:
+        pil_img = plyr.draw_onto(pil_img, xr, yr)
+
     if title:
         canvas = Image.new("RGBA", (w, h + 28), _BG_DARK)
         draw = ImageDraw.Draw(canvas)
@@ -269,7 +291,9 @@ def render_viewable(obj: Viewable) -> Image.Image:
         return _render_layout(obj)
     if isinstance(obj, Overlay):
         return _render_spatial_overlay(obj.layers, obj._opts)
-    if isinstance(obj, (DatashadedPoints, Points, DatashadedPaths, Path)):
+    if isinstance(obj, (DatashadedPoints, Points, DatashadedPaths, Path)) or (
+        hasattr(obj, "draw_onto") and hasattr(obj, "bounds_mercator")
+    ):
         return _render_spatial_overlay([obj], obj._opts)
     if isinstance(obj, Bars):
         return _render_bars(obj)

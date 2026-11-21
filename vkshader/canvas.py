@@ -12,7 +12,7 @@ from PIL import Image
 import vknumpy as vnp
 
 from ._backend import raster_lines_gpu, shade_aux_rgba_gpu, shade_rgba_gpu
-from .basemap import get_esri_mosaic_gpu
+from .basemap import get_esri_mosaic_gpu, get_tile_mosaic_gpu
 
 _CAT_CODES_CACHE: dict = {}
 
@@ -345,8 +345,8 @@ def shade(
     h, w = int(agg.grid.shape[0]), int(agg.grid.shape[1])
     bg_gpu = None
     uv_rect = (0.0, 0.0, 1.0, 1.0)
-    if basemap == "esri":
-        res = get_esri_mosaic_gpu(agg.x_range, agg.y_range, w, h, zoom=zoom)
+    if basemap:
+        res = get_tile_mosaic_gpu(agg.x_range, agg.y_range, w, h, source=basemap, zoom=zoom)
         if res is not None:
             bg_gpu, uv_rect = res
     if agg.mode == "count":
