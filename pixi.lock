@@ -135,6 +135,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/openjpeg-2.5.4-heb1ab33_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.6.5-h781a0a9_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/orc-2.3.1-h5cad9d3_3.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/patchelf-0.19.3-hee9eb32_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pcre2-10.49-h8b3dc9c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pillow-13.0.0-py312h38079b3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/pkg-config-0.29.2-h1114479_1013.conda
@@ -175,6 +176,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/asttokens-3.0.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/async-lru-2.4.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/attrs-26.1.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/auditwheel-6.8.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/babel-2.18.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/backports-1.0-pyhd8ed1ab_5.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/backports.tarfile-1.2.0-pyhcf101f3_2.conda
@@ -258,6 +260,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/ptyprocess-0.7.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pure_eval-0.2.4-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pycparser-3.12-pyh5ded981_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pyelftools-0.33-pyh8f84b5b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.21.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyproject_hooks-1.3.3-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytest-9.2.0-pyhc364b38_1.conda
@@ -2205,6 +2208,18 @@ packages:
     - orc >=2.3.1,<2.3.2.0a0
   size: 1453142
   timestamp: 1794512394700
+- conda: https://conda.anaconda.org/conda-forge/linux-64/patchelf-0.19.3-hee9eb32_0.conda
+  sha256: 7da285de77a135989c68f0ecc12ea90532ae93235604f0a8852c64eec018c649
+  md5: f5aebd2e337f70a4c5165b3318717011
+  depends:
+  - libstdcxx >=15
+  - libgcc >=15
+  - __glibc >=2.17,<3.0.a0
+  license: GPL-3.0-or-later
+  license_family: GPL
+  run_exports: {}
+  size: 153872
+  timestamp: 1793409194884
 - conda: https://conda.anaconda.org/conda-forge/linux-64/pcre2-10.49-h8b3dc9c_0.conda
   sha256: 63784a2dd0231cf8944b31a781b4ebab48954a94cd455d13585874370e46b658
   md5: db724d35be3a1c7b6cd49b7a03de4027
@@ -2788,6 +2803,18 @@ packages:
   run_exports: {}
   size: 64927
   timestamp: 1773935801332
+- conda: https://conda.anaconda.org/conda-forge/noarch/auditwheel-6.8.2-pyhd8ed1ab_0.conda
+  sha256: a055172af3241da20fb5282f3645c8b3385c849afe869bdfe254625fc8a40dca
+  md5: 020d5564e7c2f1b7c0afedebb8d7534c
+  depends:
+  - packaging >=20.9
+  - pyelftools >=0.24
+  - python >=3.10
+  license: MIT
+  license_family: MIT
+  run_exports: {}
+  size: 57797
+  timestamp: 1788203305439
 - conda: https://conda.anaconda.org/conda-forge/noarch/babel-2.18.0-pyhcf101f3_1.conda
   sha256: a14a9ad02101aab25570543a59c5193043b73dc311a25650134ed9e6cb691770
   md5: f1976ce927373500cc19d3c0b2c85177
@@ -3847,6 +3874,17 @@ packages:
   run_exports: {}
   size: 68212
   timestamp: 1792687210543
+- conda: https://conda.anaconda.org/conda-forge/noarch/pyelftools-0.33-pyh8f84b5b_0.conda
+  sha256: 6f18a3609c93321d37bd4059c255da736b95afdf6180382854a48c48c6a8b823
+  md5: b0e199724ac880c3593df23944b53e93
+  depends:
+  - python >=3.10
+  - __unix
+  - python
+  license: Unlicense
+  run_exports: {}
+  size: 164992
+  timestamp: 1780071154221
 - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.21.0-pyhcf101f3_0.conda
   sha256: f5f015ff1bc3e1b7fc08eee096b1865234189ae0b82bebdb86a5369116e42fa0
   md5: 2882dee445dfa45b0c5afce3ffb7730a
