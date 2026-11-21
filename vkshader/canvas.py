@@ -14,6 +14,8 @@ import vknumpy as vnp
 from ._backend import raster_lines_gpu, shade_aux_rgba_gpu, shade_rgba_gpu
 from .basemap import get_esri_mosaic_gpu
 
+_CAT_CODES_CACHE: dict = {}
+
 
 _NAMED_COLORS = {
     "red": (255, 65, 54),
@@ -245,8 +247,12 @@ class Canvas:
         """
         xr = x_range or self.x_range
         yr = y_range or self.y_range
-        xs = _extract_gpu_col(source, x).astype(np.float32)
-        ys = _extract_gpu_col(source, y).astype(np.float32)
+        xs = _extract_gpu_col(source, x)
+        if xs.dtype != np.float32:
+            xs = xs.astype(np.float32)
+        ys = _extract_gpu_col(source, y)
+        if ys.dtype != np.float32:
+            ys = ys.astype(np.float32)
         if xr is None:
             xr = (float(vnp.nanmin(xs).item()), float(vnp.nanmax(xs).item()))
         if yr is None:
@@ -260,7 +266,9 @@ class Canvas:
             raise ValueError(f"column is required for agg={agg!r}")
 
         if agg == "mean":
-            vals = _extract_gpu_col(source, column).astype(np.float32)
+            vals = _extract_gpu_col(source, column)
+            if vals.dtype != np.float32:
+                vals = vals.astype(np.float32)
             grid, aux = raster_lines_gpu(xs, ys, self.plot_width, self.plot_height, xr, yr, mode=1, vals=vals)
             lo = float(vmin) if vmin is not None else float(vnp.nanmin(vals).item())
             hi = float(vmax) if vmax is not None else float(vnp.nanmax(vals).item())
@@ -272,21 +280,38 @@ class Canvas:
 
         if agg == "by":
             col_obj = source[column]
-            if hasattr(col_obj, "values") and isinstance(col_obj.values, vnp.ndarray):
-                codes = col_obj.values.astype(np.int32)
-                n_cats = max(2, int(vnp.max(codes).item()) + 1)
-            elif hasattr(col_obj, "_codes") and isinstance(col_obj._codes, vnp.ndarray):
-                codes = col_obj._codes.astype(np.int32)
-                n_cats = max(2, len(getattr(col_obj, "_categories", [])) or int(vnp.max(codes).item()) + 1)
+            cache_key = (id(source), str(column))
+            cached_cat = _CAT_CODES_CACHE.get(cache_key)
+            if cached_cat is not None and cached_cat[0] is col_obj:
+                codes, n_cats = cached_cat[1], cached_cat[2]
             else:
-                arr = np.asarray(col_obj)
-                if arr.dtype == np.bool_ or np.issubdtype(arr.dtype, np.integer):
-                    codes = vnp.array(arr.astype(np.int32), dtype=np.int32)
-                    n_cats = max(2, int(arr.max()) + 1) if arr.size else 2
+                if hasattr(col_obj, "values") and isinstance(col_obj.values, vnp.ndarray):
+                    codes = col_obj.values if col_obj.values.dtype == np.int32 else col_obj.values.astype(np.int32)
+                    n_cats = max(2, int(vnp.max(codes).item()) + 1)
+                elif hasattr(col_obj, "_codes") and isinstance(col_obj._codes, vnp.ndarray):
+                    codes = col_obj._codes if col_obj._codes.dtype == np.int32 else col_obj._codes.astype(np.int32)
+                    n_cats = max(2, len(getattr(col_obj, "_categories", [])) or int(vnp.max(codes).item()) + 1)
                 else:
-                    _, inv = np.unique(arr, return_inverse=True)
-                    codes = vnp.array(inv.astype(np.int32), dtype=np.int32)
-                    n_cats = max(2, int(inv.max()) + 1) if inv.size else 2
+                    try:
+                        import pyarrow as pa
+                        import pyarrow.compute as pc
+                        raw = col_obj.values if hasattr(col_obj, "values") else col_obj
+                        enc = pc.dictionary_encode(pa.array(raw))
+                        idx_np = enc.indices.to_numpy(zero_copy_only=False).astype(np.int32)
+                        codes = vnp.array(idx_np, dtype=np.int32)
+                        n_cats = max(2, len(enc.dictionary))
+                    except Exception:
+                        arr = np.asarray(col_obj)
+                        if arr.dtype == np.bool_ or np.issubdtype(arr.dtype, np.integer):
+                            codes = vnp.array(arr.astype(np.int32), dtype=np.int32)
+                            n_cats = max(2, int(arr.max()) + 1) if arr.size else 2
+                        else:
+                            _, inv = np.unique(arr, return_inverse=True)
+                            codes = vnp.array(inv.astype(np.int32), dtype=np.int32)
+                            n_cats = max(2, int(inv.max()) + 1) if inv.size else 2
+                if len(_CAT_CODES_CACHE) > 16:
+                    _CAT_CODES_CACHE.clear()
+                _CAT_CODES_CACHE[cache_key] = (col_obj, codes, n_cats)
 
             pal_gpu = _build_palette_gpu(color_key, n_cats=n_cats)
             grid, aux = raster_lines_gpu(
