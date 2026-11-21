@@ -7,6 +7,8 @@
 #include "vks_spv_shade_composite.h"
 #include "vks_spv_line_raster.h"
 #include "vks_spv_shade_cat_composite.h"
+#include "vks_spv_raster_3d.h"
+#include "vks_spv_shade_3d_composite.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -39,6 +41,8 @@ struct State {
     Pipe p_comp;
     Pipe p_line;
     Pipe p_aux_comp;
+    Pipe p_r3d;
+    Pipe p_s3d;
 };
 
 std::mutex g_mutex;
@@ -174,11 +178,11 @@ int vks_init(
 
     VkDescriptorPoolSize pool_size{};
     pool_size.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    pool_size.descriptorCount = 32;
+    pool_size.descriptorCount = 64;
 
     VkDescriptorPoolCreateInfo dp_ci{};
     dp_ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    dp_ci.maxSets = 8;
+    dp_ci.maxSets = 12;
     dp_ci.poolSizeCount = 1;
     dp_ci.pPoolSizes = &pool_size;
     if (vkCreateDescriptorPool(g_st.dev, &dp_ci, nullptr, &g_st.desc_pool) != VK_SUCCESS) {
@@ -190,8 +194,10 @@ int vks_init(
     bool ok3 = create_pipe(g_st, vks_spv_shade_composite, sizeof(vks_spv_shade_composite), 5, 15 * sizeof(uint32_t), g_st.p_comp);
     bool ok4 = create_pipe(g_st, vks_spv_line_raster, sizeof(vks_spv_line_raster), 6, 12 * sizeof(uint32_t), g_st.p_line);
     bool ok5 = create_pipe(g_st, vks_spv_shade_cat_composite, sizeof(vks_spv_shade_cat_composite), 4, 15 * sizeof(uint32_t), g_st.p_aux_comp);
+    bool ok6 = create_pipe(g_st, vks_spv_raster_3d, sizeof(vks_spv_raster_3d), 8, 8 * sizeof(uint32_t), g_st.p_r3d);
+    bool ok7 = create_pipe(g_st, vks_spv_shade_3d_composite, sizeof(vks_spv_shade_3d_composite), 5, 13 * sizeof(uint32_t), g_st.p_s3d);
 
-    g_st.ready = ok1 && ok2 && ok3 && ok4 && ok5;
+    g_st.ready = ok1 && ok2 && ok3 && ok4 && ok5 && ok6 && ok7;
     return g_st.ready ? 0 : -1;
 }
 
@@ -499,6 +505,174 @@ int vks_shade_aux_rgba(
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_aux_comp.pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_aux_comp.pipe_layout, 0, 1, &g_st.p_aux_comp.desc_set, 0, nullptr);
     vkCmdPushConstants(cmd, g_st.p_aux_comp.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc), &pc);
+    vkCmdDispatch(cmd, groups, 1, 1);
+
+    if (vkEndCommandBuffer(cmd) != VK_SUCCESS) return -1;
+    if (g_st.submit_fn(cmd, g_st.fence) != 0) return -1;
+    VkResult wrc = vkWaitForFences(g_st.dev, 1, &g_st.fence, VK_TRUE, UINT64_MAX);
+    VkResult rrc = vkResetFences(g_st.dev, 1, &g_st.fence);
+    return (wrc == VK_SUCCESS && rrc == VK_SUCCESS) ? 0 : -1;
+}
+
+int vks_raster_3d(
+    void* x_vkbuf, size_t x_off,
+    void* y_vkbuf, size_t y_off,
+    void* z_vkbuf, size_t z_off,
+    void* vals_vkbuf, size_t vals_off,
+    void* palette_vkbuf,
+    void* cam_vkbuf,
+    uint32_t n,
+    int width, int height,
+    int mode,
+    void* count_vkbuf,
+    void* aux_vkbuf
+) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (!g_st.ready || !x_vkbuf || !y_vkbuf || !z_vkbuf || !cam_vkbuf || !count_vkbuf || !aux_vkbuf) return -1;
+    if (width <= 0 || height <= 0 || (x_off % 4 != 0) || (y_off % 4 != 0) || (z_off % 4 != 0) || (vals_off % 4 != 0)) {
+        return -1;
+    }
+
+    VkBuffer xb   = static_cast<VkBuffer>(x_vkbuf);
+    VkBuffer yb   = static_cast<VkBuffer>(y_vkbuf);
+    VkBuffer zb   = static_cast<VkBuffer>(z_vkbuf);
+    VkBuffer vb   = vals_vkbuf ? static_cast<VkBuffer>(vals_vkbuf) : xb;
+    VkBuffer pb   = palette_vkbuf ? static_cast<VkBuffer>(palette_vkbuf) : xb;
+    VkBuffer cb   = static_cast<VkBuffer>(count_vkbuf);
+    VkBuffer ab   = static_cast<VkBuffer>(aux_vkbuf);
+    VkBuffer camb = static_cast<VkBuffer>(cam_vkbuf);
+
+    if (g_st.sync_fn) {
+        g_st.sync_fn();
+    }
+
+    update_set(g_st.p_r3d, { xb, yb, zb, vb, pb, cb, ab, camb });
+
+    VkCommandBuffer cmd = g_st.cmd_buf;
+    if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS) return -1;
+
+    VkCommandBufferBeginInfo bi{};
+    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    if (vkBeginCommandBuffer(cmd, &bi) != VK_SUCCESS) return -1;
+
+    uint64_t total_px = static_cast<uint64_t>(width) * static_cast<uint64_t>(height);
+    vkCmdFillBuffer(cmd, cb, 0, total_px * sizeof(uint32_t), 0);
+    vkCmdFillBuffer(cmd, ab, 0, total_px * 3u * sizeof(uint32_t), 0);
+
+    VkMemoryBarrier bar_xfer{};
+    bar_xfer.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    bar_xfer.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    bar_xfer.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+    vkCmdPipelineBarrier(
+        cmd,
+        VK_PIPELINE_STAGE_TRANSFER_BIT,
+        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+        0, 1, &bar_xfer, 0, nullptr, 0, nullptr
+    );
+
+    if (n > 0u) {
+        struct {
+            uint32_t n;
+            uint32_t width;
+            uint32_t height;
+            uint32_t mode;
+            uint32_t x_base;
+            uint32_t y_base;
+            uint32_t z_base;
+            uint32_t v_base;
+        } pc = {
+            n,
+            static_cast<uint32_t>(width),
+            static_cast<uint32_t>(height),
+            static_cast<uint32_t>(mode),
+            static_cast<uint32_t>(x_off / 4),
+            static_cast<uint32_t>(y_off / 4),
+            static_cast<uint32_t>(z_off / 4),
+            static_cast<uint32_t>(vals_off / 4),
+        };
+
+        uint32_t groups = std::min<uint32_t>((n + 255u) / 256u, 32768u);
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_r3d.pipeline);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_r3d.pipe_layout, 0, 1, &g_st.p_r3d.desc_set, 0, nullptr);
+        vkCmdPushConstants(cmd, g_st.p_r3d.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc), &pc);
+        vkCmdDispatch(cmd, groups, 1, 1);
+    }
+
+    if (vkEndCommandBuffer(cmd) != VK_SUCCESS) return -1;
+    if (g_st.submit_fn(cmd, g_st.fence) != 0) return -1;
+    VkResult wrc = vkWaitForFences(g_st.dev, 1, &g_st.fence, VK_TRUE, UINT64_MAX);
+    VkResult rrc = vkResetFences(g_st.dev, 1, &g_st.fence);
+    return (wrc == VK_SUCCESS && rrc == VK_SUCCESS) ? 0 : -1;
+}
+
+int vks_shade_3d_rgba(
+    void* count_vkbuf,
+    void* aux_vkbuf,
+    void* cam_vkbuf,
+    int width, int height,
+    float alpha, float max_count,
+    void* bg_vkbuf, size_t bg_off,
+    int bg_w, int bg_h,
+    float uv_left, float uv_top, float uv_right, float uv_bottom,
+    void* out_vkbuf, size_t out_off
+) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (!g_st.ready || !count_vkbuf || !aux_vkbuf || !cam_vkbuf || !out_vkbuf) return -1;
+    if (width <= 0 || height <= 0 || (bg_off % 4 != 0) || (out_off % 4 != 0)) return -1;
+
+    VkBuffer cb   = static_cast<VkBuffer>(count_vkbuf);
+    VkBuffer ab   = static_cast<VkBuffer>(aux_vkbuf);
+    VkBuffer camb = static_cast<VkBuffer>(cam_vkbuf);
+    VkBuffer ob   = static_cast<VkBuffer>(out_vkbuf);
+    VkBuffer bgb  = (bg_vkbuf && bg_w > 0 && bg_h > 0) ? static_cast<VkBuffer>(bg_vkbuf) : cb;
+
+    if (g_st.sync_fn) {
+        g_st.sync_fn();
+    }
+
+    update_set(g_st.p_s3d, { cb, ab, bgb, camb, ob });
+
+    VkCommandBuffer cmd = g_st.cmd_buf;
+    if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS) return -1;
+
+    VkCommandBufferBeginInfo bi{};
+    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    if (vkBeginCommandBuffer(cmd, &bi) != VK_SUCCESS) return -1;
+
+    struct {
+        uint32_t width;
+        uint32_t height;
+        uint32_t has_bg;
+        uint32_t bg_w;
+        uint32_t bg_h;
+        uint32_t bg_base;
+        uint32_t out_base;
+        float    alpha;
+        float    max_count;
+        float    uv_left;
+        float    uv_top;
+        float    uv_right;
+        float    uv_bottom;
+    } pc = {
+        static_cast<uint32_t>(width),
+        static_cast<uint32_t>(height),
+        (bg_vkbuf && bg_w > 0 && bg_h > 0) ? 1u : 0u,
+        static_cast<uint32_t>(bg_w > 0 ? bg_w : 0),
+        static_cast<uint32_t>(bg_h > 0 ? bg_h : 0),
+        static_cast<uint32_t>(bg_off / 4),
+        static_cast<uint32_t>(out_off / 4),
+        alpha,
+        max_count,
+        uv_left, uv_top, uv_right, uv_bottom,
+    };
+
+    uint32_t total = static_cast<uint32_t>(width) * static_cast<uint32_t>(height);
+    uint32_t groups = std::min<uint32_t>((total + 255u) / 256u, 32768u);
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_s3d.pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_s3d.pipe_layout, 0, 1, &g_st.p_s3d.desc_set, 0, nullptr);
+    vkCmdPushConstants(cmd, g_st.p_s3d.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc), &pc);
     vkCmdDispatch(cmd, groups, 1, 1);
 
     if (vkEndCommandBuffer(cmd) != VK_SUCCESS) return -1;

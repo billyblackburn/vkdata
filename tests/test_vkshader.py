@@ -60,3 +60,23 @@ def test_canvas_line_raster_and_holoviews_path():
         width=64, height=64, xlim=(-6.0, 6.0), ylim=(-6.0, 6.0), title="Paths"
     ).render()
     assert pil.size == (64, 64 + 28)
+
+
+def test_render_3d_gpu():
+    t = np.linspace(0.0, 6.0 * np.pi, 2000, dtype=np.float32)
+    src = {
+        "x": vnp.array(np.cos(t) * (1.0 + 0.1 * t)),
+        "y": vnp.array(np.sin(t) * (1.0 + 0.1 * t)),
+        "z": vnp.array(t * 10.0),
+        "cat": vnp.array((t > 3.0 * np.pi).astype(np.int32)),
+    }
+    img = vks.render_3d(
+        src, "x", "y", "z",
+        width=128, height=96,
+        kind="lines", color_by="cat", color_key=["red", "blue"],
+        basemap=None,
+    )
+    assert img.rgba.shape == (96, 128, 4)
+    assert img.rgba.dtype == np.uint8
+    assert int(img.rgba[:, :, 0].max()) > 120
+    assert int(img.rgba[:, :, 2].max()) > 120

@@ -74,6 +74,40 @@ int vks_shade_aux_rgba(
     void* out_vkbuf, size_t out_off
 );
 
+/**
+ * Zero-copy GPU 3D perspective point/line rasterizer.
+ * mode: 0=points(fire by z), 1=lines(fire by z), 2=lines(cat RGB), 3=points(cat RGB).
+ * cam_vkbuf holds 24 float32 camera + bounds parameters.
+ */
+int vks_raster_3d(
+    void* x_vkbuf, size_t x_off,
+    void* y_vkbuf, size_t y_off,
+    void* z_vkbuf, size_t z_off,
+    void* vals_vkbuf, size_t vals_off,
+    void* palette_vkbuf,
+    void* cam_vkbuf,
+    uint32_t n,
+    int width, int height,
+    int mode,
+    void* count_vkbuf,
+    void* aux_vkbuf
+);
+
+/**
+ * Zero-copy GPU 3D volumetric compositor + perspective ground-plane Esri satellite map.
+ */
+int vks_shade_3d_rgba(
+    void* count_vkbuf,
+    void* aux_vkbuf,
+    void* cam_vkbuf,
+    int width, int height,
+    float alpha, float max_count,
+    void* bg_vkbuf, size_t bg_off,
+    int bg_w, int bg_h,
+    float uv_left, float uv_top, float uv_right, float uv_bottom,
+    void* out_vkbuf, size_t out_off
+);
+
 #ifdef __cplusplus
 }
 #endif

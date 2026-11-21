@@ -1,0 +1,213 @@
+#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer XBuf    { float xs[]; };
+layout(set = 0, binding = 1) readonly buffer YBuf    { float ys[]; };
+layout(set = 0, binding = 2) readonly buffer ZBuf    { float zs[]; };
+layout(set = 0, binding = 3) readonly buffer VBuf    { uint  vals[]; };
+layout(set = 0, binding = 4) readonly buffer PalBuf  { uint  palette[]; };
+layout(set = 0, binding = 5) buffer CountBuf         { int   grid_count[]; };
+layout(set = 0, binding = 6) buffer AuxBuf           { int   grid_aux[]; };
+
+// Camera & bounds packed in a small uniform/storage buffer (binding 7) to keep push constants tiny
+layout(set = 0, binding = 7) readonly buffer CamBuf  { float cam[]; };
+// cam layout (24 floats):
+// [0..2]  cam_pos (x,y,z)
+// [3..5]  cam_right (x,y,z)
+// [6..8]  cam_up (x,y,z)
+// [9..11] cam_fwd (x,y,z)
+// [12]    cx, [13] cy, [14] inv_half_span
+// [15]    zmin, [16] inv_dz, [17] z_scale
+// [18]    focal, [19] aspect
+// [20]    xmin, [21] xmax, [22] ymin, [23] ymax
+
+layout(push_constant) uniform PC {
+    uint n;
+    uint width;
+    uint height;
+    uint mode;       // 0=points(fire by z), 1=lines(fire by z), 2=lines(cat RGB), 3=points(cat RGB)
+    uint x_base;
+    uint y_base;
+    uint z_base;
+    uint v_base;
+} p;
+
+vec3 fire_colormap(float s) {
+    s = clamp(s, 0.0, 1.0);
+    if (s < 0.18) return mix(vec3(20.0, 10.0, 50.0),  vec3(90.0, 10.0, 80.0),   s / 0.18);
+    if (s < 0.36) return mix(vec3(90.0, 10.0, 80.0),  vec3(180.0, 30.0, 30.0),  (s - 0.18) / 0.18);
+    if (s < 0.55) return mix(vec3(180.0, 30.0, 30.0), vec3(235.0, 95.0, 10.0),  (s - 0.36) / 0.19);
+    if (s < 0.75) return mix(vec3(235.0, 95.0, 10.0), vec3(255.0, 185.0, 30.0), (s - 0.55) / 0.20);
+    return mix(vec3(255.0, 185.0, 30.0), vec3(255.0, 250.0, 190.0), (s - 0.75) / 0.25);
+}
+
+bool project_pt(vec3 wp, vec3 cam_pos, vec3 rgt, vec3 up, vec3 fwd, float fx_s, float fy_s, float wf, float hf, out vec2 sp) {
+    vec3 rel = wp - cam_pos;
+    float cz = dot(rel, fwd);
+    if (cz <= 0.05) return false;
+    float cx = dot(rel, rgt);
+    float cy = dot(rel, up);
+    float ndc_x = (cx / cz) * fx_s;
+    float ndc_y = (cy / cz) * fy_s;
+    sp.x = (ndc_x * 0.5 + 0.5) * wf;
+    sp.y = (0.5 - ndc_y * 0.5) * hf;
+    return true;
+}
+
+bool clip_segment(inout float x0, inout float y0, inout float x1, inout float y1, float max_x, float max_y) {
+    float dx = x1 - x0;
+    float dy = y1 - y0;
+    float t0 = 0.0;
+    float t1 = 1.0;
+    float ps[4] = float[4](-dx, dx, -dy, dy);
+    float qs[4] = float[4](x0, max_x - x0, y0, max_y - y0);
+    for (int k = 0; k < 4; ++k) {
+        float pk = ps[k];
+        float qk = qs[k];
+        if (abs(pk) < 1e-9) {
+            if (qk < 0.0) return false;
+        } else {
+            float r = qk / pk;
+            if (pk < 0.0) {
+                if (r > t1) return false;
+                if (r > t0) t0 = r;
+            } else {
+                if (r < t0) return false;
+                if (r < t1) t1 = r;
+            }
+        }
+    }
+    float nx0 = x0 + t0 * dx;
+    float ny0 = y0 + t0 * dy;
+    float nx1 = x0 + t1 * dx;
+    float ny1 = y0 + t1 * dy;
+    x0 = nx0; y0 = ny0; x1 = nx1; y1 = ny1;
+    return true;
+}
+
+void splat(int idx, int cr, int cg, int cb) {
+    atomicAdd(grid_count[idx], 1);
+    int b3 = idx * 3;
+    atomicAdd(grid_aux[b3 + 0], cr);
+    atomicAdd(grid_aux[b3 + 1], cg);
+    atomicAdd(grid_aux[b3 + 2], cb);
+}
+
+void main() {
+    if (p.n == 0u || p.width == 0u || p.height == 0u) return;
+
+    vec3 cam_pos = vec3(cam[0], cam[1], cam[2]);
+    vec3 rgt     = vec3(cam[3], cam[4], cam[5]);
+    vec3 up      = vec3(cam[6], cam[7], cam[8]);
+    vec3 fwd     = vec3(cam[9], cam[10], cam[11]);
+
+    float cx_w = cam[12];
+    float cy_w = cam[13];
+    float inv_hs = cam[14];
+    float zmin = cam[15];
+    float inv_dz = cam[16];
+    float z_scale = cam[17];
+    float focal = cam[18];
+    float aspect = cam[19];
+    float xmin = cam[20];
+    float xmax = cam[21];
+    float ymin = cam[22];
+    float ymax = cam[23];
+
+    float fx_s = focal / max(aspect, 1e-6);
+    float fy_s = focal;
+    float wf = float(p.width);
+    float hf = float(p.height);
+    float max_x = wf - 1e-3;
+    float max_y = hf - 1e-3;
+
+    bool is_lines = (p.mode == 1u || p.mode == 2u);
+    bool is_cat   = (p.mode == 2u || p.mode == 3u);
+    uint n_items = is_lines ? (p.n > 0u ? p.n - 1u : 0u) : p.n;
+    uint stride = gl_NumWorkGroups.x * 256u;
+    int max_steps = int(max(p.width, p.height) * 2u);
+
+    for (uint i = gl_GlobalInvocationID.x; i < n_items; i += stride) {
+        float x0 = xs[p.x_base + i];
+        float y0 = ys[p.y_base + i];
+        float z0 = zs[p.z_base + i];
+        if (isnan(x0) || isnan(y0) || isnan(z0)) continue;
+
+        if (!is_lines) {
+            if (x0 < xmin || x0 > xmax || y0 < ymin || y0 > ymax) continue;
+            float zn0 = clamp((z0 - zmin) * inv_dz, 0.0, 1.0);
+            vec3 wp0 = vec3((x0 - cx_w) * inv_hs, (y0 - cy_w) * inv_hs, zn0 * z_scale);
+            vec2 sp0;
+            if (!project_pt(wp0, cam_pos, rgt, up, fwd, fx_s, fy_s, wf, hf, sp0)) continue;
+            if (sp0.x < 0.0 || sp0.x >= wf || sp0.y < 0.0 || sp0.y >= hf) continue;
+
+            int cr, cg, cb;
+            if (is_cat) {
+                uint packed = palette[vals[p.v_base + i] & 255u];
+                cr = int(packed & 0xFFu);
+                cg = int((packed >> 8u) & 0xFFu);
+                cb = int((packed >> 16u) & 0xFFu);
+            } else {
+                vec3 c = fire_colormap(zn0);
+                cr = int(c.r); cg = int(c.g); cb = int(c.b);
+            }
+            int idx = int(floor(sp0.y)) * int(p.width) + int(floor(sp0.x));
+            splat(idx, cr, cg, cb);
+            continue;
+        }
+
+        float x1 = xs[p.x_base + i + 1u];
+        float y1 = ys[p.y_base + i + 1u];
+        float z1 = zs[p.z_base + i + 1u];
+        if (isnan(x1) || isnan(y1) || isnan(z1)) continue;
+
+        // Fast 2D ROI reject so zoomed-in city 3D views only rasterize local flights
+        if (max(x0, x1) < xmin || min(x0, x1) > xmax ||
+            max(y0, y1) < ymin || min(y0, y1) > ymax) {
+            continue;
+        }
+
+        float zn0 = clamp((z0 - zmin) * inv_dz, 0.0, 1.0);
+        float zn1 = clamp((z1 - zmin) * inv_dz, 0.0, 1.0);
+        vec3 wp0 = vec3((x0 - cx_w) * inv_hs, (y0 - cy_w) * inv_hs, zn0 * z_scale);
+        vec3 wp1 = vec3((x1 - cx_w) * inv_hs, (y1 - cy_w) * inv_hs, zn1 * z_scale);
+
+        vec2 sp0, sp1;
+        if (!project_pt(wp0, cam_pos, rgt, up, fwd, fx_s, fy_s, wf, hf, sp0)) continue;
+        if (!project_pt(wp1, cam_pos, rgt, up, fwd, fx_s, fy_s, wf, hf, sp1)) continue;
+
+        float fx0 = sp0.x, fy0 = sp0.y, fx1 = sp1.x, fy1 = sp1.y;
+        if (max(fx0, fx1) < 0.0 || min(fx0, fx1) >= wf ||
+            max(fy0, fy1) < 0.0 || min(fy0, fy1) >= hf) {
+            continue;
+        }
+        if (!clip_segment(fx0, fy0, fx1, fy1, max_x, max_y)) continue;
+
+        int cr, cg, cb;
+        if (is_cat) {
+            uint packed = palette[vals[p.v_base + i] & 255u];
+            cr = int(packed & 0xFFu);
+            cg = int((packed >> 8u) & 0xFFu);
+            cb = int((packed >> 16u) & 0xFFu);
+        } else {
+            vec3 c = fire_colormap(0.5 * (zn0 + zn1));
+            cr = int(c.r); cg = int(c.g); cb = int(c.b);
+        }
+
+        float ddx = fx1 - fx0;
+        float ddy = fy1 - fy0;
+        int steps = clamp(int(ceil(max(abs(ddx), abs(ddy)))), 1, max_steps);
+        float sx = ddx / float(steps);
+        float sy = ddy / float(steps);
+
+        int prev_idx = -1;
+        for (int s = 0; s <= steps; ++s) {
+            int px = clamp(int(floor(fx0 + sx * float(s))), 0, int(p.width) - 1);
+            int py = clamp(int(floor(fy0 + sy * float(s))), 0, int(p.height) - 1);
+            int idx = py * int(p.width) + px;
+            if (idx == prev_idx) continue;
+            prev_idx = idx;
+            splat(idx, cr, cg, cb);
+        }
+    }
+}

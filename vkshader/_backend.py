@@ -75,6 +75,34 @@ def _load_lib() -> ctypes.CDLL:
     ]
     lib.vks_shade_aux_rgba.restype = c_int
 
+    lib.vks_raster_3d.argtypes = [
+        c_void_p, c_size_t,
+        c_void_p, c_size_t,
+        c_void_p, c_size_t,
+        c_void_p, c_size_t,
+        c_void_p,
+        c_void_p,
+        c_uint32,
+        c_int, c_int,
+        c_int,
+        c_void_p,
+        c_void_p,
+    ]
+    lib.vks_raster_3d.restype = c_int
+
+    lib.vks_shade_3d_rgba.argtypes = [
+        c_void_p,
+        c_void_p,
+        c_void_p,
+        c_int, c_int,
+        c_float, c_float,
+        c_void_p, c_size_t,
+        c_int, c_int,
+        c_float, c_float, c_float, c_float,
+        c_void_p, c_size_t,
+    ]
+    lib.vks_shade_3d_rgba.restype = c_int
+
     _lib = lib
     return lib
 
@@ -282,4 +310,101 @@ def shade_aux_rgba_gpu(
     )
     if rc != 0:
         raise RuntimeError(f"vks_shade_aux_rgba failed (rc={rc})")
+    return out
+
+
+def render_3d_gpu(
+    x: vnp.ndarray,
+    y: vnp.ndarray,
+    z: vnp.ndarray,
+    cam_params: _np.ndarray,
+    width: int,
+    height: int,
+    mode: int = 1,
+    vals: Optional[vnp.ndarray] = None,
+    palette: Optional[vnp.ndarray] = None,
+    alpha: float = 235.0 / 255.0,
+    bg: Optional[vnp.ndarray] = None,
+    uv_rect: Tuple[float, float, float, float] = (0.0, 0.0, 1.0, 1.0),
+) -> vnp.ndarray:
+    """Zero-copy GPU 3D perspective rasterization + tilted satellite ground-plane compositing."""
+    lib = _ensure_init()
+    vl = vkn_lib()
+
+    xf = x if (isinstance(x, vnp.ndarray) and x.dtype == _np.float32) else vnp.asarray(x, dtype=_np.float32)
+    yf = y if (isinstance(y, vnp.ndarray) and y.dtype == _np.float32) else vnp.asarray(y, dtype=_np.float32)
+    zf = z if (isinstance(z, vnp.ndarray) and z.dtype == _np.float32) else vnp.asarray(z, dtype=_np.float32)
+    xf = xf.ravel().contiguous()
+    yf = yf.ravel().contiguous()
+    zf = zf.ravel().contiguous()
+    n = min(xf.size, yf.size, zf.size)
+
+    x_vk = vl.vkn_vk_get_raw_buffer(xf._buf.ptr)
+    y_vk = vl.vkn_vk_get_raw_buffer(yf._buf.ptr)
+    z_vk = vl.vkn_vk_get_raw_buffer(zf._buf.ptr)
+
+    v_vk = None
+    v_off = 0
+    if vals is not None:
+        vf = vals if (isinstance(vals, vnp.ndarray) and vals.dtype == _np.int32) else vnp.asarray(vals, dtype=_np.int32)
+        vf = vf.ravel().contiguous()
+        v_vk = vl.vkn_vk_get_raw_buffer(vf._buf.ptr)
+        v_off = vf._offset
+
+    p_vk = None
+    if palette is not None:
+        pf = palette if (isinstance(palette, vnp.ndarray) and palette.dtype == _np.int32) else vnp.asarray(palette, dtype=_np.int32)
+        pf = pf.ravel().contiguous()
+        p_vk = vl.vkn_vk_get_raw_buffer(pf._buf.ptr)
+
+    cam_g = vnp.array(_np.asarray(cam_params, dtype=_np.float32).ravel(), dtype=_np.float32)
+    cam_vk = vl.vkn_vk_get_raw_buffer(cam_g._buf.ptr)
+
+    count_grid = vnp.ndarray._empty_uninit((height, width), _np.int32)
+    aux_grid = vnp.ndarray._empty_uninit((height, width, 3), _np.int32)
+    c_vk = vl.vkn_vk_get_raw_buffer(count_grid._buf.ptr)
+    a_vk = vl.vkn_vk_get_raw_buffer(aux_grid._buf.ptr)
+
+    rc = lib.vks_raster_3d(
+        x_vk, xf._offset,
+        y_vk, yf._offset,
+        z_vk, zf._offset,
+        v_vk, v_off,
+        p_vk,
+        cam_vk,
+        int(n),
+        int(width), int(height),
+        int(mode),
+        c_vk,
+        a_vk,
+    )
+    if rc != 0:
+        raise RuntimeError(f"vks_raster_3d failed (rc={rc})")
+
+    max_c = float(vnp.max(count_grid).item()) if count_grid.size else 1.0
+
+    bg_vk = None
+    bg_off = 0
+    bg_w = 0
+    bg_h = 0
+    if bg is not None:
+        bg_arr = vnp.asarray(bg, dtype=_np.int32).contiguous()
+        bg_h, bg_w = int(bg_arr.shape[0]), int(bg_arr.shape[1])
+        bg_vk = vl.vkn_vk_get_raw_buffer(bg_arr._buf.ptr)
+        bg_off = bg_arr._offset
+
+    out = vnp.ndarray._empty_uninit((height, width), _np.int32)
+    out_vk = vl.vkn_vk_get_raw_buffer(out._buf.ptr)
+
+    rc2 = lib.vks_shade_3d_rgba(
+        c_vk, a_vk, cam_vk,
+        int(width), int(height),
+        float(alpha), max(max_c, 1.0),
+        bg_vk, bg_off,
+        bg_w, bg_h,
+        float(uv_rect[0]), float(uv_rect[1]), float(uv_rect[2]), float(uv_rect[3]),
+        out_vk, 0,
+    )
+    if rc2 != 0:
+        raise RuntimeError(f"vks_shade_3d_rgba failed (rc={rc2})")
     return out
