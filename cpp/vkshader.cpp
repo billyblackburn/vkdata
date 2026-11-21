@@ -559,8 +559,10 @@ int vks_raster_3d(
     if (vkBeginCommandBuffer(cmd, &bi) != VK_SUCCESS) return -1;
 
     uint64_t total_px = static_cast<uint64_t>(width) * static_cast<uint64_t>(height);
-    vkCmdFillBuffer(cmd, cb, 0, total_px * sizeof(uint32_t), 0);
-    vkCmdFillBuffer(cmd, ab, 0, total_px * 3u * sizeof(uint32_t), 0);
+    vkCmdFillBuffer(cmd, cb, 0, total_px * sizeof(uint32_t), (mode == 4) ? 0x7FFFFFFFu : 0u);
+    if (mode != 4) {
+        vkCmdFillBuffer(cmd, ab, 0, total_px * 3u * sizeof(uint32_t), 0);
+    }
 
     VkMemoryBarrier bar_xfer{};
     bar_xfer.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;

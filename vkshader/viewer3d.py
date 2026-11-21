@@ -159,8 +159,17 @@ def render_3d(
 
     vals = None
     pal = None
+    is_spheres = (kind == "spheres")
     is_lines = (kind == "lines")
-    if color_by is not None:
+    if is_spheres:
+        if color_by is not None:
+            vals, n_cats = _resolve_cat_codes(source, color_by)
+            pal = _build_palette_gpu(color_key, n_cats=n_cats)
+        else:
+            vals = vnp.zeros((xs.size,), dtype=np.int32)
+            pal = _build_palette_gpu(["#66ccff"], n_cats=2)
+        mode = 4
+    elif color_by is not None:
         vals, n_cats = _resolve_cat_codes(source, color_by)
         pal = _build_palette_gpu(color_key, n_cats=n_cats)
         mode = 2 if is_lines else 3

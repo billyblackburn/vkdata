@@ -389,7 +389,7 @@ def render_3d_gpu(
     if rc != 0:
         raise RuntimeError(f"vks_raster_3d failed (rc={rc})")
 
-    max_c = float(vnp.max(count_grid).item()) if count_grid.size else 1.0
+    max_c = -1.0 if int(mode) == 4 else (float(vnp.max(count_grid).item()) if count_grid.size else 1.0)
 
     bg_vk = None
     bg_off = 0
@@ -407,7 +407,7 @@ def render_3d_gpu(
     rc2 = lib.vks_shade_3d_rgba(
         c_vk, a_vk, cam_vk,
         int(width), int(height),
-        float(alpha), max(max_c, 1.0),
+        float(alpha), (-1.0 if int(mode) == 4 else max(max_c, 1.0)),
         bg_vk, bg_off,
         bg_w, bg_h,
         float(uv_rect[0]), float(uv_rect[1]), float(uv_rect[2]), float(uv_rect[3]),

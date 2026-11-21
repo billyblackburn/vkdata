@@ -66,6 +66,9 @@ pixi run lab
 
 ## Example Notebooks (`examples/`)
 
+### Structural Biology & Molecular (`examples/biology/`)
+- [`protein_molecule_3d.ipynb`](examples/biology/protein_molecule_3d.ipynb) — Real RCSB PDB proteins (`6VXX` 23.7k-atom SARS-CoV-2 Spike Trimer, `6M0J` Spike+ACE2, `4HHB` Hemoglobin) rendered as Vulkan 3D Blinn–Phong shaded sphere impostors + GPU `vkscipy.cdist` protein contact map
+
 ### Astronomy & Astrophysics (`examples/astronomy/`)
 - [`vkastro_milky_way_3d.ipynb`](examples/astronomy/vkastro_milky_way_3d.ipynb) — 400,000 real ESA Gaia DR3 stars: Hertzsprung–Russell diagram, all-sky Galactic Aitoff map, 3D Solar Neighborhood fly-through, Pleiades cone search, & `FlatLambdaCDM` cosmology
 - [`sdss_cosmic_web_3d.ipynb`](examples/astronomy/sdss_cosmic_web_3d.ipynb) — 150,000 real SDSS DR17 galaxies: Color–Magnitude Diagram (Red Sequence vs. Blue Cloud), 2D/3D Cosmic Web in Megaparsecs, & GPU K-Means 3D cluster regions

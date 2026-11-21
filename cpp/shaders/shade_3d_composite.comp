@@ -60,6 +60,7 @@ void main() {
     float focal  = cam[18];
     float aspect = cam[19];
 
+    bool is_spheres = (p.max_count < 0.0);
     float inv_log_max = 1.0 / max(log(1.0 + max(p.max_count, 1.0)), 1e-6);
 
     for (uint i = gl_GlobalInvocationID.x; i < total; i += stride) {
@@ -68,6 +69,25 @@ void main() {
 
         float ndc_x = ((float(px) + 0.5) / float(p.width)) * 2.0 - 1.0;
         float ndc_y = 1.0 - ((float(py) + 0.5) / float(p.height)) * 2.0;
+
+        if (is_spheres) {
+            int packed = counts[i];
+            vec3 rgb;
+            if (packed != 0x7FFFFFFF) {
+                uint up = uint(packed);
+                rgb = vec3(
+                    float(((up >> 14u) & 0x3Fu) << 2u),
+                    float(((up >> 7u) & 0x7Fu) << 1u),
+                    float((up & 0x7Fu) << 1u)
+                );
+            } else {
+                float rad = clamp(length(vec2(ndc_x, ndc_y)) * 0.72, 0.0, 1.0);
+                rgb = mix(vec3(24.0, 29.0, 42.0), vec3(8.0, 10.0, 16.0), rad);
+            }
+            uvec3 q = uvec3(clamp(round(rgb), vec3(0.0), vec3(255.0)));
+            out_rgba[p.out_base + i] = q.r | (q.g << 8u) | (q.b << 16u) | 0xFF000000u;
+            continue;
+        }
 
         // Subtle dark space/horizon gradient
         vec3 bg = mix(vec3(8.0, 11.0, 18.0), vec3(18.0, 24.0, 38.0), clamp(0.5 - ndc_y * 0.5, 0.0, 1.0));

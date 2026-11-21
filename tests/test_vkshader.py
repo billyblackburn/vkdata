@@ -80,3 +80,13 @@ def test_render_3d_gpu():
     assert img.rgba.dtype == np.uint8
     assert int(img.rgba[:, :, 0].max()) > 120
     assert int(img.rgba[:, :, 2].max()) > 120
+
+    # 3D Blinn-Phong shaded sphere impostors (molecular atoms)
+    img_sph = vks.render_3d(
+        src, "x", "y", "z",
+        width=128, height=96,
+        kind="spheres", color_by="cat", color_key=["#ff5555", "#44ccff"],
+        basemap=None,
+    )
+    assert img_sph.rgba.shape == (96, 128, 4)
+    assert int(img_sph.rgba[:, :, 0].max()) > 150
