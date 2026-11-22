@@ -9,6 +9,9 @@
 #include "vks_spv_shade_cat_composite.h"
 #include "vks_spv_raster_3d.h"
 #include "vks_spv_shade_3d_composite.h"
+#include "vks_spv_hdr_bloom_extract.h"
+#include "vks_spv_hdr_bloom_blur.h"
+#include "vks_spv_hdr_bloom_composite.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -43,6 +46,10 @@ struct State {
     Pipe p_aux_comp;
     Pipe p_r3d;
     Pipe p_s3d;
+    Pipe p_bloom_ext;
+    Pipe p_bloom_blur;
+    Pipe p_bloom_comp;
+    VkDescriptorSet bloom_blur_sets[9] = {};
 };
 
 std::mutex g_mutex;
@@ -178,11 +185,11 @@ int vks_init(
 
     VkDescriptorPoolSize pool_size{};
     pool_size.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    pool_size.descriptorCount = 64;
+    pool_size.descriptorCount = 128;
 
     VkDescriptorPoolCreateInfo dp_ci{};
     dp_ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    dp_ci.maxSets = 12;
+    dp_ci.maxSets = 32;
     dp_ci.poolSizeCount = 1;
     dp_ci.pPoolSizes = &pool_size;
     if (vkCreateDescriptorPool(g_st.dev, &dp_ci, nullptr, &g_st.desc_pool) != VK_SUCCESS) {
@@ -196,8 +203,23 @@ int vks_init(
     bool ok5 = create_pipe(g_st, vks_spv_shade_cat_composite, sizeof(vks_spv_shade_cat_composite), 4, 15 * sizeof(uint32_t), g_st.p_aux_comp);
     bool ok6 = create_pipe(g_st, vks_spv_raster_3d, sizeof(vks_spv_raster_3d), 8, 8 * sizeof(uint32_t), g_st.p_r3d);
     bool ok7 = create_pipe(g_st, vks_spv_shade_3d_composite, sizeof(vks_spv_shade_3d_composite), 5, 13 * sizeof(uint32_t), g_st.p_s3d);
+    bool ok8 = create_pipe(g_st, vks_spv_hdr_bloom_extract, sizeof(vks_spv_hdr_bloom_extract), 3, 4 * sizeof(uint32_t), g_st.p_bloom_ext);
+    bool ok9 = create_pipe(g_st, vks_spv_hdr_bloom_blur, sizeof(vks_spv_hdr_bloom_blur), 2, 5 * sizeof(uint32_t), g_st.p_bloom_blur);
+    bool ok10 = create_pipe(g_st, vks_spv_hdr_bloom_composite, sizeof(vks_spv_hdr_bloom_composite), 5, 10 * sizeof(uint32_t), g_st.p_bloom_comp);
 
-    g_st.ready = ok1 && ok2 && ok3 && ok4 && ok5 && ok6 && ok7;
+    bool ok11 = true;
+    if (ok9) {
+        VkDescriptorSetLayout layouts[9];
+        for (int i = 0; i < 9; ++i) layouts[i] = g_st.p_bloom_blur.desc_layout;
+        VkDescriptorSetAllocateInfo ai{};
+        ai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        ai.descriptorPool = g_st.desc_pool;
+        ai.descriptorSetCount = 9;
+        ai.pSetLayouts = layouts;
+        ok11 = (vkAllocateDescriptorSets(g_st.dev, &ai, g_st.bloom_blur_sets) == VK_SUCCESS);
+    }
+
+    g_st.ready = ok1 && ok2 && ok3 && ok4 && ok5 && ok6 && ok7 && ok8 && ok9 && ok10 && ok11;
     return g_st.ready ? 0 : -1;
 }
 
@@ -678,6 +700,130 @@ int vks_shade_3d_rgba(
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_s3d.pipe_layout, 0, 1, &g_st.p_s3d.desc_set, 0, nullptr);
     vkCmdPushConstants(cmd, g_st.p_s3d.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc), &pc);
     vkCmdDispatch(cmd, groups, 1, 1);
+
+    if (vkEndCommandBuffer(cmd) != VK_SUCCESS) return -1;
+    if (g_st.submit_fn(cmd, g_st.fence) != 0) return -1;
+    VkResult wrc = vkWaitForFences(g_st.dev, 1, &g_st.fence, VK_TRUE, UINT64_MAX);
+    VkResult rrc = vkResetFences(g_st.dev, 1, &g_st.fence);
+    return (wrc == VK_SUCCESS && rrc == VK_SUCCESS) ? 0 : -1;
+}
+
+int vks_hdr_bloom_rgba(
+    void* in_rgba_vkbuf,
+    void* out_rgba_vkbuf,
+    void* hdr_vkbuf,
+    void* bright_vkbuf,
+    void* mip1_vkbuf,
+    void* mip2_vkbuf,
+    void* mip3_vkbuf,
+    void* tmp_vkbuf,
+    int width, int height,
+    float intensity,
+    float exposure,
+    float threshold,
+    float hdr_lift
+) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (!g_st.ready || !in_rgba_vkbuf || !out_rgba_vkbuf || !hdr_vkbuf || !bright_vkbuf ||
+        !mip1_vkbuf || !mip2_vkbuf || !mip3_vkbuf || !tmp_vkbuf || width <= 0 || height <= 0) {
+        return -1;
+    }
+
+    VkBuffer in_b   = static_cast<VkBuffer>(in_rgba_vkbuf);
+    VkBuffer out_b  = static_cast<VkBuffer>(out_rgba_vkbuf);
+    VkBuffer hdr_b  = static_cast<VkBuffer>(hdr_vkbuf);
+    VkBuffer br_b   = static_cast<VkBuffer>(bright_vkbuf);
+    VkBuffer m1_b   = static_cast<VkBuffer>(mip1_vkbuf);
+    VkBuffer m2_b   = static_cast<VkBuffer>(mip2_vkbuf);
+    VkBuffer m3_b   = static_cast<VkBuffer>(mip3_vkbuf);
+    VkBuffer tmp_b  = static_cast<VkBuffer>(tmp_vkbuf);
+
+    if (g_st.sync_fn) g_st.sync_fn();
+
+    auto update_raw_set = [](VkDescriptorSet ds, VkBuffer b0, VkBuffer b1) {
+        VkDescriptorBufferInfo dbis[2] = { { b0, 0, VK_WHOLE_SIZE }, { b1, 0, VK_WHOLE_SIZE } };
+        VkWriteDescriptorSet ws[2] = {};
+        for (int i = 0; i < 2; ++i) {
+            ws[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            ws[i].dstSet = ds;
+            ws[i].dstBinding = static_cast<uint32_t>(i);
+            ws[i].descriptorCount = 1;
+            ws[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            ws[i].pBufferInfo = &dbis[i];
+        }
+        vkUpdateDescriptorSets(g_st.dev, 2, ws, 0, nullptr);
+    };
+
+    update_set(g_st.p_bloom_ext, { in_b, hdr_b, br_b });
+    update_raw_set(g_st.bloom_blur_sets[0], br_b,  m1_b);
+    update_raw_set(g_st.bloom_blur_sets[1], m1_b,  tmp_b);
+    update_raw_set(g_st.bloom_blur_sets[2], tmp_b, m1_b);
+    update_raw_set(g_st.bloom_blur_sets[3], m1_b,  m2_b);
+    update_raw_set(g_st.bloom_blur_sets[4], m2_b,  tmp_b);
+    update_raw_set(g_st.bloom_blur_sets[5], tmp_b, m2_b);
+    update_raw_set(g_st.bloom_blur_sets[6], m2_b,  m3_b);
+    update_raw_set(g_st.bloom_blur_sets[7], m3_b,  tmp_b);
+    update_raw_set(g_st.bloom_blur_sets[8], tmp_b, m3_b);
+    update_set(g_st.p_bloom_comp, { hdr_b, m1_b, m2_b, m3_b, out_b });
+
+    int w1 = std::max(1, width / 2),  h1 = std::max(1, height / 2);
+    int w2 = std::max(1, w1 / 2),     h2 = std::max(1, h1 / 2);
+    int w3 = std::max(1, w2 / 2),     h3 = std::max(1, h2 / 2);
+
+    VkCommandBuffer cmd = g_st.cmd_buf;
+    if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS) return -1;
+    VkCommandBufferBeginInfo bi{};
+    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    if (vkBeginCommandBuffer(cmd, &bi) != VK_SUCCESS) return -1;
+
+    VkMemoryBarrier bar{};
+    bar.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    bar.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    bar.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+    auto gx = [](int w) { return static_cast<uint32_t>((w + 15) / 16); };
+    auto gy = [](int h) { return static_cast<uint32_t>((h + 15) / 16); };
+
+    // Pass 1: Extract linear HDR + soft-knee bright pass
+    struct { int w; int h; float th; float lift; } pc_ext = { width, height, threshold, hdr_lift };
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bloom_ext.pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bloom_ext.pipe_layout, 0, 1, &g_st.p_bloom_ext.desc_set, 0, nullptr);
+    vkCmdPushConstants(cmd, g_st.p_bloom_ext.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc_ext), &pc_ext);
+    vkCmdDispatch(cmd, gx(width), gy(height), 1);
+    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &bar, 0, nullptr, 0, nullptr);
+
+    // Passes 2..10: 3-mip downsample + separable 9-tap Gaussian blur pyramid
+    struct BlurStep { int set_idx; int sw; int sh; int dw; int dh; int mode; };
+    const BlurStep steps[9] = {
+        { 0, width, height, w1, h1, 0 },
+        { 1, w1,    h1,     w1, h1, 1 },
+        { 2, w1,    h1,     w1, h1, 2 },
+        { 3, w1,    h1,     w2, h2, 0 },
+        { 4, w2,    h2,     w2, h2, 1 },
+        { 5, w2,    h2,     w2, h2, 2 },
+        { 6, w2,    h2,     w3, h3, 0 },
+        { 7, w3,    h3,     w3, h3, 1 },
+        { 8, w3,    h3,     w3, h3, 2 },
+    };
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bloom_blur.pipeline);
+    for (int s = 0; s < 9; ++s) {
+        const auto& st = steps[s];
+        struct { int sw; int sh; int dw; int dh; int mode; } pc_b = { st.sw, st.sh, st.dw, st.dh, st.mode };
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bloom_blur.pipe_layout, 0, 1, &g_st.bloom_blur_sets[st.set_idx], 0, nullptr);
+        vkCmdPushConstants(cmd, g_st.p_bloom_blur.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc_b), &pc_b);
+        vkCmdDispatch(cmd, gx(st.dw), gy(st.dh), 1);
+        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &bar, 0, nullptr, 0, nullptr);
+    }
+
+    // Pass 11: Bilinear multi-mip composite + ACES Filmic tone mapping
+    struct { int w; int h; int w1; int h1; int w2; int h2; int w3; int h3; float intensity; float exposure; } pc_c = {
+        width, height, w1, h1, w2, h2, w3, h3, intensity, exposure
+    };
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bloom_comp.pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bloom_comp.pipe_layout, 0, 1, &g_st.p_bloom_comp.desc_set, 0, nullptr);
+    vkCmdPushConstants(cmd, g_st.p_bloom_comp.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc_c), &pc_c);
+    vkCmdDispatch(cmd, gx(width), gy(height), 1);
 
     if (vkEndCommandBuffer(cmd) != VK_SUCCESS) return -1;
     if (g_st.submit_fn(cmd, g_st.fence) != 0) return -1;

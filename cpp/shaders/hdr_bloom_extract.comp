@@ -1,0 +1,42 @@
+#version 450
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer InRgba    { uint in_rgba[]; };
+layout(set = 0, binding = 1) writeonly buffer OutHdr   { vec4 out_hdr[]; };
+layout(set = 0, binding = 2) writeonly buffer OutBr    { vec4 out_bright[]; };
+
+layout(push_constant) uniform PC {
+    int   width;
+    int   height;
+    float threshold;
+    float hdr_lift;
+} p;
+
+void main() {
+    int x = int(gl_GlobalInvocationID.x);
+    int y = int(gl_GlobalInvocationID.y);
+    if (x >= p.width || y >= p.height) return;
+    int idx = y * p.width + x;
+
+    uint px = in_rgba[idx];
+    vec3 srgb = vec3(
+        float(px & 0xFFu),
+        float((px >> 8u) & 0xFFu),
+        float((px >> 16u) & 0xFFu)
+    ) * (1.0 / 255.0);
+
+    // Linear HDR radiance with deep-space black floor + nonlinear core/spark lift
+    vec3 lin = max(pow(max(srgb, vec3(0.0)), vec3(2.2)) - vec3(0.006), vec3(0.0));
+    float luma = dot(lin, vec3(0.2126, 0.7152, 0.0722));
+    float boost = 1.0 + p.hdr_lift * pow(max(luma - 0.06, 0.0), 1.25);
+    vec3 hdr = lin * boost;
+
+    // Soft-knee bright-pass extraction
+    float knee = 0.14;
+    float soft = clamp(luma - p.threshold + knee, 0.0, 2.0 * knee);
+    soft = (soft * soft) / (4.0 * knee + 1e-6);
+    float contrib = clamp(max(soft, luma - p.threshold) / max(luma, 1e-5), 0.0, 3.5);
+
+    out_hdr[idx] = vec4(hdr, 1.0);
+    out_bright[idx] = vec4(hdr * contrib, 1.0);
+}

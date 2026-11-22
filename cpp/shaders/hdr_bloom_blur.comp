@@ -1,0 +1,51 @@
+#version 450
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer SrcBuf  { vec4 src[]; };
+layout(set = 0, binding = 1) writeonly buffer DstBuf { vec4 dst[]; };
+
+layout(push_constant) uniform PC {
+    int src_w;
+    int src_h;
+    int dst_w;
+    int dst_h;
+    int mode; // 0 = 2x2 box downsample, 1 = 9-tap horiz Gaussian, 2 = 9-tap vert Gaussian
+} p;
+
+vec3 fetch_clamped(int x, int y) {
+    int cx = clamp(x, 0, p.src_w - 1);
+    int cy = clamp(y, 0, p.src_h - 1);
+    return src[cy * p.src_w + cx].rgb;
+}
+
+void main() {
+    int x = int(gl_GlobalInvocationID.x);
+    int y = int(gl_GlobalInvocationID.y);
+    if (x >= p.dst_w || y >= p.dst_h) return;
+
+    vec3 acc = vec3(0.0);
+    if (p.mode == 0) {
+        int sx = x * 2;
+        int sy = y * 2;
+        acc = 0.25 * (
+            fetch_clamped(sx,     sy    ) +
+            fetch_clamped(sx + 1, sy    ) +
+            fetch_clamped(sx,     sy + 1) +
+            fetch_clamped(sx + 1, sy + 1)
+        );
+    } else {
+        // 9-tap Gaussian kernel (sigma ~ 2.2)
+        const float w[5] = float[5](0.20236, 0.17904, 0.12401, 0.06723, 0.02854);
+        acc = fetch_clamped(x, y) * w[0];
+        if (p.mode == 1) {
+            for (int k = 1; k <= 4; ++k) {
+                acc += (fetch_clamped(x - k, y) + fetch_clamped(x + k, y)) * w[k];
+            }
+        } else {
+            for (int k = 1; k <= 4; ++k) {
+                acc += (fetch_clamped(x, y - k) + fetch_clamped(x, y + k)) * w[k];
+            }
+        }
+    }
+    dst[y * p.dst_w + x] = vec4(acc, 1.0);
+}

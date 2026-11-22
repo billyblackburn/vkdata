@@ -109,6 +109,26 @@ int vks_shade_3d_rgba(
     void* out_vkbuf, size_t out_off
 );
 
+/**
+ * Single-command-buffer 3-mip physically-based Vulkan GPU HDR Bloom + ACES Filmic tone mapping.
+ * Operates directly on shared RGBA uint32 VkBuffers with zero host copies.
+ */
+int vks_hdr_bloom_rgba(
+    void* in_rgba_vkbuf,
+    void* out_rgba_vkbuf,
+    void* hdr_vkbuf,
+    void* bright_vkbuf,
+    void* mip1_vkbuf,
+    void* mip2_vkbuf,
+    void* mip3_vkbuf,
+    void* tmp_vkbuf,
+    int width, int height,
+    float intensity,
+    float exposure,
+    float threshold,
+    float hdr_lift
+);
+
 #ifdef __cplusplus
 }
 #endif

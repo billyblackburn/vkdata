@@ -104,6 +104,15 @@ def _load_lib() -> ctypes.CDLL:
     ]
     lib.vks_shade_3d_rgba.restype = c_int
 
+    lib.vks_hdr_bloom_rgba.argtypes = [
+        c_void_p, c_void_p,
+        c_void_p, c_void_p,
+        c_void_p, c_void_p, c_void_p, c_void_p,
+        c_int, c_int,
+        c_float, c_float, c_float, c_float,
+    ]
+    lib.vks_hdr_bloom_rgba.restype = c_int
+
     _lib = lib
     return lib
 
@@ -416,3 +425,89 @@ def render_3d_gpu(
     if rc2 != 0:
         raise RuntimeError(f"vks_shade_3d_rgba failed (rc={rc2})")
     return out
+
+
+_BLOOM_SCRATCH: dict = {}
+
+
+def hdr_bloom_rgba_gpu(
+    rgba_in: vnp.ndarray,
+    intensity: float = 1.45,
+    exposure: float = 1.75,
+    threshold: float = 0.06,
+    hdr_lift: float = 9.0,
+) -> vnp.ndarray:
+    """Single-command-buffer 3-mip Vulkan GPU HDR Bloom + ACES Filmic tone mapping (~1-2 ms)."""
+    lib = _ensure_init()
+    vl = vkn_lib()
+
+    inp = vnp.asarray(rgba_in, dtype=_np.int32).contiguous()
+    if inp.ndim != 2:
+        raise ValueError(f"Expected packed (H, W) int32 RGBA GPU buffer, got {inp.shape}")
+    height, width = int(inp.shape[0]), int(inp.shape[1])
+
+    key = (height, width)
+    scratch = _BLOOM_SCRATCH.get(key)
+    if scratch is None:
+        if len(_BLOOM_SCRATCH) > 4:
+            _BLOOM_SCRATCH.clear()
+        w1, h1 = max(1, width // 2), max(1, height // 2)
+        w2, h2 = max(1, w1 // 2), max(1, h1 // 2)
+        w3, h3 = max(1, w2 // 2), max(1, h2 // 2)
+        scratch = (
+            vnp.ndarray._empty_uninit((height, width, 4), _np.float32),  # hdr
+            vnp.ndarray._empty_uninit((height, width, 4), _np.float32),  # bright
+            vnp.ndarray._empty_uninit((h1, w1, 4), _np.float32),         # mip1
+            vnp.ndarray._empty_uninit((h2, w2, 4), _np.float32),         # mip2
+            vnp.ndarray._empty_uninit((h3, w3, 4), _np.float32),         # mip3
+            vnp.ndarray._empty_uninit((h1, w1, 4), _np.float32),         # tmp
+            vnp.ndarray._empty_uninit((height, width), _np.int32),       # out
+        )
+        _BLOOM_SCRATCH[key] = scratch
+
+    hdr_b, br_b, m1_b, m2_b, m3_b, tmp_b, out_b = scratch
+    rc = lib.vks_hdr_bloom_rgba(
+        vl.vkn_vk_get_raw_buffer(inp._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(out_b._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(hdr_b._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(br_b._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(m1_b._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(m2_b._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(m3_b._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(tmp_b._buf.ptr),
+        int(width), int(height),
+        float(intensity), float(exposure), float(threshold), float(hdr_lift),
+    )
+    if rc != 0:
+        raise RuntimeError(f"vks_hdr_bloom_rgba failed (rc={rc})")
+    return out_b
+
+
+def hdr_bloom(
+    img,
+    *,
+    intensity: float = 1.45,
+    exposure: float = 1.75,
+    threshold: float = 0.06,
+    hdr_lift: float = 9.0,
+):
+    """Apply zero-copy Vulkan GPU 3-mip HDR Bloom + ACES Filmic tone mapping.
+
+    Accepts a ``ShadedImage``, an ``(H, W, 4)`` uint8 NumPy RGBA array, or a
+    packed ``(H, W)`` int32 ``vnp.ndarray``. Returns the matching type.
+    """
+    from .canvas import ShadedImage
+
+    if isinstance(img, ShadedImage):
+        packed = _np.ascontiguousarray(img.rgba, dtype=_np.uint8).view(_np.int32).reshape(img.rgba.shape[0], img.rgba.shape[1])
+        out_gpu = hdr_bloom_rgba_gpu(vnp.array(packed, dtype=_np.int32), intensity=intensity, exposure=exposure, threshold=threshold, hdr_lift=hdr_lift)
+        out_rgba = out_gpu.to_numpy().view(_np.uint8).reshape(img.rgba.shape[0], img.rgba.shape[1], 4)
+        return ShadedImage(rgba=out_rgba, x_range=img.x_range, y_range=img.y_range)
+    if isinstance(img, vnp.ndarray):
+        return hdr_bloom_rgba_gpu(img, intensity=intensity, exposure=exposure, threshold=threshold, hdr_lift=hdr_lift)
+    arr = _np.ascontiguousarray(img, dtype=_np.uint8)
+    if arr.ndim == 3 and arr.shape[2] == 4:
+        packed = arr.view(_np.int32).reshape(arr.shape[0], arr.shape[1])
+        out_gpu = hdr_bloom_rgba_gpu(vnp.array(packed, dtype=_np.int32), intensity=intensity, exposure=exposure, threshold=threshold, hdr_lift=hdr_lift)
+        return out_gpu.to_numpy().view(_np.uint8).reshape(arr.shape[0], arr.shape[1], 4)
+    raise ValueError(f"Expected ShadedImage, (H, W, 4) uint8 RGBA array, or (H, W) int32 vnp.ndarray; got {type(img)}")

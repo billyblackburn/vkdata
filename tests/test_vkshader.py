@@ -90,3 +90,9 @@ def test_render_3d_gpu():
     )
     assert img_sph.rgba.shape == (96, 128, 4)
     assert int(img_sph.rgba[:, :, 0].max()) > 150
+
+    # Zero-copy 3-mip SPIR-V GPU HDR Bloom + ACES Filmic tone mapping
+    bloomed = vks.hdr_bloom(img_sph, intensity=1.4)
+    assert bloomed.rgba.shape == (96, 128, 4)
+    assert bloomed.rgba.dtype == np.uint8
+    assert int(bloomed.rgba[:, :, 0].max()) > 150

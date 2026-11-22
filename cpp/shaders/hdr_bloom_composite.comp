@@ -1,0 +1,82 @@
+#version 450
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer HdrBuf  { vec4 hdr[]; };
+layout(set = 0, binding = 1) readonly buffer Mip1Buf { vec4 mip1[]; };
+layout(set = 0, binding = 2) readonly buffer Mip2Buf { vec4 mip2[]; };
+layout(set = 0, binding = 3) readonly buffer Mip3Buf { vec4 mip3[]; };
+layout(set = 0, binding = 4) writeonly buffer OutRgba { uint out_rgba[]; };
+
+layout(push_constant) uniform PC {
+    int   width;
+    int   height;
+    int   w1;
+    int   h1;
+    int   w2;
+    int   h2;
+    int   w3;
+    int   h3;
+    float intensity;
+    float exposure;
+} p;
+
+vec3 bilerp_mip1(float u, float v) {
+    float fx = clamp(u * float(p.w1) - 0.5, 0.0, float(p.w1 - 1));
+    float fy = clamp(v * float(p.h1) - 0.5, 0.0, float(p.h1 - 1));
+    int x0 = int(floor(fx)); int x1 = min(x0 + 1, p.w1 - 1);
+    int y0 = int(floor(fy)); int y1 = min(y0 + 1, p.h1 - 1);
+    float tx = fx - float(x0); float ty = fy - float(y0);
+    vec3 c00 = mip1[y0 * p.w1 + x0].rgb;
+    vec3 c10 = mip1[y0 * p.w1 + x1].rgb;
+    vec3 c01 = mip1[y1 * p.w1 + x0].rgb;
+    vec3 c11 = mip1[y1 * p.w1 + x1].rgb;
+    return mix(mix(c00, c10, tx), mix(c01, c11, tx), ty);
+}
+
+vec3 bilerp_mip2(float u, float v) {
+    float fx = clamp(u * float(p.w2) - 0.5, 0.0, float(p.w2 - 1));
+    float fy = clamp(v * float(p.h2) - 0.5, 0.0, float(p.h2 - 1));
+    int x0 = int(floor(fx)); int x1 = min(x0 + 1, p.w2 - 1);
+    int y0 = int(floor(fy)); int y1 = min(y0 + 1, p.h2 - 1);
+    float tx = fx - float(x0); float ty = fy - float(y0);
+    vec3 c00 = mip2[y0 * p.w2 + x0].rgb;
+    vec3 c10 = mip2[y0 * p.w2 + x1].rgb;
+    vec3 c01 = mip2[y1 * p.w2 + x0].rgb;
+    vec3 c11 = mip2[y1 * p.w2 + x1].rgb;
+    return mix(mix(c00, c10, tx), mix(c01, c11, tx), ty);
+}
+
+vec3 bilerp_mip3(float u, float v) {
+    float fx = clamp(u * float(p.w3) - 0.5, 0.0, float(p.w3 - 1));
+    float fy = clamp(v * float(p.h3) - 0.5, 0.0, float(p.h3 - 1));
+    int x0 = int(floor(fx)); int x1 = min(x0 + 1, p.w3 - 1);
+    int y0 = int(floor(fy)); int y1 = min(y0 + 1, p.h3 - 1);
+    float tx = fx - float(x0); float ty = fy - float(y0);
+    vec3 c00 = mip3[y0 * p.w3 + x0].rgb;
+    vec3 c10 = mip3[y0 * p.w3 + x1].rgb;
+    vec3 c01 = mip3[y1 * p.w3 + x0].rgb;
+    vec3 c11 = mip3[y1 * p.w3 + x1].rgb;
+    return mix(mix(c00, c10, tx), mix(c01, c11, tx), ty);
+}
+
+void main() {
+    int x = int(gl_GlobalInvocationID.x);
+    int y = int(gl_GlobalInvocationID.y);
+    if (x >= p.width || y >= p.height) return;
+    int idx = y * p.width + x;
+
+    vec3 col = hdr[idx].rgb;
+    if (p.intensity > 0.005) {
+        float u = (float(x) + 0.5) / float(p.width);
+        float v = (float(y) + 0.5) / float(p.height);
+        vec3 bloom = 0.75 * bilerp_mip1(u, v) + 0.65 * bilerp_mip2(u, v) + 0.55 * bilerp_mip3(u, v);
+        col += bloom * p.intensity;
+    }
+
+    // ACES Filmic tone mapping + sRGB gamma 2.2
+    vec3 cx = col * p.exposure;
+    vec3 aces = (cx * (2.51 * cx + 0.03)) / (cx * (2.43 * cx + 0.59) + 0.14);
+    vec3 srgb = pow(clamp(aces, vec3(0.0), vec3(1.0)), vec3(1.0 / 2.2));
+    uvec3 u8 = uvec3(clamp(srgb * 255.0 + 0.5, vec3(0.0), vec3(255.0)));
+    out_rgba[idx] = u8.r | (u8.g << 8u) | (u8.b << 16u) | (255u << 24u);
+}
