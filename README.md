@@ -71,6 +71,9 @@ pixi run lab
 - [`nbody_galaxies_3d.ipynb`](examples/physics/nbody_galaxies_3d.ipynb) — 16,384-body 6-level 3D Barnes-Hut Morton octree (`vkspatial.BarnesHut3D`, ~1.2 ms/step on Vulkan GPU) simulating two colliding spiral galaxies with elastic sphere collisions & flashes, luminous 3D motion trails, GPU Gaussian bloom, & live auto-animating 3D orbit
 - [`ocean_fft_3d.ipynb`](examples/physics/ocean_fft_3d.ipynb) — Vulkan GPU recreation of NVIDIA's CUDA `oceanFFT` (Tessendorf Phillips-spectrum 256×256 2D IFFT in ~25 ms, sunlit Fresnel wave shading, live time-stepping `vkpanel` app, & auto-animating 3D wave mesh orbit)
 
+### WebGPU & PyGFX (`examples/webgpu/`)
+- [`wgpu_pygfx_nbody.ipynb`](examples/webgpu/wgpu_pygfx_nbody.ipynb) — Zero-copy WebGPU (`wgpu` + `pygfx` + `jupyter_rfb`) 16,384-body 6-level Barnes-Hut colliding galaxies (416 steps/sec) with 98,304 GPU ring-buffer trails, `PhysicalBasedBloomPass` HDR bloom, & live 60 FPS interactive Jupyter canvas
+
 ### Structural Biology & Molecular (`examples/biology/`)
 - [`protein_molecule_3d.ipynb`](examples/biology/protein_molecule_3d.ipynb) — Real RCSB PDB proteins (`6VXX` 23.7k-atom SARS-CoV-2 Spike Trimer, `6M0J` Spike+ACE2, `4HHB` Hemoglobin) rendered as Vulkan 3D Blinn–Phong shaded sphere impostors + GPU `vkscipy.cdist` protein contact map
 

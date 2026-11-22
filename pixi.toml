@@ -36,3 +36,8 @@ test = "PYTHONPATH=. pytest -v tests"
 wheel = "bash -c 'rm -rf dist wheelhouse && python -m build --wheel --no-isolation -C build-dir=build && LD_LIBRARY_PATH=\"$PWD/.pixi/envs/default/lib:${LD_LIBRARY_PATH:-}\" auditwheel repair --exclude libvulkan.so.1 -w wheelhouse dist/*.whl'"
 bench = "PYTHONPATH=. python benchmarks/bench_gemm.py"
 lab = "PYTHONPATH=. jupyter lab examples"
+
+[pypi-dependencies]
+wgpu = ">=0.33.0, <0.34"
+pygfx = ">=0.18.0, <0.19"
+jupyter-rfb = ">=1.0.2, <2"
