@@ -1,5 +1,6 @@
 """vkspatial: GeoPandas / SpatialPandas / cuSpatial-style Vulkan GPU spatial indexing & queries."""
 
+from .barnes_hut import BarnesHut3D
 from .geodataframe import GeoDataFrame
 from .io import read_geojson, to_geojson
 
@@ -19,6 +20,7 @@ from .ops import (
 )
 
 __all__ = [
+    "BarnesHut3D",
     "GeoDataFrame",
     "bearing",
     "euclidean_distance",

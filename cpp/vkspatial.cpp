@@ -5,6 +5,10 @@
 #include "vksp_spv_morton_2d.h"
 #include "vksp_spv_point_in_polygon.h"
 #include "vksp_spv_sjoin_polygons.h"
+#include "vksp_spv_bh_bin.h"
+#include "vksp_spv_bh_leaves.h"
+#include "vksp_spv_bh_reduce.h"
+#include "vksp_spv_bh_step.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -35,6 +39,10 @@ struct State {
     Pipe p_morton;
     Pipe p_pip;
     Pipe p_sjoin;
+    Pipe p_bh_bin;
+    Pipe p_bh_leaves;
+    Pipe p_bh_reduce;
+    Pipe p_bh_step;
 };
 
 std::mutex g_mutex;
@@ -97,6 +105,22 @@ bool create_pipe(
     dsa_ci.descriptorSetCount = 1;
     dsa_ci.pSetLayouts = &out.desc_layout;
     return vkAllocateDescriptorSets(st.dev, &dsa_ci, &out.desc_set) == VK_SUCCESS;
+}
+
+void update_set(const Pipe& pipe, const std::vector<VkBuffer>& bufs) {
+    std::vector<VkDescriptorBufferInfo> dbis(bufs.size());
+    std::vector<VkWriteDescriptorSet> writes(bufs.size());
+    for (size_t i = 0; i < bufs.size(); ++i) {
+        dbis[i] = { bufs[i], 0, VK_WHOLE_SIZE };
+        writes[i] = {};
+        writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[i].dstSet = pipe.desc_set;
+        writes[i].dstBinding = static_cast<uint32_t>(i);
+        writes[i].descriptorCount = 1;
+        writes[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        writes[i].pBufferInfo = &dbis[i];
+    }
+    vkUpdateDescriptorSets(g_st.dev, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 }
 
 int dispatch_pipe(
@@ -184,11 +208,11 @@ int vksp_init(
 
     VkDescriptorPoolSize pool_size{};
     pool_size.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    pool_size.descriptorCount = 32;
+    pool_size.descriptorCount = 64;
 
     VkDescriptorPoolCreateInfo dp_ci{};
     dp_ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    dp_ci.maxSets = 8;
+    dp_ci.maxSets = 16;
     dp_ci.poolSizeCount = 1;
     dp_ci.pPoolSizes = &pool_size;
     if (vkCreateDescriptorPool(g_st.dev, &dp_ci, nullptr, &g_st.desc_pool) != VK_SUCCESS) return -1;
@@ -196,8 +220,12 @@ int vksp_init(
     bool ok1 = create_pipe(g_st, vksp_spv_morton_2d, sizeof(vksp_spv_morton_2d), 3, 8 * sizeof(uint32_t), g_st.p_morton);
     bool ok2 = create_pipe(g_st, vksp_spv_point_in_polygon, sizeof(vksp_spv_point_in_polygon), 4, 6 * sizeof(uint32_t), g_st.p_pip);
     bool ok3 = create_pipe(g_st, vksp_spv_sjoin_polygons, sizeof(vksp_spv_sjoin_polygons), 6, 5 * sizeof(uint32_t), g_st.p_sjoin);
+    bool ok4 = create_pipe(g_st, vksp_spv_bh_bin, sizeof(vksp_spv_bh_bin), 3, 2 * sizeof(uint32_t), g_st.p_bh_bin);
+    bool ok5 = create_pipe(g_st, vksp_spv_bh_leaves, sizeof(vksp_spv_bh_leaves), 5, 3 * sizeof(uint32_t), g_st.p_bh_leaves);
+    bool ok6 = create_pipe(g_st, vksp_spv_bh_reduce, sizeof(vksp_spv_bh_reduce), 2, 2 * sizeof(uint32_t), g_st.p_bh_reduce);
+    bool ok7 = create_pipe(g_st, vksp_spv_bh_step, sizeof(vksp_spv_bh_step), 8, 9 * sizeof(uint32_t), g_st.p_bh_step);
 
-    g_st.ready = ok1 && ok2 && ok3;
+    g_st.ready = ok1 && ok2 && ok3 && ok4 && ok5 && ok6 && ok7;
     return g_st.ready ? 0 : -1;
 }
 
@@ -324,6 +352,122 @@ int vksp_sjoin_polygons(
         },
         &pc, sizeof(pc), n
     );
+}
+
+int vksp_barnes_hut_step(
+    void* src_pm_vkbuf,
+    void* src_vg_vkbuf,
+    void* dst_pm_vkbuf,
+    void* dst_vg_vkbuf,
+    void* leaf_heads_vkbuf,
+    void* particle_next_vkbuf,
+    void* tree_com_vkbuf,
+    void* tree_size_vkbuf,
+    uint32_t n,
+    float G,
+    float softening_sq,
+    float dt,
+    float damping,
+    float theta,
+    float restitution,
+    float world_half
+) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (!g_st.ready || !src_pm_vkbuf || !src_vg_vkbuf || !dst_pm_vkbuf || !dst_vg_vkbuf ||
+        !leaf_heads_vkbuf || !particle_next_vkbuf || !tree_com_vkbuf || !tree_size_vkbuf || n == 0u) {
+        return -1;
+    }
+
+    VkBuffer spm = static_cast<VkBuffer>(src_pm_vkbuf);
+    VkBuffer svg = static_cast<VkBuffer>(src_vg_vkbuf);
+    VkBuffer dpm = static_cast<VkBuffer>(dst_pm_vkbuf);
+    VkBuffer dvg = static_cast<VkBuffer>(dst_vg_vkbuf);
+    VkBuffer lh  = static_cast<VkBuffer>(leaf_heads_vkbuf);
+    VkBuffer pn  = static_cast<VkBuffer>(particle_next_vkbuf);
+    VkBuffer tc  = static_cast<VkBuffer>(tree_com_vkbuf);
+    VkBuffer ts  = static_cast<VkBuffer>(tree_size_vkbuf);
+
+    if (g_st.sync_fn) g_st.sync_fn();
+
+    update_set(g_st.p_bh_bin,    { spm, lh, pn });
+    update_set(g_st.p_bh_leaves, { spm, lh, pn, tc, ts });
+    update_set(g_st.p_bh_reduce, { tc, ts });
+    update_set(g_st.p_bh_step,   { spm, svg, dpm, dvg, lh, pn, tc, ts });
+
+    VkCommandBuffer cmd = g_st.cmd_buf;
+    if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS) return -1;
+    VkCommandBufferBeginInfo bi{};
+    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    if (vkBeginCommandBuffer(cmd, &bi) != VK_SUCCESS) return -1;
+
+    VkMemoryBarrier bar_xfer{};
+    bar_xfer.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    bar_xfer.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    bar_xfer.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+    VkMemoryBarrier bar_comp{};
+    bar_comp.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    bar_comp.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    bar_comp.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+    constexpr uint32_t NUM_LEAVES = 32768u;
+    constexpr uint32_t LEAF_OFFSET = 4681u;
+
+    // Pass 1: Clear leaf_heads to -1 (0xFFFFFFFF)
+    vkCmdFillBuffer(cmd, lh, 0, NUM_LEAVES * sizeof(uint32_t), 0xFFFFFFFFu);
+    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &bar_xfer, 0, nullptr, 0, nullptr);
+
+    // Pass 2: Bin particles into 32^3 Morton leaves
+    struct { uint32_t n; float world_half; } pc_bin = { n, world_half };
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bh_bin.pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bh_bin.pipe_layout, 0, 1, &g_st.p_bh_bin.desc_set, 0, nullptr);
+    vkCmdPushConstants(cmd, g_st.p_bh_bin.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc_bin), &pc_bin);
+    vkCmdDispatch(cmd, (n + 63u) / 64u, 1, 1);
+    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &bar_comp, 0, nullptr, 0, nullptr);
+
+    // Pass 3a: Build Level-5 leaves COM
+    struct { uint32_t num_leaves; uint32_t leaf_offset; float leaf_size; } pc_leaf = { NUM_LEAVES, LEAF_OFFSET, (2.0f * world_half) / 32.0f };
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bh_leaves.pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bh_leaves.pipe_layout, 0, 1, &g_st.p_bh_leaves.desc_set, 0, nullptr);
+    vkCmdPushConstants(cmd, g_st.p_bh_leaves.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc_leaf), &pc_leaf);
+    vkCmdDispatch(cmd, (NUM_LEAVES + 63u) / 64u, 1, 1);
+    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &bar_comp, 0, nullptr, 0, nullptr);
+
+    // Pass 3b: Bottom-up reduction L = 4, 3, 2, 1, 0
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bh_reduce.pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bh_reduce.pipe_layout, 0, 1, &g_st.p_bh_reduce.desc_set, 0, nullptr);
+    const uint32_t offsets[5] = { 585u, 73u, 9u, 1u, 0u };
+    const uint32_t counts[5]  = { 4096u, 512u, 64u, 8u, 1u };
+    for (int lv = 0; lv < 5; ++lv) {
+        struct { uint32_t off; uint32_t cnt; } pc_red = { offsets[lv], counts[lv] };
+        vkCmdPushConstants(cmd, g_st.p_bh_reduce.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc_red), &pc_red);
+        vkCmdDispatch(cmd, (counts[lv] + 63u) / 64u, 1, 1);
+        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &bar_comp, 0, nullptr, 0, nullptr);
+    }
+
+    // Pass 4: Barnes-Hut traversal + elastic collisions + integration
+    struct {
+        uint32_t n;
+        uint32_t leaf_offset;
+        float G;
+        float softening_sq;
+        float dt;
+        float damping;
+        float theta_sq;
+        float restitution;
+        float world_half;
+    } pc_step = { n, LEAF_OFFSET, G, softening_sq, dt, damping, theta * theta, restitution, world_half };
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bh_step.pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bh_step.pipe_layout, 0, 1, &g_st.p_bh_step.desc_set, 0, nullptr);
+    vkCmdPushConstants(cmd, g_st.p_bh_step.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc_step), &pc_step);
+    vkCmdDispatch(cmd, (n + 63u) / 64u, 1, 1);
+
+    if (vkEndCommandBuffer(cmd) != VK_SUCCESS) return -1;
+    if (g_st.submit_fn(cmd, g_st.fence) != 0) return -1;
+    VkResult wrc = vkWaitForFences(g_st.dev, 1, &g_st.fence, VK_TRUE, UINT64_MAX);
+    VkResult rrc = vkResetFences(g_st.dev, 1, &g_st.fence);
+    return (wrc == VK_SUCCESS && rrc == VK_SUCCESS) ? 0 : -1;
 }
 
 } // extern "C"

@@ -1,0 +1,33 @@
+#version 450
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) buffer TreeCom { vec4  tree_com[]; };
+layout(set = 0, binding = 1) buffer TreeSz  { float tree_size[]; };
+
+layout(push_constant) uniform PC {
+    uint level_offset;
+    uint level_count;
+} p;
+
+void main() {
+    uint local_idx = gl_GlobalInvocationID.x;
+    if (local_idx >= p.level_count) return;
+    uint node_idx = p.level_offset + local_idx;
+    uint first_child = node_idx * 8u + 1u;
+
+    vec3 weighted_pos = vec3(0.0);
+    float total_mass = 0.0;
+    for (uint c = 0u; c < 8u; ++c) {
+        vec4 cc = tree_com[first_child + c];
+        if (cc.w > 0.0) {
+            weighted_pos += cc.xyz * cc.w;
+            total_mass += cc.w;
+        }
+    }
+    if (total_mass > 0.0) {
+        tree_com[node_idx] = vec4(weighted_pos / total_mass, total_mass);
+    } else {
+        tree_com[node_idx] = vec4(0.0);
+    }
+    tree_size[node_idx] = tree_size[first_child] * 2.0;
+}

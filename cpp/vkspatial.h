@@ -47,6 +47,28 @@ int vksp_sjoin_polygons(
     void* out_vkbuf, size_t out_off
 );
 
+/**
+ * Single-command-buffer 6-level 3D Barnes-Hut Morton octree N-body step + elastic collisions.
+ */
+int vksp_barnes_hut_step(
+    void* src_pm_vkbuf,
+    void* src_vg_vkbuf,
+    void* dst_pm_vkbuf,
+    void* dst_vg_vkbuf,
+    void* leaf_heads_vkbuf,
+    void* particle_next_vkbuf,
+    void* tree_com_vkbuf,
+    void* tree_size_vkbuf,
+    uint32_t n,
+    float G,
+    float softening_sq,
+    float dt,
+    float damping,
+    float theta,
+    float restitution,
+    float world_half
+);
+
 #ifdef __cplusplus
 }
 #endif

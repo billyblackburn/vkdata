@@ -131,10 +131,18 @@ set(VKSP_SPV_HEADERS
     "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_morton_2d.h"
     "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_point_in_polygon.h"
     "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_sjoin_polygons.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_bh_bin.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_bh_leaves.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_bh_reduce.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_bh_step.h"
 )
 vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/morton_2d.comp"        vksp_spv_morton_2d        "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_morton_2d.h")
 vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/point_in_polygon.comp" vksp_spv_point_in_polygon "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_point_in_polygon.h")
 vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/sjoin_polygons.comp"   vksp_spv_sjoin_polygons   "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_sjoin_polygons.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/bh_bin.comp"           vksp_spv_bh_bin           "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_bh_bin.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/bh_leaves.comp"        vksp_spv_bh_leaves        "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_bh_leaves.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/bh_reduce.comp"        vksp_spv_bh_reduce        "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_bh_reduce.h")
+vkn_add_shader("${CMAKE_CURRENT_SOURCE_DIR}/cpp/shaders/bh_step.comp"          vksp_spv_bh_step          "${CMAKE_CURRENT_BINARY_DIR}/vksp_spv_bh_step.h")
 
 add_library(vkspatial SHARED
     cpp/vkspatial.cpp

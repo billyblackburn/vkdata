@@ -59,6 +59,16 @@ def _load_lib() -> ctypes.CDLL:
     ]
     lib.vksp_sjoin_polygons.restype = c_int
 
+    lib.vksp_barnes_hut_step.argtypes = [
+        c_void_p, c_void_p,
+        c_void_p, c_void_p,
+        c_void_p, c_void_p,
+        c_void_p, c_void_p,
+        c_uint32,
+        c_float, c_float, c_float, c_float, c_float, c_float, c_float,
+    ]
+    lib.vksp_barnes_hut_step.restype = c_int
+
     _lib = lib
     return lib
 
@@ -175,3 +185,46 @@ def sjoin_polygons_gpu(
     if rc != 0:
         raise RuntimeError(f"vksp_sjoin_polygons failed (rc={rc})")
     return out
+
+
+def barnes_hut_step_gpu(
+    src_pm: vnp.ndarray,
+    src_vg: vnp.ndarray,
+    dst_pm: vnp.ndarray,
+    dst_vg: vnp.ndarray,
+    leaf_heads: vnp.ndarray,
+    particle_next: vnp.ndarray,
+    tree_com: vnp.ndarray,
+    tree_size: vnp.ndarray,
+    n: int,
+    G: float,
+    softening_sq: float,
+    dt: float,
+    damping: float,
+    theta: float,
+    restitution: float,
+    world_half: float,
+) -> None:
+    """Execute one 6-level 3D Barnes-Hut Morton octree gravity + collision step on GPU."""
+    lib = _ensure_init()
+    vl = vkn_lib()
+    rc = lib.vksp_barnes_hut_step(
+        vl.vkn_vk_get_raw_buffer(src_pm._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(src_vg._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(dst_pm._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(dst_vg._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(leaf_heads._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(particle_next._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(tree_com._buf.ptr),
+        vl.vkn_vk_get_raw_buffer(tree_size._buf.ptr),
+        int(n),
+        float(G),
+        float(softening_sq),
+        float(dt),
+        float(damping),
+        float(theta),
+        float(restitution),
+        float(world_half),
+    )
+    if rc != 0:
+        raise RuntimeError(f"vksp_barnes_hut_step failed (rc={rc})")

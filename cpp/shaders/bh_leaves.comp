@@ -1,0 +1,37 @@
+#version 450
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer SrcPM    { vec4 pos_mass[]; };
+layout(set = 0, binding = 1) readonly buffer Heads    { int  leaf_heads[]; };
+layout(set = 0, binding = 2) readonly buffer NextBuf  { int  particle_next[]; };
+layout(set = 0, binding = 3) writeonly buffer TreeCom { vec4 tree_com[]; };
+layout(set = 0, binding = 4) writeonly buffer TreeSz  { float tree_size[]; };
+
+layout(push_constant) uniform PC {
+    uint  num_leaves;
+    uint  leaf_offset;
+    float leaf_size;
+} p;
+
+void main() {
+    uint m = gl_GlobalInvocationID.x;
+    if (m >= p.num_leaves) return;
+    vec3 weighted_pos = vec3(0.0);
+    float total_mass = 0.0;
+    int cur = leaf_heads[m];
+    uint it = 0u;
+    while (cur != -1 && it < 256u) {
+        vec4 pm = pos_mass[uint(cur)];
+        weighted_pos += pm.xyz * pm.w;
+        total_mass += pm.w;
+        cur = particle_next[uint(cur)];
+        it += 1u;
+    }
+    uint node_idx = p.leaf_offset + m;
+    if (total_mass > 0.0) {
+        tree_com[node_idx] = vec4(weighted_pos / total_mass, total_mass);
+    } else {
+        tree_com[node_idx] = vec4(0.0);
+    }
+    tree_size[node_idx] = p.leaf_size;
+}

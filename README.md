@@ -67,7 +67,7 @@ pixi run lab
 ## Example Notebooks (`examples/`)
 
 ### Physics & Simulation (`examples/physics/`)
-- [`nbody_galaxies_3d.ipynb`](examples/physics/nbody_galaxies_3d.ipynb) — Vulkan GPU recreation of NVIDIA's CUDA `nbody`: two colliding 3D spiral galaxies with all-pairs gravity, luminous 3D motion trails, GPU Gaussian bloom, & live auto-animating 3D orbit
+- [`nbody_galaxies_3d.ipynb`](examples/physics/nbody_galaxies_3d.ipynb) — 16,384-body 6-level 3D Barnes-Hut Morton octree (`vkspatial.BarnesHut3D`, ~1.2 ms/step on Vulkan GPU) simulating two colliding spiral galaxies with elastic sphere collisions & flashes, luminous 3D motion trails, GPU Gaussian bloom, & live auto-animating 3D orbit
 - [`ocean_fft_3d.ipynb`](examples/physics/ocean_fft_3d.ipynb) — Vulkan GPU recreation of NVIDIA's CUDA `oceanFFT` (Tessendorf Phillips-spectrum 256×256 2D IFFT in ~25 ms, sunlit Fresnel wave shading, live time-stepping `vkpanel` app, & auto-animating 3D wave mesh orbit)
 
 ### Structural Biology & Molecular (`examples/biology/`)

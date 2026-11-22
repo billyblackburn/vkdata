@@ -94,3 +94,36 @@ def test_sjoin_crs_cx_nearest_geojson_and_geometry_ops(tmp_path):
     assert abs(vksp.polygon_area(zones["east"]) - 40.0) < 1e-4
     cx, cy = vksp.polygon_centroid(zones["east"])
     assert abs(cx - 3.0) < 1e-4 and abs(cy - 0.0) < 1e-4
+
+
+def test_barnes_hut_3d_gpu():
+    # 1. Exact symmetric 2-body gravitational attraction
+    pm2 = np.array([[-10.0, 0.0, 0.0, 2000.0], [10.0, 0.0, 0.0, 2000.0]], dtype=np.float32)
+    vg2 = np.zeros((2, 4), dtype=np.float32)
+    sim2 = vksp.BarnesHut3D(pm2, vg2, G=0.085, dt=0.02, theta=0.85, world_half=48.0)
+    sim2.step(5)
+    out2 = sim2.pos_mass.to_numpy()
+    assert out2[0, 0] > -10.0 and out2[1, 0] < 10.0
+    np.testing.assert_allclose(out2[0, 0], -out2[1, 0], atol=1e-5)
+
+    # 2. 1,024-body octree + elastic collisions stability & reset
+    rng = np.random.default_rng(7)
+    n = 1024
+    pm = np.zeros((n, 4), dtype=np.float32)
+    vg = np.zeros((n, 4), dtype=np.float32)
+    pm[:, :3] = rng.uniform(-15.0, 15.0, (n, 3))
+    pm[:, 3] = rng.uniform(0.3, 1.0, n)
+    pm[0] = [-10.0, 0.0, 0.0, 2000.0]
+    pm[1] = [10.0, 0.0, 0.0, 2000.0]
+
+    sim = vksp.BarnesHut3D(pm, vg, G=0.085, dt=0.02, theta=0.85, world_half=48.0)
+    sim.step(5)
+    assert sim.steps == 5
+    out_pm = sim.pos_mass.to_numpy()
+    out_vg = sim.vel_gal.to_numpy()
+    assert np.isfinite(out_pm).all() and np.isfinite(out_vg).all()
+    assert np.linalg.norm(out_pm[:, :3] - pm[:, :3], axis=1).mean() > 1e-3
+    # Reset restores initial state cleanly
+    sim.reset(pm, vg)
+    assert sim.steps == 0
+    np.testing.assert_allclose(sim.pos_mass.to_numpy()[0], pm[0], atol=1e-5)
