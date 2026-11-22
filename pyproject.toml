@@ -38,7 +38,7 @@ cmake.version = ">=3.26"
 cmake.build-type = "Release"
 ninja.make-fallback = false
 install.components = ["vkdata"]
-wheel.packages = ["vknumpy", "vkpandas", "vkshader", "vkholoviews", "vkgeoviews", "vkplot", "vklearn", "vkspatial", "vkpanel", "vkastro", "vkcolorcet", "vkscipy"]
+wheel.packages = ["vknumpy", "vkpandas", "vkshader", "vkholoviews", "vkgeoviews", "vkplot", "vklearn", "vkspatial", "vkpanel", "vkastro", "vkcolorcet", "vkscipy", "vkvis"]
 wheel.exclude = ["**/__pycache__/**", "**/*.pyc"]
 sdist.exclude = ["build/**", ".pixi/**", "third_party/**", "dist/**", "**/*.so"]
 

@@ -6,7 +6,7 @@
 
 ---
 
-## Packages (12 Included)
+## Packages (13 Included)
 
 | Package | Mirrors | What It Provides |
 |---|---|---|
@@ -22,6 +22,7 @@
 | **`vkpanel`** | `Panel` | Reactive `Row`, `Column`, `Card`, `Tabs`, `Pane`, `DataTable`, sliders/dropdowns/checkboxes/buttons, and `pn.bind(...)` dashboards |
 | **`vklearn`** | `scikit-learn` / `cuML` | `StandardScaler`, `MinMaxScaler`, `LinearRegression`, `Ridge`, `LogisticRegression` (Newton-IRLS), `PCA`, `KMeans` (k-means++ + O(N) GPU `bincount`), `NearestNeighbors`, `KNeighborsClassifier`, `train_test_split`, `Pipeline`, and GPU metrics |
 | **`vkastro`** | `Astropy` | GPU `SkyCoord` (`ICRS` ↔ `Galactic` Hipparcos 3×3 rotation, 3D Cartesian parsecs, spherical `separation`, `cone_search`), `aitoff_projection`, photometry (`parallax_to_distance`, `absolute_magnitude`, `luminosity_solar`, `bp_rp_to_temperature`), `FlatLambdaCDM` cosmology, and zero-dependency `read_fits` |
+| **`vkvis`** | `mlx-vis` / `UMAP` / `openTSNE` | Pure-Vulkan GPU dimensionality reduction & neighbor embedding: `UMAP`, `TSNE`, `PaCMAP`, `LocalMAP`, `TriMap`, `DREAMS`, `CNE` (`infonce`/`nce`/`neg`), `NNDescent`, 2D/3D GPU rendering (`render_embedding`, `compare_embeddings`, `animate_embedding`) |
 
 ---
 
@@ -34,7 +35,7 @@ pixi run setup
 # 2. Build libvknumpy.so, libvkshader.so, and libvkspatial.so using all CPU cores
 pixi run build
 
-# 3. Run all 62 tests across all 12 packages
+# 3. Run all 65 tests across all 13 packages
 pixi run test
 
 # 4. Build & auditwheel-repair a manylinux wheel (for PyPI / pip install)
@@ -88,6 +89,7 @@ pixi run lab
 - [`nyc_taxi_vkshader.ipynb`](examples/transportation/nyc_taxi_vkshader.ipynb) — Terse 5-line interactive 11.84M-point NYC Taxi map
 
 ### Machine Learning (`examples/machine_learning/`)
+- [`vkvis_manifold_demo.ipynb`](examples/machine_learning/vkvis_manifold_demo.ipynb) — `mlx-vis`-style Vulkan GPU manifold learning: 7-algorithm comparison (`UMAP`, `TSNE`, `PaCMAP`, `LocalMAP`, `TriMap`, `DREAMS`, `CNE`), Swiss Roll unrolling, live UMAP trajectory player, & interactive 3D UMAP sphere orbit
 - [`nyc_taxi_ml.ipynb`](examples/machine_learning/nyc_taxi_ml.ipynb) — GPU Fare & Card-Tip (`$`) prediction, Tip classifier, K-Means hotspots, and interactive trip predictor (`vklearn`)
 
 ### Core Compute & Visualization (`examples/core_and_viz/`)
