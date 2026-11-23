@@ -313,6 +313,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/6d/e7/f76639fc50bab9b7d7b2c1c3fa804b6d349fa85ca3f56731405282a920a0/simplejpeg-1.10.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/6e/f2/84ae3176b3ccbc26ed470d599499c85170d378bf27bfd2db6aa9eaff7d98/hsluv-5.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/74/cb/3027a83504373499adb52656b23fad19fc1c534517fe8c0780b70da8b899/pylinalg-0.6.8-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/86/c9/d8e2b6d54ad39c441877d4dd56dce76e9106c5c2944b27b8ee7d556a75eb/datoviz-0.2.1-py3-none-manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/b6/36/853cad240ec63e21a37a512ee19c896b655ce1772d803a3dd80fccfe63fe/freetype_py-2.5.1-py3-none-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/b7/c9/809e3c95a16597395a32e3efad3221d77fa36106473b290a95aa1f0306d1/rendercanvas-3.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/be/b7/b94c52e9903da0ebe2cd20874f09770fd1217cf99859bb7e401f552c600c/uharfbuzz-0.57.0-cp311-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -4975,6 +4976,12 @@ packages:
   - twine ; extra == 'tests'
   - scipy ; extra == 'tests'
   requires_python: '>=3.9'
+- pypi: https://files.pythonhosted.org/packages/86/c9/d8e2b6d54ad39c441877d4dd56dce76e9106c5c2944b27b8ee7d556a75eb/datoviz-0.2.1-py3-none-manylinux_2_28_x86_64.whl
+  name: datoviz
+  version: 0.2.1
+  sha256: 303620408089e52c42ac74cb59b0c64ebbd03a8c1288d7519b5197dadb156d19
+  requires_dist:
+  - numpy
 - pypi: https://files.pythonhosted.org/packages/b6/36/853cad240ec63e21a37a512ee19c896b655ce1772d803a3dd80fccfe63fe/freetype_py-2.5.1-py3-none-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl
   name: freetype-py
   version: 2.5.1

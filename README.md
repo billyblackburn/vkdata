@@ -74,6 +74,9 @@ pixi run lab
 ### WebGPU & PyGFX (`examples/webgpu/`)
 - [`wgpu_pygfx_nbody.ipynb`](examples/webgpu/wgpu_pygfx_nbody.ipynb) — Zero-copy WebGPU (`wgpu` + `pygfx` + `jupyter_rfb`) 16,384-body 6-level Barnes-Hut colliding galaxies (416 steps/sec) with 98,304 GPU ring-buffer trails, `PhysicalBasedBloomPass` HDR bloom, & live 60 FPS interactive Jupyter canvas
 
+### Datoviz Native Vulkan (`examples/datoviz/`)
+- [`datoviz_nbody_galaxies.ipynb`](examples/datoviz/datoviz_nbody_galaxies.ipynb) & [`datoviz_nbody_galaxies.py`](examples/datoviz/datoviz_nbody_galaxies.py) — Pure-Vulkan `vkspatial.BarnesHut3D` (16,384 bodies) + Datoviz hardware-rasterized 3D points/trails + `vkshader.hdr_bloom` SPIR-V HDR Bloom + native 60+ FPS Dear ImGui desktop window launcher
+
 ### Structural Biology & Molecular (`examples/biology/`)
 - [`protein_molecule_3d.ipynb`](examples/biology/protein_molecule_3d.ipynb) — Real RCSB PDB proteins (`6VXX` 23.7k-atom SARS-CoV-2 Spike Trimer, `6M0J` Spike+ACE2, `4HHB` Hemoglobin) rendered as Vulkan 3D Blinn–Phong shaded sphere impostors + GPU `vkscipy.cdist` protein contact map
 
