@@ -4,7 +4,7 @@
 
 Most GPU machine learning and deep learning tutorials assume you own a modern NVIDIA CUDA card or a supported AMD ROCm datacenter/desktop GPU. **`vkdata`** opens up the **entire AI & ML lifecycle** on **any Vulkan 1.3+ GPU** — including **Steam Deck & AMD APUs, older Radeon cards without ROCm, Intel integrated/Arc GPUs, older NVIDIA cards, and Apple Silicon (MoltenVK)**.
 
-Experiment hands-on with your own hardware from Stage 1 to Stage 7: GPU arrays & tabular dataframes → visual EDA on millions of rows → feature engineering & feature selection → dimensionality reduction → classical ML → reverse-mode autograd, CNNs, & causal Transformers → real-time 3D GPU simulations — all powered by `llama.cpp`'s `ggml-vulkan`, `Tencent/ncnn`, and custom SPIR-V compute shaders sharing a **single `VkDevice` and zero-copy `VkBuffer`s**.
+Experiment hands-on with your own hardware from Stage 1 to Stage 5: GPU arrays & tabular dataframes → visual EDA on millions of rows → feature engineering & feature selection → dimensionality reduction → classical ML → reverse-mode autograd, CNNs, & causal Transformers — all powered by `llama.cpp`'s `ggml-vulkan`, `Tencent/ncnn`, and custom SPIR-V compute shaders sharing a **single `VkDevice` and zero-copy `VkBuffer`s**.
 
 ### Who Is This For?
 - **Learners & tinkerers without ROCm or a modern CUDA GPU** who want to run real GPU-accelerated ML and deep learning on their laptop, mini-PC, or handheld.
@@ -14,7 +14,7 @@ Experiment hands-on with your own hardware from Stage 1 to Stage 7: GPU arrays &
 
 ## Learning Path (`examples/`)
 
-Follow the numbered curriculum from Stage `01` → Stage `07`:
+Follow the numbered AI & ML curriculum from Stage `01` → Stage `05`:
 
 ### Stage 01 · GPU Foundations (`examples/01_gpu_foundations/`)
 *Arrays, linear algebra, dataframes, and scientific primitives on Vulkan GPU.*
@@ -47,18 +47,15 @@ Follow the numbered curriculum from Stage `01` → Stage `07`:
 *Reverse-mode autograd, MLPs, CNNs, and causal Transformers on Vulkan GPU.*
 - [`vktorch_deep_learning_demo.ipynb`](examples/05_deep_learning/vktorch_deep_learning_demo.ipynb) — Train a **3-Spiral MLP** (100% acc + 2D decision boundary), a **2D `Conv2d` CNN** (100% acc), and a **Causal Mini-GPT Transformer** live on Vulkan GPU with `AdamW` & `CosineAnnealingLR`
 
-### Stage 06 · Real-World Scientific & Mobility Case Studies (`examples/06_domain_case_studies/`)
-*Apply the stack to real astronomy, structural biology, and aviation datasets.*
-- [`opensky_vkdata.ipynb`](examples/06_domain_case_studies/opensky_vkdata.ipynb) — 10.23M real OpenSky flight trajectories: 2D density/velocity/country maps & full-Europe 3D orbit
-- [`vkastro_milky_way_3d.ipynb`](examples/06_domain_case_studies/vkastro_milky_way_3d.ipynb) — 400,000 real ESA Gaia DR3 stars: Hertzsprung–Russell diagram, all-sky Galactic Aitoff map, 3D Solar Neighborhood, & `FlatLambdaCDM` cosmology
-- [`protein_molecule_3d.ipynb`](examples/06_domain_case_studies/protein_molecule_3d.ipynb) — Real RCSB PDB proteins (`6VXX` 23.7k-atom SARS-CoV-2 Spike Trimer, `6M0J`, `4HHB`) as Vulkan 3D Blinn–Phong sphere impostors + GPU `vkscipy.cdist` contact maps
-
-### Stage 07 · High-Performance GPU Simulations & 3D Graphics (`examples/07_gpu_simulations/`)
-*Custom SPIR-V compute shaders, WebGPU/PyGFX, and Datoviz native Vulkan.*
-- [`nbody_galaxies_3d.ipynb`](examples/07_gpu_simulations/nbody_galaxies_3d.ipynb) — 16,384-body 6-level 3D Barnes-Hut Morton octree (`vkspatial.BarnesHut3D`, ~1.2 ms/step) + 0.91 ms native SPIR-V 3-mip HDR Bloom + ACES tone mapping (~41 FPS)
-- [`ocean_fft_3d.ipynb`](examples/07_gpu_simulations/ocean_fft_3d.ipynb) — Vulkan GPU recreation of NVIDIA's CUDA `oceanFFT` (256×256 Tessendorf 2D IFFT + auto-animating 3D wave mesh)
-- [`wgpu_pygfx_nbody.ipynb`](examples/07_gpu_simulations/wgpu_pygfx_nbody.ipynb) — Zero-copy WebGPU (`wgpu` + `pygfx`) 16,384-body Barnes-Hut colliding galaxies + 98,304 trails + `PhysicalBasedBloomPass` (~96 FPS)
-- [`datoviz_nbody_galaxies.ipynb`](examples/07_gpu_simulations/datoviz_nbody_galaxies.ipynb) & [`datoviz_nbody_galaxies.py`](examples/07_gpu_simulations/datoviz_nbody_galaxies.py) — Native Vulkan hardware-rasterized 60+ FPS Datoviz window with Barred Spiral × Cartwheel Ring / 3-Way Merger presets, 3-layer HDR bloom halos, & Dear ImGui HUD
+### Extras & GPU Showcase (`examples/extras_and_showcase/`)
+*Additional real-time GPU physics simulations & scientific visualization demos outside the core ML curriculum.*
+- [`opensky_vkdata.ipynb`](examples/extras_and_showcase/opensky_vkdata.ipynb) — 10.23M real OpenSky flight trajectories: 2D density/velocity/country maps & full-Europe 3D orbit
+- [`vkastro_milky_way_3d.ipynb`](examples/extras_and_showcase/vkastro_milky_way_3d.ipynb) — 400,000 real ESA Gaia DR3 stars: Hertzsprung–Russell diagram, all-sky Galactic Aitoff map, 3D Solar Neighborhood, & `FlatLambdaCDM` cosmology
+- [`protein_molecule_3d.ipynb`](examples/extras_and_showcase/protein_molecule_3d.ipynb) — Real RCSB PDB proteins (`6VXX` 23.7k-atom SARS-CoV-2 Spike Trimer, `6M0J`, `4HHB`) as Vulkan 3D Blinn–Phong sphere impostors + GPU `vkscipy.cdist` contact maps
+- [`nbody_galaxies_3d.ipynb`](examples/extras_and_showcase/nbody_galaxies_3d.ipynb) — 16,384-body 6-level 3D Barnes-Hut Morton octree (`vkspatial.BarnesHut3D`, ~1.2 ms/step) + 0.91 ms native SPIR-V 3-mip HDR Bloom + ACES tone mapping (~41 FPS)
+- [`ocean_fft_3d.ipynb`](examples/extras_and_showcase/ocean_fft_3d.ipynb) — Vulkan GPU recreation of NVIDIA's CUDA `oceanFFT` (256×256 Tessendorf 2D IFFT + auto-animating 3D wave mesh)
+- [`wgpu_pygfx_nbody.ipynb`](examples/extras_and_showcase/wgpu_pygfx_nbody.ipynb) — Zero-copy WebGPU (`wgpu` + `pygfx`) 16,384-body Barnes-Hut colliding galaxies + 98,304 trails + `PhysicalBasedBloomPass` (~96 FPS)
+- [`datoviz_nbody_galaxies.ipynb`](examples/extras_and_showcase/datoviz_nbody_galaxies.ipynb) & [`datoviz_nbody_galaxies.py`](examples/extras_and_showcase/datoviz_nbody_galaxies.py) — Native Vulkan hardware-rasterized 60+ FPS Datoviz window with Barred Spiral × Cartwheel Ring / 3-Way Merger presets, 3-layer HDR bloom halos, & Dear ImGui HUD
 
 ---
 
@@ -98,6 +95,6 @@ pixi run test
 # 4. Build & auditwheel-repair a manylinux wheel (for PyPI / pip install)
 pixi run wheel
 
-# 5. Launch JupyterLab with the full 7-stage ML & Deep Learning curriculum
+# 5. Launch JupyterLab with the 5-stage AI & ML curriculum
 pixi run lab
 ```
