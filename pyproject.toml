@@ -5,7 +5,7 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "vkdata"
 version = "0.1.0a1"
-description = "Vulkan GPU-accelerated PyData, SciPy, HoloViz, GeoSpatial, Astrophysics, and scikit-learn stack — no CUDA required"
+description = "Learn end-to-end Machine Learning, Feature Engineering, Deep Learning, and GPU Data Science on Vulkan — no CUDA required"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"

@@ -1,29 +1,79 @@
 # vkdata
 
-**Vulkan GPU-accelerated PyData, SciPy, HoloViz, GeoSpatial, Astrophysics, and scikit-learn — no CUDA required.**
+**Learn End-to-End Machine Learning, Feature Engineering, & Deep Learning on Vulkan GPU — No CUDA Required.**
 
-`vkdata` is a unified Vulkan 1.3+ GPU scientific computing, machine learning, geospatial, astrophysics, and interactive 2D/3D visualization stack built on `llama.cpp`'s `ggml-vulkan` (plus `Tencent/ncnn` and direct SPIR-V compute shaders). Every package shares a **single `VkDevice` and zero-copy `VkBuffer`s**, running on AMD, Intel, NVIDIA, Apple (MoltenVK), and Steam Deck APUs.
+`vkdata` is a hands-on, pure-Vulkan GPU machine learning, deep learning, and data science workbench built on `llama.cpp`'s `ggml-vulkan`, `Tencent/ncnn`, and custom SPIR-V compute shaders. Walk through the **entire ML lifecycle** — from GPU arrays & tabular dataframes to exploratory visualization, feature engineering & selection, dimensionality reduction, classical ML, neural networks & transformers, and real-time GPU simulations — all sharing a **single `VkDevice` and zero-copy `VkBuffer`s** on AMD, Intel, NVIDIA, Apple (MoltenVK), and Steam Deck APUs.
+
+---
+
+## Learning Path (`examples/`)
+
+Follow the numbered curriculum from Stage `01` → Stage `07`:
+
+### Stage 01 · GPU Foundations (`examples/01_gpu_foundations/`)
+*Arrays, linear algebra, dataframes, and scientific primitives on Vulkan GPU.*
+- [`vknumpy_demo.ipynb`](examples/01_gpu_foundations/vknumpy_demo.ipynb) — 1024×1024 GPU GEMM vs CPU, ufuncs, `einsum`, `linalg.solve`, 5M SPIR-V `bincount` / `histogram` / `histogram2d`
+- [`vkpandas_demo.ipynb`](examples/01_gpu_foundations/vkpandas_demo.ipynb) — GPU `DataFrame` / `Series`, filtering, `groupby`, `merge`, Parquet I/O
+- [`vkscipy_demo.ipynb`](examples/01_gpu_foundations/vkscipy_demo.ipynb) — 2048×2048 GPU `cdist`, `ndimage` Gaussian/Sobel, GPU GEMM chirp `spectrogram`, 200k-point `curve_fit`
+
+### Stage 02 · Exploratory Data Analysis & Visualization (`examples/02_eda_and_visualization/`)
+*Inspect millions of rows interactively before modeling.*
+- [`vkcolorcet_demo.ipynb`](examples/02_eda_and_visualization/vkcolorcet_demo.ipynb) — Perceptually uniform colormaps & 26 GPU LUT palettes on 2M points
+- [`vkplot_demo.ipynb`](examples/02_eda_and_visualization/vkplot_demo.ipynb) — `hvPlot`-style `.vkplot` accessor across 11.84M NYC Taxi + 10.23M OpenSky flights (2D + 3D)
+- [`vkpanel_demo.ipynb`](examples/02_eda_and_visualization/vkpanel_demo.ipynb) — Reactive `pn.bind`, `Tabs`, `Card`, `DataTable`, sliders & dropdowns on 2M GPU points
+- [`nyc_taxi_vkshader.ipynb`](examples/02_eda_and_visualization/nyc_taxi_vkshader.ipynb) — Terse 5-line interactive 11.84M-point NYC Taxi GPU datashader map
+- [`nyc_taxi_holoviews.ipynb`](examples/02_eda_and_visualization/nyc_taxi_holoviews.ipynb) — 4-panel HoloViz dashboard + live cross-filtered map + neighborhood polygon & landmark radius explorer
+
+### Stage 03 · Feature Engineering, Selection & Manifold Learning (`examples/03_feature_engineering_and_selection/`)
+*Clean, select, engineer, and project high-dimensional features on GPU.*
+- [`feature_selection_and_engineering.ipynb`](examples/03_feature_engineering_and_selection/feature_selection_and_engineering.ipynb) — **Complete feature selection workflow**: GPU variance threshold, `vkscipy.stats.corrcoef` collinearity pruning, engineered interaction features, GPU permutation importance, & before/after `vktorch` MLP ablation
+- [`vkvis_manifold_demo.ipynb`](examples/03_feature_engineering_and_selection/vkvis_manifold_demo.ipynb) — `mlx-vis`-style GPU dimensionality reduction: 7-algorithm comparison (`UMAP`, `TSNE`, `PaCMAP`, `LocalMAP`, `TriMap`, `DREAMS`, `CNE`), 3D Swiss Roll unrolling, live UMAP trajectory player, & 3D sphere orbit
+- [`vkspatial_demo.ipynb`](examples/03_feature_engineering_and_selection/vkspatial_demo.ipynb) — Geospatial feature engineering: WGS84 ↔ Web Mercator, Haversine, 1M 2D Morton `GeoDataFrame`, `radius_query` & `point_in_polygon`
+- [`vkgeoviews_demo.ipynb`](examples/03_feature_engineering_and_selection/vkgeoviews_demo.ipynb) — Single-pass GPU `sjoin()` zone-level feature aggregation on 11.84M NYC trips → dark-canvas choropleth & Esri satellite overlay
+
+### Stage 04 · Classical Machine Learning (`examples/04_classical_ml/`)
+*Supervised regression/classification & unsupervised clustering on real datasets.*
+- [`nyc_taxi_ml.ipynb`](examples/04_classical_ml/nyc_taxi_ml.ipynb) — End-to-end tabular ML: GPU Fare & Card-Tip (`$`) regression, Tip classifier, K-Means hotspots, & interactive trip predictor (`vklearn`)
+- [`sdss_cosmic_web_3d.ipynb`](examples/04_classical_ml/sdss_cosmic_web_3d.ipynb) — Unsupervised 3D GPU K-Means clustering on 150,000 real SDSS DR17 galaxies + Color–Magnitude Diagram
+- [`earthquakes_3d_vkdata.ipynb`](examples/04_classical_ml/earthquakes_3d_vkdata.ipynb) — Spatial join + GPU K-Means hotspot discovery + 3D subduction-zone explorer on 2.12M real USGS earthquakes
+
+### Stage 05 · Deep Learning & Transformers (`examples/05_deep_learning/`)
+*Reverse-mode autograd, MLPs, CNNs, and causal Transformers on Vulkan GPU.*
+- [`vktorch_deep_learning_demo.ipynb`](examples/05_deep_learning/vktorch_deep_learning_demo.ipynb) — Train a **3-Spiral MLP** (100% acc + 2D decision boundary), a **2D `Conv2d` CNN** (100% acc), and a **Causal Mini-GPT Transformer** live on Vulkan GPU with `AdamW` & `CosineAnnealingLR`
+
+### Stage 06 · Real-World Scientific & Mobility Case Studies (`examples/06_domain_case_studies/`)
+*Apply the stack to real astronomy, structural biology, and aviation datasets.*
+- [`opensky_vkdata.ipynb`](examples/06_domain_case_studies/opensky_vkdata.ipynb) — 10.23M real OpenSky flight trajectories: 2D density/velocity/country maps & full-Europe 3D orbit
+- [`vkastro_milky_way_3d.ipynb`](examples/06_domain_case_studies/vkastro_milky_way_3d.ipynb) — 400,000 real ESA Gaia DR3 stars: Hertzsprung–Russell diagram, all-sky Galactic Aitoff map, 3D Solar Neighborhood, & `FlatLambdaCDM` cosmology
+- [`protein_molecule_3d.ipynb`](examples/06_domain_case_studies/protein_molecule_3d.ipynb) — Real RCSB PDB proteins (`6VXX` 23.7k-atom SARS-CoV-2 Spike Trimer, `6M0J`, `4HHB`) as Vulkan 3D Blinn–Phong sphere impostors + GPU `vkscipy.cdist` contact maps
+
+### Stage 07 · High-Performance GPU Simulations & 3D Graphics (`examples/07_gpu_simulations/`)
+*Custom SPIR-V compute shaders, WebGPU/PyGFX, and Datoviz native Vulkan.*
+- [`nbody_galaxies_3d.ipynb`](examples/07_gpu_simulations/nbody_galaxies_3d.ipynb) — 16,384-body 6-level 3D Barnes-Hut Morton octree (`vkspatial.BarnesHut3D`, ~1.2 ms/step) + 0.91 ms native SPIR-V 3-mip HDR Bloom + ACES tone mapping (~41 FPS)
+- [`ocean_fft_3d.ipynb`](examples/07_gpu_simulations/ocean_fft_3d.ipynb) — Vulkan GPU recreation of NVIDIA's CUDA `oceanFFT` (256×256 Tessendorf 2D IFFT + auto-animating 3D wave mesh)
+- [`wgpu_pygfx_nbody.ipynb`](examples/07_gpu_simulations/wgpu_pygfx_nbody.ipynb) — Zero-copy WebGPU (`wgpu` + `pygfx`) 16,384-body Barnes-Hut colliding galaxies + 98,304 trails + `PhysicalBasedBloomPass` (~96 FPS)
+- [`datoviz_nbody_galaxies.ipynb`](examples/07_gpu_simulations/datoviz_nbody_galaxies.ipynb) & [`datoviz_nbody_galaxies.py`](examples/07_gpu_simulations/datoviz_nbody_galaxies.py) — Native Vulkan hardware-rasterized 60+ FPS Datoviz window with Barred Spiral × Cartwheel Ring / 3-Way Merger presets, 3-layer HDR bloom halos, & Dear ImGui HUD
 
 ---
 
 ## Packages (14 Included)
 
-| Package | Mirrors | What It Provides |
+| Package | Mirrors | Role in the ML / DL Lifecycle |
 |---|---|---|
-| **`vknumpy`** | `NumPy` / `CuPy` | GPU `ndarray`, GEMM/BLAS, `einsum`, ufuncs, reductions, `linalg`, `argsort`, `top_k`, `groupby_agg`, `searchsorted`, `merge_indices`, zero-copy O(N) SPIR-V `bincount` / `histogram` / `histogram2d`, and C Vulkan buffer interop |
-| **`vkpandas`** | `pandas` / `cuDF` | GPU `Series`, `DataFrame`, `read_parquet` (with column projection) / `read_csv`, filtering, `groupby`, `merge`, `sort_values`, `rolling`, `value_counts`, dictionary-encoded strings |
-| **`vkscipy`** | `SciPy` | GPU `spatial.distance` (`cdist` / `pdist` / `squareform` via GEMM), `stats` (`norm`, `zscore`, `pearsonr`, `corrcoef`, `skew`, `kurtosis`), `special` (`expit`, `erf`, `ndtr`, `softmax`, `logsumexp`), `ndimage` (`gaussian_filter`, `sobel`, `laplace`, `convolve`), `signal` (`convolve`, `correlate`, batched GEMM `spectrogram`), `optimize` (`curve_fit`, `minimize`) |
-| **`vkspatial`** | `GeoPandas` / `SpatialPandas` / `cuSpatial` | Zero-copy SPIR-V 2D Morton Z-order `GeoDataFrame`, `point_in_polygon`, single-pass multi-polygon `sjoin` (`sjoin_polygons.comp`), zero-dependency GeoJSON I/O (`read_file`/`read_geojson`/`to_geojson`), `to_crs` (`EPSG:4326` ↔ `EPSG:3857`), `cx` slicer, `total_bounds`, `bbox`, `radius_query`, `nearest`, `haversine_distance`, `bearing`, `point_to_segment_distance`, `polygon_area`/`centroid` |
-| **`vkshader`** | `Datashader` *(2D + 3D)* | Zero-copy SPIR-V 2D `Canvas.points` & `Canvas.line` (`count`, `mean`, categorical RGB), GPU `eq_hist`/`log`/`cbrt`/`linear` shading with `vkcolorcet` LUTs, GPU `dynspread`, VRAM-cached multi-provider tiles (`EsriImagery`, `EsriStreet`, `EsriDark`/`Light`, `OSM`), **`anywidget` 2D pan/zoom/box-zoom**, and **real-time 3D perspective volumetric renderer (`render_3d` / `interact_3d`)** with tilted satellite ground plane, orbit, zoom, & Shift/Right-drag panning |
-| **`vkcolorcet`** | `Colorcet` | 26+ perceptually uniform sequential, diverging, cyclic, and categorical colormaps (`fire`, `bmy`, `bgy`, `kbc`, `viridis`, `inferno`, `plasma`, `magma`, `turbo`, `coolwarm`, `rainbow`, `glasbey`, ...) cached as 256-entry GPU LUTs + `swatches()` viewer |
-| **`vkholoviews`** | `HoloViews` | Declarative `Points`, `Path`, `Tiles`, `Histogram`, `Bars`, `Curve`, `*` Overlay, `+` Layout, `.opts()`, `datashade()` / `rasterize()`, and live GPU-linked cross-filtering `.interact()` (with live `Shade:`, `Cmap:`, and `Spread:` controls) |
-| **`vkgeoviews`** | `GeoViews` | CRS-aware `Points`, `Path`, and `Polygons` choropleths with automatic GPU `EPSG:4326` → `EPSG:3857` projection and `tile_sources` (`EsriImagery`, `EsriStreet`, `CartoDark`, `CartoLight`, `OSM`) |
-| **`vkplot`** | `hvPlot` | High-level `.vkplot` accessor on `vkpandas.DataFrame`, `Series`, and `vkspatial.GeoDataFrame` (`.points`, `.scatter`, `.paths`, `.hist`, `.bar`, `.line`, `.plot3d`) |
-| **`vkpanel`** | `Panel` | Reactive `Row`, `Column`, `Card`, `Tabs`, `Pane`, `DataTable`, sliders/dropdowns/checkboxes/buttons, and `pn.bind(...)` dashboards |
-| **`vklearn`** | `scikit-learn` / `cuML` | `StandardScaler`, `MinMaxScaler`, `LinearRegression`, `Ridge`, `LogisticRegression` (Newton-IRLS), `PCA`, `KMeans` (k-means++ + O(N) GPU `bincount`), `NearestNeighbors`, `KNeighborsClassifier`, `train_test_split`, `Pipeline`, and GPU metrics |
-| **`vkastro`** | `Astropy` | GPU `SkyCoord` (`ICRS` ↔ `Galactic` Hipparcos 3×3 rotation, 3D Cartesian parsecs, spherical `separation`, `cone_search`), `aitoff_projection`, photometry (`parallax_to_distance`, `absolute_magnitude`, `luminosity_solar`, `bp_rp_to_temperature`), `FlatLambdaCDM` cosmology, and zero-dependency `read_fits` |
-| **`vkvis`** | `mlx-vis` / `UMAP` / `openTSNE` | Pure-Vulkan GPU dimensionality reduction & neighbor embedding: `UMAP`, `TSNE`, `PaCMAP`, `LocalMAP`, `TriMap`, `DREAMS`, `CNE` (`infonce`/`nce`/`neg`), `NNDescent`, 2D/3D GPU rendering (`render_embedding`, `compare_embeddings`, `animate_embedding`) |
-| **`vktorch`** | `PyTorch` | Pure-Vulkan GPU dynamic reverse-mode autograd (`Tensor`, `.backward()`, `no_grad()`), `nn` (`Linear`, `Conv2d`, `MaxPool2d`, `LayerNorm`, `BatchNorm1d`, `Embedding`, `MultiheadAttention`, `TransformerBlock`, `CrossEntropyLoss`, `MSELoss`), `optim` (`SGD`, `Adam`, `AdamW`, `CosineAnnealingLR`, `clip_grad_norm_`), `DataLoader`, & `.npz` checkpointing |
+| **`vknumpy`** | `NumPy` / `CuPy` | GPU `ndarray`, GEMM/BLAS, `einsum`, ufuncs, reductions, `linalg`, `argsort`, `top_k`, `groupby_agg`, `searchsorted`, SPIR-V `bincount` / `histogram2d` |
+| **`vkpandas`** | `pandas` / `cuDF` | GPU `DataFrame` / `Series`, `read_parquet` / `read_csv`, filtering, `groupby`, `merge`, `sort_values`, `rolling`, dictionary-encoded strings |
+| **`vkscipy`** | `SciPy` | GPU `spatial.distance` (`cdist`/`pdist`), `stats` (`corrcoef`, `pearsonr`, `zscore`), `special` (`softmax`, `expit`), `ndimage`, `signal`, `optimize` |
+| **`vkshader`** | `Datashader` *(2D + 3D)* | Zero-copy SPIR-V 2D/3D point/line/sphere rasterizer, **0.91 ms SPIR-V 3-mip HDR Bloom + ACES (`hdr_bloom`)**, Esri basemaps, & `anywidget` 2D/3D viewers |
+| **`vkcolorcet`** | `Colorcet` | 26+ perceptually uniform colormaps cached as 256-entry GPU LUTs + `swatches()` |
+| **`vkholoviews`** | `HoloViews` | Declarative `Points`, `Path`, `Tiles`, `Histogram`, `Bars`, `Curve`, `*`/`+` composition, & live cross-filtering `.interact()` |
+| **`vkgeoviews`** | `GeoViews` | CRS-aware geospatial `Points`, `Path`, `Polygons` choropleths & `tile_sources` |
+| **`vkplot`** | `hvPlot` | High-level `.vkplot` EDA accessor on `DataFrame`, `Series`, and `GeoDataFrame` |
+| **`vkpanel`** | `Panel` | Reactive `Row`, `Column`, `Card`, `Tabs`, `DataTable`, widgets & `pn.bind(...)` dashboards |
+| **`vkspatial`** | `GeoPandas` / `cuSpatial` | Zero-copy SPIR-V 2D Morton `GeoDataFrame`, single-pass `sjoin`, GeoJSON I/O, `to_crs`, & **6-level 3D Barnes-Hut Octree (`BarnesHut3D`)** |
+| **`vkvis`** | `mlx-vis` / `UMAP` | Pure-Vulkan GPU dimensionality reduction & manifold learning: `UMAP`, `TSNE`, `PaCMAP`, `LocalMAP`, `TriMap`, `DREAMS`, `CNE`, `NNDescent`, & 2D/3D rendering |
+| **`vklearn`** | `scikit-learn` / `cuML` | `StandardScaler`, `MinMaxScaler`, `LinearRegression`, `Ridge`, `LogisticRegression`, `PCA`, `KMeans`, `NearestNeighbors`, `KNeighborsClassifier`, `Pipeline` |
+| **`vktorch`** | `PyTorch` | Dynamic reverse-mode autograd (`Tensor`, `.backward()`, `no_grad()`), `nn` (`Linear`, `Conv2d`, `MaxPool2d`, `LayerNorm`, `BatchNorm1d`, `Embedding`, `MultiheadAttention`, `TransformerBlock`), `optim` (`SGD`, `Adam`, `AdamW`, `CosineAnnealingLR`), `DataLoader`, & `.npz` checkpointing |
+| **`vkastro`** | `Astropy` | GPU `SkyCoord` (`ICRS` ↔ `Galactic`, 3D Cartesian, `cone_search`), `aitoff_projection`, photometry, `FlatLambdaCDM` cosmology, & `read_fits` |
 
 ---
 
@@ -42,68 +92,6 @@ pixi run test
 # 4. Build & auditwheel-repair a manylinux wheel (for PyPI / pip install)
 pixi run wheel
 
-# 5. Launch JupyterLab with all 15 example notebooks
+# 5. Launch JupyterLab with the full 7-stage ML & Deep Learning curriculum
 pixi run lab
 ```
-
----
-
-## Measured Benchmarks (AMD Steam Deck APU `RADV VANGOGH`)
-
-- **NYC Taxi (11.84M rows):**
-  - Parquet → GPU `vkpandas` load: **`0.38 s`**
-  - Zero-copy 2D point rasterization (`vknumpy.histogram2d`): **`5–10 ms`**
-  - GPU `eq_hist` + LUT + bilinear Esri composite + `dynspread` (`vkshader`): **`1.75 ms`**
-  - Live linked 1D viewport histogram (`vknumpy.histogram` on 11.5M rows): **`1.2–7.0 ms`**
-  - End-to-end interactive Jupyter pan/zoom (including JPEG): **`15–24 ms`** (~42–65 FPS)
-  - Zero-copy GPU `vkspatial.morton_encode` (11.84M pts): **`3.73 ms`** · `point_in_polygon`: **`38.5 ms`**
-  - GPU `Ridge` fare prediction (800k train): **`0.13 s`** (`R² = 0.878`, `RMSE = $2.02`) · `LogisticRegression` Newton-IRLS: **`0.25 s`**
-- **OpenSky Flights (10.23M trajectory points):**
-  - Zero-copy GPU `Canvas.line` + `eq_hist` Fire shade: **`40.4 ms`**
-  - Interactive 3D Vulkan GPU orbit (`vkshader.interact_3d`, London + tilted Esri satellite): **`46.1 ms/frame`** (~22 FPS) · Full Europe 3D: **`88.6 ms/frame`**
-- **ESA Gaia DR3 (400,000 real stars):**
-  - Load + `ICRS → Galactic` + 3D Cartesian + Aitoff + photometry on GPU: **`< 0.5 s`**
-
----
-
-## Example Notebooks (`examples/`)
-
-### Physics & Simulation (`examples/physics/`)
-- [`nbody_galaxies_3d.ipynb`](examples/physics/nbody_galaxies_3d.ipynb) — 16,384-body 6-level 3D Barnes-Hut Morton octree (`vkspatial.BarnesHut3D`, ~1.2 ms/step on Vulkan GPU) simulating two colliding spiral galaxies with elastic sphere collisions & flashes, luminous 3D motion trails, GPU Gaussian bloom, & live auto-animating 3D orbit
-- [`ocean_fft_3d.ipynb`](examples/physics/ocean_fft_3d.ipynb) — Vulkan GPU recreation of NVIDIA's CUDA `oceanFFT` (Tessendorf Phillips-spectrum 256×256 2D IFFT in ~25 ms, sunlit Fresnel wave shading, live time-stepping `vkpanel` app, & auto-animating 3D wave mesh orbit)
-
-### WebGPU & PyGFX (`examples/webgpu/`)
-- [`wgpu_pygfx_nbody.ipynb`](examples/webgpu/wgpu_pygfx_nbody.ipynb) — Zero-copy WebGPU (`wgpu` + `pygfx` + `jupyter_rfb`) 16,384-body 6-level Barnes-Hut colliding galaxies (416 steps/sec) with 98,304 GPU ring-buffer trails, `PhysicalBasedBloomPass` HDR bloom, & live 60 FPS interactive Jupyter canvas
-
-### Datoviz Native Vulkan (`examples/datoviz/`)
-- [`datoviz_nbody_galaxies.ipynb`](examples/datoviz/datoviz_nbody_galaxies.ipynb) & [`datoviz_nbody_galaxies.py`](examples/datoviz/datoviz_nbody_galaxies.py) — Pure-Vulkan `vkspatial.BarnesHut3D` (16,384 bodies) + Datoviz hardware-rasterized 3D points/trails + `vkshader.hdr_bloom` SPIR-V HDR Bloom + native 60+ FPS Dear ImGui desktop window launcher
-
-### Structural Biology & Molecular (`examples/biology/`)
-- [`protein_molecule_3d.ipynb`](examples/biology/protein_molecule_3d.ipynb) — Real RCSB PDB proteins (`6VXX` 23.7k-atom SARS-CoV-2 Spike Trimer, `6M0J` Spike+ACE2, `4HHB` Hemoglobin) rendered as Vulkan 3D Blinn–Phong shaded sphere impostors + GPU `vkscipy.cdist` protein contact map
-
-### Astronomy & Astrophysics (`examples/astronomy/`)
-- [`vkastro_milky_way_3d.ipynb`](examples/astronomy/vkastro_milky_way_3d.ipynb) — 400,000 real ESA Gaia DR3 stars: Hertzsprung–Russell diagram, all-sky Galactic Aitoff map, 3D Solar Neighborhood fly-through, Pleiades cone search, & `FlatLambdaCDM` cosmology
-- [`sdss_cosmic_web_3d.ipynb`](examples/astronomy/sdss_cosmic_web_3d.ipynb) — 150,000 real SDSS DR17 galaxies: Color–Magnitude Diagram (Red Sequence vs. Blue Cloud), 2D/3D Cosmic Web in Megaparsecs, & GPU K-Means 3D cluster regions
-
-### Geoscience & Geospatial (`examples/geoscience/`)
-- [`earthquakes_3d_vkdata.ipynb`](examples/geoscience/earthquakes_3d_vkdata.ipynb) — 2.12M real USGS earthquakes: global seismic map, tectonic `sjoin` choropleth, 3D subduction-zone explorer (depth up to 650 km), & GPU K-Means hotspots
-- [`vkgeoviews_demo.ipynb`](examples/geoscience/vkgeoviews_demo.ipynb) — Single-pass GPU `sjoin()` on 11.84M NYC trips → dark-canvas Mean-Fare Choropleth & Esri satellite overlay
-- [`vkspatial_demo.ipynb`](examples/geoscience/vkspatial_demo.ipynb) — WGS84 ↔ Web Mercator, Haversine, 1M 2D Morton `GeoDataFrame`, `radius_query` & `point_in_polygon`
-
-### Transportation & Mobility (`examples/transportation/`)
-- [`opensky_vkdata.ipynb`](examples/transportation/opensky_vkdata.ipynb) — 10.23M OpenSky flight trajectories: density, country of origin, ascending/descending, velocity, 6-city airport close-ups, & full-Europe 3D orbit
-- [`nyc_taxi_holoviews.ipynb`](examples/transportation/nyc_taxi_holoviews.ipynb) — 4-panel HoloViz dashboard + live cross-filtered map + NYC neighborhood polygon & landmark radius explorer
-- [`nyc_taxi_vkshader.ipynb`](examples/transportation/nyc_taxi_vkshader.ipynb) — Terse 5-line interactive 11.84M-point NYC Taxi map
-
-### Machine Learning (`examples/machine_learning/`)
-- [`vktorch_deep_learning_demo.ipynb`](examples/machine_learning/vktorch_deep_learning_demo.ipynb) — Pure-Vulkan GPU deep learning (`vktorch`): 3-Spiral MLP decision boundary, 2D `Conv2d` vision CNN, & causal Mini-GPT Transformer text generation
-- [`vkvis_manifold_demo.ipynb`](examples/machine_learning/vkvis_manifold_demo.ipynb) — `mlx-vis`-style Vulkan GPU manifold learning: 7-algorithm comparison (`UMAP`, `TSNE`, `PaCMAP`, `LocalMAP`, `TriMap`, `DREAMS`, `CNE`), Swiss Roll unrolling, live UMAP trajectory player, & interactive 3D UMAP sphere orbit
-- [`nyc_taxi_ml.ipynb`](examples/machine_learning/nyc_taxi_ml.ipynb) — GPU Fare & Card-Tip (`$`) prediction, Tip classifier, K-Means hotspots, and interactive trip predictor (`vklearn`)
-
-### Core Compute & Visualization (`examples/core_and_viz/`)
-- [`vknumpy_demo.ipynb`](examples/core_and_viz/vknumpy_demo.ipynb) — 1024×1024 GPU GEMM vs CPU, ufuncs, `einsum`, `linalg.solve`, 5M SPIR-V `bincount` / `histogram` / `histogram2d`
-- [`vkpandas_demo.ipynb`](examples/core_and_viz/vkpandas_demo.ipynb) — GPU `DataFrame` / `Series`, filtering, `groupby`, `merge`, Parquet I/O
-- [`vkscipy_demo.ipynb`](examples/core_and_viz/vkscipy_demo.ipynb) — 2048×2048 GPU `cdist`, `ndimage` Gaussian/Sobel, GPU GEMM chirp `spectrogram`, 200k-point `curve_fit`
-- [`vkcolorcet_demo.ipynb`](examples/core_and_viz/vkcolorcet_demo.ipynb) — Interactive swatch catalog + all 26 primary colormaps rendered on 2M GPU points
-- [`vkpanel_demo.ipynb`](examples/core_and_viz/vkpanel_demo.ipynb) — Reactive `pn.bind`, `Tabs`, `Card`, `DataTable`, sliders & dropdowns on 2M GPU points
-- [`vkplot_demo.ipynb`](examples/core_and_viz/vkplot_demo.ipynb) — `hvPlot`-style `.vkplot` accessor across 11.84M NYC Taxi + 10.23M OpenSky flights (2D + 3D)
