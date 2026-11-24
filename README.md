@@ -1,8 +1,14 @@
 # vkdata
 
-**Learn End-to-End Machine Learning, Feature Engineering, & Deep Learning on Vulkan GPU — No CUDA Required.**
+**Learn how AI actually works on the GPU you already own — no ROCm, no modern CUDA GPU, no cloud bill required.**
 
-`vkdata` is a hands-on, pure-Vulkan GPU machine learning, deep learning, and data science workbench built on `llama.cpp`'s `ggml-vulkan`, `Tencent/ncnn`, and custom SPIR-V compute shaders. Walk through the **entire ML lifecycle** — from GPU arrays & tabular dataframes to exploratory visualization, feature engineering & selection, dimensionality reduction, classical ML, neural networks & transformers, and real-time GPU simulations — all sharing a **single `VkDevice` and zero-copy `VkBuffer`s** on AMD, Intel, NVIDIA, Apple (MoltenVK), and Steam Deck APUs.
+Most GPU machine learning and deep learning tutorials assume you own a modern NVIDIA CUDA card or a supported AMD ROCm datacenter/desktop GPU. **`vkdata`** opens up the **entire AI & ML lifecycle** on **any Vulkan 1.3+ GPU** — including **Steam Deck & AMD APUs, older Radeon cards without ROCm, Intel integrated/Arc GPUs, older NVIDIA cards, and Apple Silicon (MoltenVK)**.
+
+Experiment hands-on with your own hardware from Stage 1 to Stage 7: GPU arrays & tabular dataframes → visual EDA on millions of rows → feature engineering & feature selection → dimensionality reduction → classical ML → reverse-mode autograd, CNNs, & causal Transformers → real-time 3D GPU simulations — all powered by `llama.cpp`'s `ggml-vulkan`, `Tencent/ncnn`, and custom SPIR-V compute shaders sharing a **single `VkDevice` and zero-copy `VkBuffer`s**.
+
+### Who Is This For?
+- **Learners & tinkerers without ROCm or a modern CUDA GPU** who want to run real GPU-accelerated ML and deep learning on their laptop, mini-PC, or handheld.
+- **Curious developers** who want to see *how* AI works under the hood — feature selection, PCA/UMAP, gradient descent, backpropagation, convolutions, and self-attention — on transparent, readable Python + Vulkan code.
 
 ---
 

@@ -5,7 +5,7 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "vkdata"
 version = "0.1.0a1"
-description = "Learn end-to-end Machine Learning, Feature Engineering, Deep Learning, and GPU Data Science on Vulkan — no CUDA required"
+description = "Learn how AI, Machine Learning, Feature Selection, and Deep Learning work on the GPU you already own via Vulkan — no ROCm or modern CUDA GPU required"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
