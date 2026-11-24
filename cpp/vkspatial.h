@@ -69,6 +69,22 @@ int vksp_barnes_hut_step(
     float world_half
 );
 
+/**
+ * Compile (cached by SPIR-V hash) and dispatch an arbitrary user SPIR-V compute shader
+ * zero-copy on raw VkBuffers with optional push constants and 3D workgroup grid.
+ */
+int vksp_dispatch_spv(
+    const uint32_t* spv_words,
+    size_t spv_bytes,
+    void** vkbufs,
+    uint32_t num_bufs,
+    const void* push_data,
+    uint32_t push_bytes,
+    uint32_t gx,
+    uint32_t gy,
+    uint32_t gz
+);
+
 #ifdef __cplusplus
 }
 #endif

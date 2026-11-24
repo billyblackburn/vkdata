@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <mutex>
+#include <unordered_map>
 #include <vector>
 
 namespace {
@@ -43,6 +44,7 @@ struct State {
     Pipe p_bh_leaves;
     Pipe p_bh_reduce;
     Pipe p_bh_step;
+    std::unordered_map<uint64_t, Pipe> dynamic_pipes;
 };
 
 std::mutex g_mutex;
@@ -86,8 +88,8 @@ bool create_pipe(
     pl_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pl_ci.setLayoutCount = 1;
     pl_ci.pSetLayouts = &out.desc_layout;
-    pl_ci.pushConstantRangeCount = 1;
-    pl_ci.pPushConstantRanges = &pc_range;
+    pl_ci.pushConstantRangeCount = (pc_bytes > 0) ? 1 : 0;
+    pl_ci.pPushConstantRanges = (pc_bytes > 0) ? &pc_range : nullptr;
     if (vkCreatePipelineLayout(st.dev, &pl_ci, nullptr, &out.pipe_layout) != VK_SUCCESS) return false;
 
     VkComputePipelineCreateInfo cp_ci{};
@@ -208,11 +210,11 @@ int vksp_init(
 
     VkDescriptorPoolSize pool_size{};
     pool_size.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    pool_size.descriptorCount = 64;
+    pool_size.descriptorCount = 512;
 
     VkDescriptorPoolCreateInfo dp_ci{};
     dp_ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    dp_ci.maxSets = 16;
+    dp_ci.maxSets = 128;
     dp_ci.poolSizeCount = 1;
     dp_ci.pPoolSizes = &pool_size;
     if (vkCreateDescriptorPool(g_st.dev, &dp_ci, nullptr, &g_st.desc_pool) != VK_SUCCESS) return -1;
@@ -462,6 +464,75 @@ int vksp_barnes_hut_step(
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, g_st.p_bh_step.pipe_layout, 0, 1, &g_st.p_bh_step.desc_set, 0, nullptr);
     vkCmdPushConstants(cmd, g_st.p_bh_step.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pc_step), &pc_step);
     vkCmdDispatch(cmd, (n + 63u) / 64u, 1, 1);
+
+    if (vkEndCommandBuffer(cmd) != VK_SUCCESS) return -1;
+    if (g_st.submit_fn(cmd, g_st.fence) != 0) return -1;
+    VkResult wrc = vkWaitForFences(g_st.dev, 1, &g_st.fence, VK_TRUE, UINT64_MAX);
+    VkResult rrc = vkResetFences(g_st.dev, 1, &g_st.fence);
+    return (wrc == VK_SUCCESS && rrc == VK_SUCCESS) ? 0 : -1;
+}
+
+int vksp_dispatch_spv(
+    const uint32_t* spv_words,
+    size_t spv_bytes,
+    void** vkbufs,
+    uint32_t num_bufs,
+    const void* push_data,
+    uint32_t push_bytes,
+    uint32_t gx,
+    uint32_t gy,
+    uint32_t gz
+) {
+    std::lock_guard<std::mutex> lock(g_mutex);
+    if (!g_st.ready || !spv_words || spv_bytes == 0 || (spv_bytes % 4) != 0 || gx == 0 || gy == 0 || gz == 0) {
+        return -1;
+    }
+
+    // FNV-1a 64-bit hash over SPIR-V words + signature for pipeline cache
+    uint64_t h = 14695981039346656037ULL;
+    const uint8_t* bytes = reinterpret_cast<const uint8_t*>(spv_words);
+    for (size_t i = 0; i < spv_bytes; ++i) {
+        h ^= static_cast<uint64_t>(bytes[i]);
+        h *= 1099511628211ULL;
+    }
+    h ^= (static_cast<uint64_t>(num_bufs) << 32) | static_cast<uint64_t>(push_bytes);
+
+    auto it = g_st.dynamic_pipes.find(h);
+    if (it == g_st.dynamic_pipes.end()) {
+        Pipe p{};
+        if (!create_pipe(g_st, spv_words, spv_bytes, num_bufs, push_bytes, p)) {
+            return -2;
+        }
+        it = g_st.dynamic_pipes.emplace(h, p).first;
+    }
+    const Pipe& pipe = it->second;
+
+    if (g_st.sync_fn) g_st.sync_fn();
+
+    std::vector<VkBuffer> bufs(num_bufs);
+    for (uint32_t i = 0; i < num_bufs; ++i) {
+        if (!vkbufs || !vkbufs[i]) return -3;
+        bufs[i] = static_cast<VkBuffer>(vkbufs[i]);
+    }
+    if (num_bufs > 0) {
+        update_set(pipe, bufs);
+    }
+
+    VkCommandBuffer cmd = g_st.cmd_buf;
+    if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS) return -1;
+    VkCommandBufferBeginInfo bi{};
+    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    if (vkBeginCommandBuffer(cmd, &bi) != VK_SUCCESS) return -1;
+
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipe.pipeline);
+    if (num_bufs > 0) {
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipe.pipe_layout, 0, 1, &pipe.desc_set, 0, nullptr);
+    }
+    if (push_data && push_bytes > 0) {
+        vkCmdPushConstants(cmd, pipe.pipe_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, push_bytes, push_data);
+    }
+    vkCmdDispatch(cmd, gx, gy, gz);
 
     if (vkEndCommandBuffer(cmd) != VK_SUCCESS) return -1;
     if (g_st.submit_fn(cmd, g_st.fence) != 0) return -1;

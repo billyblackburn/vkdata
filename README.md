@@ -14,7 +14,11 @@ Experiment hands-on with your own hardware from Stage 1 to Stage 5: GPU arrays &
 
 ## Learning Path (`examples/`)
 
-Follow the numbered AI & ML curriculum from Stage `01` → Stage `05`:
+Follow the numbered AI & ML curriculum from Stage `00` → Stage `05`:
+
+### Stage 00 · Vulkan GPU Puzzles (`examples/00_vulkan_gpu_puzzles/`)
+*Write real GPU compute kernels in Python syntax (`@vnp.kernel` → Python AST → GLSL 450 → SPIR-V → zero-copy Vulkan).*
+- [`puzzle_01_map.ipynb`](examples/00_vulkan_gpu_puzzles/puzzle_01_map.ipynb) — Explains the Python AST → GLSL → SPIR-V pipeline + **Puzzle 01 (`Map`)** with bounds guards, live AST/GLSL inspection, auto-grader, & 1M-element GPU benchmark
 
 ### Stage 01 · GPU Foundations (`examples/01_gpu_foundations/`)
 *Arrays, linear algebra, dataframes, and scientific primitives on Vulkan GPU.*
@@ -89,7 +93,7 @@ pixi run setup
 # 2. Build libvknumpy.so, libvkshader.so, and libvkspatial.so using all CPU cores
 pixi run build
 
-# 3. Run all 68 tests across all 14 packages
+# 3. Run all 70 tests across all 14 packages
 pixi run test
 
 # 4. Build & auditwheel-repair a manylinux wheel (for PyPI / pip install)

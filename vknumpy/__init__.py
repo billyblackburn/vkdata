@@ -195,5 +195,23 @@ from .ops import (
     vstack,
     where,
 )
+from .kernel import (
+    VulkanKernel,
+    barrier,
+    global_id_x,
+    global_id_y,
+    global_id_z,
+    group_id_x,
+    group_id_y,
+    group_id_z,
+    group_size_x,
+    group_size_y,
+    group_size_z,
+    kernel,
+    local_id_x,
+    local_id_y,
+    local_id_z,
+    shared_array,
+)
 
 __version__ = "0.1.0"

@@ -69,6 +69,14 @@ def _load_lib() -> ctypes.CDLL:
     ]
     lib.vksp_barnes_hut_step.restype = c_int
 
+    lib.vksp_dispatch_spv.argtypes = [
+        c_void_p, c_size_t,
+        c_void_p, c_uint32,
+        c_void_p, c_uint32,
+        c_uint32, c_uint32, c_uint32,
+    ]
+    lib.vksp_dispatch_spv.restype = c_int
+
     _lib = lib
     return lib
 
@@ -228,3 +236,37 @@ def barnes_hut_step_gpu(
     )
     if rc != 0:
         raise RuntimeError(f"vksp_barnes_hut_step failed (rc={rc})")
+
+
+def dispatch_spv_gpu(
+    spv_bytes: bytes,
+    buffers: list,
+    push_bytes: bytes,
+    grid: tuple[int, int, int],
+) -> None:
+    """Dispatch a runtime-compiled SPIR-V compute shader zero-copy on vknumpy.ndarray buffers."""
+    lib = _ensure_init()
+    vl = vkn_lib()
+
+    spv_arr = _np.frombuffer(spv_bytes, dtype=_np.uint32)
+    n_bufs = len(buffers)
+    raw_ptrs = (c_void_p * max(1, n_bufs))()
+    for idx, buf in enumerate(buffers):
+        if not isinstance(buf, vnp.ndarray):
+            raise TypeError(f"Buffer argument {idx} must be a vknumpy.ndarray, got {type(buf)}")
+        raw_ptrs[idx] = vl.vkn_vk_get_raw_buffer(buf._buf.ptr)
+
+    pc_buf = ctypes.create_string_buffer(push_bytes) if push_bytes else None
+    rc = lib.vksp_dispatch_spv(
+        spv_arr.ctypes.data,
+        len(spv_bytes),
+        raw_ptrs if n_bufs > 0 else None,
+        n_bufs,
+        ctypes.addressof(pc_buf) if pc_buf is not None else None,
+        len(push_bytes),
+        int(grid[0]),
+        int(grid[1]),
+        int(grid[2]),
+    )
+    if rc != 0:
+        raise RuntimeError(f"vksp_dispatch_spv failed (rc={rc})")
