@@ -14,7 +14,11 @@ Experiment hands-on with your own hardware from Stage 1 to Stage 5: GPU arrays &
 
 ## Learning Path (`examples/`)
 
-Follow the numbered AI & ML curriculum from Stage `00` → Stage `05`:
+Follow the numbered AI & ML curriculum from Stage `00` → Stage `05`, or jump straight into a real-world **TL;DR End-to-End** project:
+
+### TL;DR End-to-End Projects (`examples/tldr_end2end/`)
+*Start with messy real-world datasets, discover & engineer features on GPU, and compare Classical ML vs. Neural Networks on the exact same split.*
+- [`01_housing_classical_ml.ipynb`](examples/tldr_end2end/01_housing_classical_ml.ipynb) — **California Housing (Feature Discovery & Classical ML):** load 20,640 Census districts with `vkpandas`, GPU price map & `$500k` cap EDA, leak-free split & imputation, engineer 36 domain/spatial/`KMeans`-RBF features, & bake-off `LinearRegression` → `Ridge` → GPU Distance-Weighted KNN (`$69.6k` → **`$52.7k` RMSE**, `0.640` → **`0.794` $R^2$**, plus `87.5%` price-tier classifier)
 
 ### Stage 00 · Vulkan GPU Puzzles (`examples/00_vulkan_gpu_puzzles/`)
 *Write real GPU compute kernels in Python syntax (`@vnp.kernel` → Python AST → GLSL 450 → SPIR-V → zero-copy Vulkan).*
