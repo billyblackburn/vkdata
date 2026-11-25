@@ -19,6 +19,7 @@ Follow the numbered AI & ML curriculum from Stage `00` → Stage `05`, or jump s
 ### TL;DR End-to-End Projects (`examples/tldr_end2end/`)
 *Start with messy real-world datasets, discover & engineer features on GPU, and compare Classical ML vs. Neural Networks on the exact same split.*
 - [`01_housing_classical_ml.ipynb`](examples/tldr_end2end/01_housing_classical_ml.ipynb) — **California Housing (Feature Discovery & Classical ML):** load 20,640 Census districts with `vkpandas`, GPU price map & `$500k` cap EDA, leak-free split & imputation, engineer 36 domain/spatial/`KMeans`-RBF features, & bake-off `LinearRegression` → `Ridge` → GPU Distance-Weighted KNN (`$69.6k` → **`$52.7k` RMSE**, `0.640` → **`0.794` $R^2$**, plus `87.5%` price-tier classifier)
+- [`02_housing_neural_network.ipynb`](examples/tldr_end2end/02_housing_neural_network.ipynb) — **California Housing (Deep Learning with `vktorch`):** Pre-Norm Residual MLP (`LayerNorm` + `GELU` + `AdamW` fused SPIR-V kernels) on the exact same split — Raw 8-feature ResNet (`$50.3k`) vs. Engineered 36-feature ResNet (**`$48.2k` RMSE**, **`0.828` $R^2$**, beating GPU KNN by `-$4.5k` & raw baseline by `-$21.4k`), plus `.npz` checkpoint roundtrip
 
 ### Stage 00 · Vulkan GPU Puzzles (`examples/00_vulkan_gpu_puzzles/`)
 *Write real GPU compute kernels in Python syntax (`@vnp.kernel` → Python AST → GLSL 450 → SPIR-V → zero-copy Vulkan).*
