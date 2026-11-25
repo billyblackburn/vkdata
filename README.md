@@ -41,7 +41,8 @@ pixi run lab
   Train a `vktorch` Pre-Norm Residual MLP (`LayerNorm` + `GELU` + `AdamW`) on the exact same split — comparing raw 8 features (`$50.3k`) vs. 36 engineered features (**`$48.2k` RMSE**, **`0.828` $R^2$** — beating GPU KNN by `-$4.5k` and the raw baseline by `-$21.4k`), plus `.npz` checkpoint saving & reloading.
 - **Chapter 3 — [Fashion-MNIST: Image Feature Discovery & Classical Computer Vision](examples/tldr_end2end/03_fashion_classical_ml.ipynb)**
   Classify 10 clothing categories (`28 × 28` images): visualize "Average Clothing" prototypes, discover GPU **"Eigen-Clothes"** with `vklearn.PCA`, hand-craft Sobel/HOG edge features, and climb from `81.50%` (raw pixels) to **`86.45%`** — while inspecting the confusion matrix to see why `Shirt` stalls at `57.5%`.
-- **Chapter 4 — *(Coming Next)* Fashion-MNIST: Beating Classical CV with a 2D CNN (`vktorch`)**
+- **Chapter 4 — [Fashion-MNIST: Beating Classical CV with a 2D CNN (`vktorch`)](examples/tldr_end2end/04_fashion_cnn_deep_learning.ipynb)**
+  Train a modern strided `Conv2d` CNN (`15` epochs in `46.4s` on Steam Deck GPU) directly on raw `28 × 28` images — beating every Classical CV model at **`87.85%`** (`+6.35 pts` over raw pixels, boosting `Shirt` by **`+11.5 pts`** from `57.5%` → `69.0%`), plus visualizations of the 16 learned 3×3 filters & feature maps and `.npz` checkpoint roundtrip.
 
 ---
 
