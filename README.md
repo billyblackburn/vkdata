@@ -2,6 +2,8 @@
 
 ### *An Interactive, Follow-Along Book Powered by `vkdata` (Included!)*
 
+> **Read on your phone or browser right now:** **[https://billyblackburn.github.io/vkdata/](https://billyblackburn.github.io/vkdata/)**
+
 Most AI and machine learning books assume you own a modern NVIDIA CUDA GPU, a supported AMD ROCm card, or a cloud GPU subscription. **This book takes a different path:** it comes bundled with its own pure-Vulkan GPU toolkit (**`vkdata`**), so every single chapter runs live on the **Vulkan 1.3+ GPU you already own** — whether that's a **Steam Deck, AMD APU, older Radeon, Intel integrated/Arc GPU, older NVIDIA card, or Apple Silicon (MoltenVK)**.
 
 You don't need to memorize a library manual first. Just open JupyterLab, start at Chapter 1, run each cell, tweak the numbers, and watch real AI models train on your own hardware.
@@ -84,9 +86,10 @@ pixi run lab
 ---
 
 ### Part VI · Deep Learning, Backpropagation & Modern LLMs (`examples/05_deep_learning/`)
-*Learn how autograd, regularization, CNNs, Autoencoders, and Llama-style Transformers work under the hood with `vktorch`.*
+*Learn how neurons, autograd, regularization, CNNs, Autoencoders, and Llama-style Transformers work under the hood with `vktorch`.*
 
-- **Chapter 18 — [Backpropagation & Regularization Visual Lab](examples/05_deep_learning/backprop_and_regularization_lab.ipynb)** — Step-by-step chain-rule gradients & side-by-side overfitting vs. `Dropout` + `AdamW` weight decay.
+- **Chapter 18a — [The Perceptron: How a Single Artificial Neuron Works](examples/05_deep_learning/00_the_perceptron.ipynb)** — Start from zero: weighted votes (`AND` / `OR`), watching a single straight decision line learn from mistakes, running the exact same neuron on your Vulkan GPU (`vktorch.nn.Linear` + `Sigmoid`), and hitting the famous `XOR` limit.
+- **Chapter 18b — [Backpropagation & Regularization Visual Lab](examples/05_deep_learning/backprop_and_regularization_lab.ipynb)** — Step-by-step chain-rule gradients & side-by-side overfitting vs. `Dropout` + `AdamW` weight decay.
 - **Chapter 19 — [MLPs, 2D CNNs & a Causal Mini-GPT Transformer](examples/05_deep_learning/vktorch_deep_learning_demo.ipynb)** — Train a 3-Spiral MLP, a 2D `Conv2d` CNN, and a Mini-GPT live on your Vulkan GPU.
 - **Chapter 20 — [Denoising Autoencoders & Modern Mini-Llama (`RMSNorm` + `SwiGLU`)](examples/05_deep_learning/autoencoder_and_mini_llama.ipynb)** — Visualize an Autoencoder's latent space with `vkvis.UMAP` and train a Mini-Llama that generates coherent sentences in seconds.
 
