@@ -20,6 +20,7 @@ Follow the numbered AI & ML curriculum from Stage `00` → Stage `05`:
 *Write real GPU compute kernels in Python syntax (`@vnp.kernel` → Python AST → GLSL 450 → SPIR-V → zero-copy Vulkan).*
 - [`puzzle_01_map.ipynb`](examples/00_vulkan_gpu_puzzles/puzzle_01_map.ipynb) — Explains the Python AST → GLSL → SPIR-V pipeline + **Puzzle 01 (`Map`)** with bounds guards, live AST/GLSL inspection, auto-grader, & 1M-element GPU benchmark
 - [`puzzle_01b_workgroup_sizes.ipynb`](examples/00_vulkan_gpu_puzzles/puzzle_01b_workgroup_sizes.ipynb) — **Workgroup Sizes, Wavefronts & GPU Occupancy**: sweeps `local_size` from `1` to `1024` on 4M elements, visually showing the 20× wavefront bandwidth cliff (`2.5 GB/s` → `50.9 GB/s`)
+- [`puzzle_02_zip.ipynb`](examples/00_vulkan_gpu_puzzles/puzzle_02_zip.ipynb) — **Puzzle 02 (`Zip`)**: multi-buffer Vulkan SSBOs (`out = a + b`), memory-bandwidth bound vs. compute-bound intuition, & **Fused AXPY** (`alpha * a + b`) with a `float` push constant (`0.30 ms` on 1M elements)
 
 ### Stage 01 · GPU Foundations (`examples/01_gpu_foundations/`)
 *Arrays, linear algebra, dataframes, and scientific primitives on Vulkan GPU.*
