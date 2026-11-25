@@ -8,6 +8,7 @@ from typing import Iterable, List, Optional
 import numpy as _np
 import vknumpy as vnp
 
+from ._kernels import fused_adam_step, fused_sgd_step
 from .tensor import Tensor
 
 
@@ -39,24 +40,17 @@ class SGD(Optimizer):
         super().__init__(params, lr=lr)
         self.momentum = float(momentum)
         self.weight_decay = float(weight_decay)
-        self._buf: List[Optional[vnp.ndarray]] = [None] * len(self.params)
+        self._buf: List[vnp.ndarray] = [vnp.zeros(p.shape, dtype=_np.float32) for p in self.params]
 
     def step(self) -> None:
-        lr = self.lr
-        mu = self.momentum
-        wd = self.weight_decay
         for i, p in enumerate(self.params):
             if p.grad is None:
                 continue
-            g = p.grad
-            if wd != 0.0:
-                g = g + p.data * wd
-            if mu != 0.0:
-                b = self._buf[i]
-                b = g if b is None else (b * mu + g)
-                self._buf[i] = b
-                g = b
-            p.data = p.data - g * lr
+            p.data = p.data.contiguous()
+            fused_sgd_step(
+                p.data, p.grad.contiguous(), self._buf[i],
+                lr=self.lr, momentum=self.momentum, weight_decay=self.weight_decay,
+            )
 
 
 class Adam(Optimizer):
@@ -82,45 +76,42 @@ class Adam(Optimizer):
     def step(self) -> None:
         self.t += 1
         b1, b2 = self.beta1, self.beta2
-        bc1 = 1.0 - (b1 ** self.t)
-        bc2 = 1.0 - (b2 ** self.t)
-        step_size = self.lr / bc1
-        inv_sqrt_bc2 = 1.0 / math.sqrt(bc2)
+        inv_bc1 = 1.0 / (1.0 - (b1 ** self.t))
+        inv_sqrt_bc2 = 1.0 / math.sqrt(1.0 - (b2 ** self.t))
 
         for i, p in enumerate(self.params):
             if p.grad is None:
                 continue
-            g = p.grad
-            if self.weight_decay != 0.0:
-                g = g + p.data * self.weight_decay
-            self._m[i] = self._m[i] * b1 + g * (1.0 - b1)
-            self._v[i] = self._v[i] * b2 + (g * g) * (1.0 - b2)
-            denom = vnp.sqrt(self._v[i]) * inv_sqrt_bc2 + self.eps
-            p.data = p.data - (self._m[i] / denom) * step_size
+            p.data = p.data.contiguous()
+            fused_adam_step(
+                p.data, p.grad.contiguous(), self._m[i], self._v[i],
+                lr=self.lr, beta1=b1, beta2=b2, eps=self.eps,
+                weight_decay=self.weight_decay,
+                inv_bc1=inv_bc1, inv_sqrt_bc2=inv_sqrt_bc2,
+                decoupled=False,
+            )
 
 
 class AdamW(Adam):
-    """Vulkan GPU AdamW optimizer (decoupled weight decay)."""
+    """Vulkan GPU AdamW optimizer (decoupled weight decay, single-pass SPIR-V kernel)."""
 
     def step(self) -> None:
         self.t += 1
         b1, b2 = self.beta1, self.beta2
-        bc1 = 1.0 - (b1 ** self.t)
-        bc2 = 1.0 - (b2 ** self.t)
-        step_size = self.lr / bc1
-        inv_sqrt_bc2 = 1.0 / math.sqrt(bc2)
-        wd_scale = 1.0 - self.lr * self.weight_decay
+        inv_bc1 = 1.0 / (1.0 - (b1 ** self.t))
+        inv_sqrt_bc2 = 1.0 / math.sqrt(1.0 - (b2 ** self.t))
 
         for i, p in enumerate(self.params):
             if p.grad is None:
                 continue
-            g = p.grad
-            if self.weight_decay != 0.0:
-                p.data = p.data * wd_scale
-            self._m[i] = self._m[i] * b1 + g * (1.0 - b1)
-            self._v[i] = self._v[i] * b2 + (g * g) * (1.0 - b2)
-            denom = vnp.sqrt(self._v[i]) * inv_sqrt_bc2 + self.eps
-            p.data = p.data - (self._m[i] / denom) * step_size
+            p.data = p.data.contiguous()
+            fused_adam_step(
+                p.data, p.grad.contiguous(), self._m[i], self._v[i],
+                lr=self.lr, beta1=b1, beta2=b2, eps=self.eps,
+                weight_decay=self.weight_decay,
+                inv_bc1=inv_bc1, inv_sqrt_bc2=inv_sqrt_bc2,
+                decoupled=True,
+            )
 
 
 def clip_grad_norm_(params: Iterable[Tensor], max_norm: float) -> float:

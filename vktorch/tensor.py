@@ -383,20 +383,14 @@ class Tensor:
         return Tensor(out_data, requires_grad=req, dtype=None, _parents=(self,) if req else (), _backward=_bw if req else None)
 
     def gelu(self) -> "Tensor":
-        # Tanh approximation of GELU (matching PyTorch gelu(approximate='tanh'))
-        c = math.sqrt(2.0 / math.pi)
-        x = self.data
-        x3 = x * x * x
-        inner = (x + x3 * 0.044715) * c
-        th = vnp.tanh(inner)
-        out_data = (x * 0.5) * (1.0 + th)
+        # Single-pass fused Vulkan SPIR-V GELU forward + backward
+        from ._kernels import fused_gelu_bwd, fused_gelu_fwd
+
+        out_data = fused_gelu_fwd(self.data)
         req = _GRAD_ENABLED and self.requires_grad
 
         def _bw(g: vnp.ndarray) -> None:
-            sech2 = 1.0 - th * th
-            d_inner = (1.0 + (x * x) * (3.0 * 0.044715)) * c
-            d = 0.5 * (1.0 + th) + (x * 0.5) * sech2 * d_inner
-            self._accum_grad(g * d)
+            self._accum_grad(fused_gelu_bwd(self.data, g))
 
         return Tensor(out_data, requires_grad=req, dtype=None, _parents=(self,) if req else (), _backward=_bw if req else None)
 

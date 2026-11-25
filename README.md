@@ -50,8 +50,10 @@ Follow the numbered AI & ML curriculum from Stage `00` → Stage `05`:
 - [`earthquakes_3d_vkdata.ipynb`](examples/04_classical_ml/earthquakes_3d_vkdata.ipynb) — Spatial join + GPU K-Means hotspot discovery + 3D subduction-zone explorer on 2.12M real USGS earthquakes
 
 ### Stage 05 · Deep Learning & Transformers (`examples/05_deep_learning/`)
-*Reverse-mode autograd, MLPs, CNNs, and causal Transformers on Vulkan GPU.*
-- [`vktorch_deep_learning_demo.ipynb`](examples/05_deep_learning/vktorch_deep_learning_demo.ipynb) — Train a **3-Spiral MLP** (100% acc + 2D decision boundary), a **2D `Conv2d` CNN** (100% acc), and a **Causal Mini-GPT Transformer** live on Vulkan GPU with `AdamW` & `CosineAnnealingLR`
+*Reverse-mode autograd, MLPs, CNNs, Autoencoders, and modern LLMs on Vulkan GPU (with fused SPIR-V `AdamW`/`SGD`/`GELU`).*
+- [`backprop_and_regularization_lab.ipynb`](examples/05_deep_learning/backprop_and_regularization_lab.ipynb) — Visual lab: step-by-step chain-rule backpropagation gradients & overfitting vs. `Dropout` + `AdamW` weight decay decision boundaries
+- [`vktorch_deep_learning_demo.ipynb`](examples/05_deep_learning/vktorch_deep_learning_demo.ipynb) — Train a **3-Spiral MLP** (100% acc + 2D decision boundary), a **2D `Conv2d` CNN** (100% acc), and a **Causal Mini-GPT Transformer** live on Vulkan GPU
+- [`autoencoder_and_mini_llama.ipynb`](examples/05_deep_learning/autoencoder_and_mini_llama.ipynb) — **Denoising Autoencoder** latent manifold visualized via `vkvis.UMAP` + **Modern Mini-Llama (`RMSNorm` + `SwiGLU` + Causal Attention)** text generation
 
 ### Extras & GPU Showcase (`examples/extras_and_showcase/`)
 *Additional real-time GPU physics simulations & scientific visualization demos outside the core ML curriculum.*

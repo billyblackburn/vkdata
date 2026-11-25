@@ -251,6 +251,48 @@ class LayerNorm(Module):
         return F.layer_norm(x, self.weight, self.bias, eps=self.eps)
 
 
+class RMSNorm(Module):
+    """Root Mean Square Layer Normalization (used in Llama / Gemma / modern LLMs)."""
+
+    def __init__(self, dim: int, eps: float = 1e-6) -> None:
+        super().__init__()
+        self.eps = float(eps)
+        self.weight = Parameter(_np.ones((int(dim),), dtype=_np.float32))
+
+    def forward(self, x: Tensor) -> Tensor:
+        rms = ((x * x).mean(axis=-1, keepdims=True) + self.eps).sqrt()
+        return (x / rms) * self.weight
+
+
+class SwiGLU(Module):
+    """SwiGLU Feed-Forward Network: ``down(silu(gate(x)) * up(x))`` (modern LLM FFN)."""
+
+    def __init__(self, dim: int, hidden_dim: int, seed: Optional[int] = None) -> None:
+        super().__init__()
+        self.w_gate = Linear(dim, hidden_dim, bias=False, seed=seed)
+        self.w_up = Linear(dim, hidden_dim, bias=False, seed=None if seed is None else seed + 1)
+        self.w_down = Linear(hidden_dim, dim, bias=False, seed=None if seed is None else seed + 2)
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self.w_down(self.w_gate(x).silu() * self.w_up(x))
+
+
+class LlamaBlock(Module):
+    """Modern Llama-style Transformer block: RMSNorm + Causal Attention + RMSNorm + SwiGLU."""
+
+    def __init__(self, embed_dim: int, num_heads: int, hidden_dim: Optional[int] = None, dropout: float = 0.0, is_causal: bool = True, seed: Optional[int] = None) -> None:
+        super().__init__()
+        h_dim = int(hidden_dim) if hidden_dim is not None else int(embed_dim * 8 // 3)
+        self.norm1 = RMSNorm(embed_dim)
+        self.attn = MultiheadAttention(embed_dim, num_heads, dropout=dropout, is_causal=is_causal, seed=seed)
+        self.norm2 = RMSNorm(embed_dim)
+        self.ffn = SwiGLU(embed_dim, h_dim, seed=None if seed is None else seed + 10)
+
+    def forward(self, x: Tensor) -> Tensor:
+        x = x + self.attn(self.norm1(x))
+        return x + self.ffn(self.norm2(x))
+
+
 class BatchNorm1d(Module):
     def __init__(self, num_features: int, eps: float = 1e-5, momentum: float = 0.1) -> None:
         super().__init__()
