@@ -205,44 +205,86 @@ def _render_spatial_overlay(layers: List[Viewable], opts: dict) -> Image.Image:
     title = opts.get("title", "")
 
     basemap: Optional[str] = None
-    ds_layer: Optional[Any] = None
+    ds_layers: List[Any] = []
+    curve_layers: List[Curve] = []
     poly_layers: List[Any] = []
     for lyr in layers:
         if isinstance(lyr, Tiles):
             basemap = lyr.source
         elif isinstance(lyr, (DatashadedPoints, DatashadedPaths)):
-            ds_layer = lyr
+            ds_layers.append(lyr)
         elif isinstance(lyr, Points):
-            ds_layer = DatashadedPoints(lyr, how=opts.get("how", "eq_hist"))
+            ds_layers.append(DatashadedPoints(lyr, how=lyr.get_opt("how", opts.get("how", "eq_hist"))))
         elif isinstance(lyr, Path):
-            ds_layer = DatashadedPaths(lyr, how=opts.get("how", "eq_hist"))
+            ds_layers.append(DatashadedPaths(lyr, how=lyr.get_opt("how", opts.get("how", "eq_hist"))))
+        elif isinstance(lyr, Curve):
+            curve_layers.append(lyr)
         elif hasattr(lyr, "draw_onto") and hasattr(lyr, "bounds_mercator"):
             poly_layers.append(lyr)
 
-    if ds_layer is None and not poly_layers:
+    if not ds_layers and not poly_layers and not curve_layers:
         return Image.new("RGBA", (w, h), _BG_DARK)
 
-    if ds_layer is not None:
-        xr, yr = _infer_ranges(ds_layer, opts)
-        shaded = ds_layer.render_gpu(w, h, xr, yr, basemap=basemap, how=opts.get("how"), cmap=opts.get("cmap"))
-        pil_img = shaded.to_pil()
+    if ds_layers:
+        xr, yr = _infer_ranges(ds_layers[0], opts)
+        first = ds_layers[0]
+        shaded = first.render_gpu(
+            w, h, xr, yr,
+            basemap=basemap,
+            how=first.get_opt("how") or opts.get("how"),
+            cmap=first.get_opt("cmap") or opts.get("cmap"),
+        )
+        pil_img = shaded.to_pil().convert("RGBA")
+        for extra in ds_layers[1:]:
+            ex_shaded = extra.render_gpu(
+                w, h, xr, yr,
+                basemap=None,
+                how=extra.get_opt("how") or opts.get("how"),
+                cmap=extra.get_opt("cmap") or opts.get("cmap"),
+            )
+            ex_arr = np.array(ex_shaded.to_pil().convert("RGBA"), copy=True)
+            bg_mask = (ex_arr[:, :, 0] == 10) & (ex_arr[:, :, 1] == 10) & (ex_arr[:, :, 2] == 14)
+            ex_arr[bg_mask, 3] = 0
+            pil_img = Image.alpha_composite(pil_img, Image.fromarray(ex_arr, mode="RGBA"))
     else:
-        xr = opts.get("xlim") or poly_layers[0].get_opt("xlim")
-        yr = opts.get("ylim") or poly_layers[0].get_opt("ylim")
-        if xr is None or yr is None:
+        xr = opts.get("xlim") or (poly_layers[0].get_opt("xlim") if poly_layers else None)
+        yr = opts.get("ylim") or (poly_layers[0].get_opt("ylim") if poly_layers else None)
+        if (xr is None or yr is None) and poly_layers:
             bxr, byr = poly_layers[0].bounds_mercator()
             xr = xr or bxr
             yr = yr or byr
-        xr = (float(xr[0]), float(xr[1]))
-        yr = (float(yr[0]), float(yr[1]))
+        xr = (float(xr[0]), float(xr[1])) if xr is not None else (0.0, 1.0)
+        yr = (float(yr[0]), float(yr[1])) if yr is not None else (0.0, 1.0)
         if basemap:
             empty_agg = vks.AggResult(grid=vnp.zeros((h, w), dtype=np.int32), x_range=xr, y_range=yr)
-            pil_img = vks.shade(empty_agg, basemap=basemap, spread_px=0).to_pil()
+            pil_img = vks.shade(empty_agg, basemap=basemap, spread_px=0).to_pil().convert("RGBA")
         else:
             pil_img = Image.new("RGBA", (w, h), _BG_DARK)
 
     for plyr in poly_layers:
         pil_img = plyr.draw_onto(pil_img, xr, yr)
+
+    if curve_layers:
+        draw_c = ImageDraw.Draw(pil_img)
+        x_span = max(xr[1] - xr[0], 1e-12)
+        y_span = max(yr[1] - yr[0], 1e-12)
+        for clyr in curve_layers:
+            cxs = _col_to_np(clyr.data, clyr.kdims[0]).astype(np.float64)
+            cys = _col_to_np(clyr.data, clyr.vdims[0]).astype(np.float64)
+            color = clyr.get_opt("color", _ACCENT_LINE)
+            lw = int(clyr.get_opt("line_width", 2))
+            seg = []
+            for xv, yv in zip(cxs, cys):
+                if np.isnan(xv) or np.isnan(yv):
+                    if len(seg) >= 2:
+                        draw_c.line(seg, fill=color, width=lw)
+                    seg = []
+                    continue
+                px = int(round((xv - xr[0]) / x_span * (w - 1)))
+                py = int(round((yr[1] - yv) / y_span * (h - 1)))
+                seg.append((px, py))
+            if len(seg) >= 2:
+                draw_c.line(seg, fill=color, width=lw)
 
     if title:
         canvas = Image.new("RGBA", (w, h + 28), _BG_DARK)
