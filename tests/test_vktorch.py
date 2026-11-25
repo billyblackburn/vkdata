@@ -182,3 +182,104 @@ def test_cnn_conv2d_and_transformer_training():
         l.backward()
         opt_gpt.step()
     assert l.item() < l0 * 0.15
+
+
+def test_fused_spirv_kernels_gradients_and_wide_rows():
+    rng = np.random.default_rng(123)
+
+    # 1. RMSNorm: finite-difference check for both x and weight
+    x_np = rng.standard_normal((3, 5)).astype(np.float32) * 0.8
+    w_np = rng.standard_normal((5,)).astype(np.float32) * 0.5 + 1.0
+    g_np = rng.standard_normal((3, 5)).astype(np.float32)
+
+    x = vt.Tensor(x_np.copy(), requires_grad=True)
+    w = vt.Tensor(w_np.copy(), requires_grad=True)
+    y = F.rms_norm(x, w, eps=1e-6)
+    (y * vt.Tensor(g_np)).sum().backward()
+
+    ng_x = _num_grad(lambda a: (F.rms_norm(vt.Tensor(a), vt.Tensor(w_np), eps=1e-6) * vt.Tensor(g_np)).sum().item(), x_np.copy())
+    ng_w = _num_grad(lambda a: (F.rms_norm(vt.Tensor(x_np), vt.Tensor(a), eps=1e-6) * vt.Tensor(g_np)).sum().item(), w_np.copy())
+    np.testing.assert_allclose(x.grad.to_numpy(), ng_x, atol=2e-2, rtol=2e-2)
+    np.testing.assert_allclose(w.grad.to_numpy(), ng_w, atol=2e-2, rtol=2e-2)
+
+    # 2. LayerNorm: finite-difference check for x, weight, and bias
+    b_np = rng.standard_normal((5,)).astype(np.float32) * 0.3
+    x2 = vt.Tensor(x_np.copy(), requires_grad=True)
+    w2 = vt.Tensor(w_np.copy(), requires_grad=True)
+    b2 = vt.Tensor(b_np.copy(), requires_grad=True)
+    (F.layer_norm(x2, w2, b2, eps=1e-5) * vt.Tensor(g_np)).sum().backward()
+
+    ng_ln_x = _num_grad(lambda a: (F.layer_norm(vt.Tensor(a), vt.Tensor(w_np), vt.Tensor(b_np)) * vt.Tensor(g_np)).sum().item(), x_np.copy())
+    ng_ln_w = _num_grad(lambda a: (F.layer_norm(vt.Tensor(x_np), vt.Tensor(a), vt.Tensor(b_np)) * vt.Tensor(g_np)).sum().item(), w_np.copy())
+    ng_ln_b = _num_grad(lambda a: (F.layer_norm(vt.Tensor(x_np), vt.Tensor(w_np), vt.Tensor(a)) * vt.Tensor(g_np)).sum().item(), b_np.copy())
+    np.testing.assert_allclose(x2.grad.to_numpy(), ng_ln_x, atol=2e-2, rtol=2e-2)
+    np.testing.assert_allclose(w2.grad.to_numpy(), ng_ln_w, atol=2e-2, rtol=2e-2)
+    np.testing.assert_allclose(b2.grad.to_numpy(), ng_ln_b, atol=2e-2, rtol=2e-2)
+
+    # 3. Fused SwiGLU: finite-difference check for gate and up
+    gate_np = rng.standard_normal((3, 5)).astype(np.float32)
+    up_np = rng.standard_normal((3, 5)).astype(np.float32)
+    gate_t = vt.Tensor(gate_np.copy(), requires_grad=True)
+    up_t = vt.Tensor(up_np.copy(), requires_grad=True)
+    (F.swiglu(gate_t, up_t) * vt.Tensor(g_np)).sum().backward()
+
+    ng_gate = _num_grad(lambda a: (F.swiglu(vt.Tensor(a), vt.Tensor(up_np)) * vt.Tensor(g_np)).sum().item(), gate_np.copy())
+    ng_up = _num_grad(lambda a: (F.swiglu(vt.Tensor(gate_np), vt.Tensor(a)) * vt.Tensor(g_np)).sum().item(), up_np.copy())
+    np.testing.assert_allclose(gate_t.grad.to_numpy(), ng_gate, atol=2e-2, rtol=2e-2)
+    np.testing.assert_allclose(up_t.grad.to_numpy(), ng_up, atol=2e-2, rtol=2e-2)
+
+    # 4. Fused Softmax: finite-difference check
+    sm_x = vt.Tensor(x_np.copy(), requires_grad=True)
+    (sm_x.softmax(axis=-1) * vt.Tensor(g_np)).sum().backward()
+    ng_sm = _num_grad(lambda a: (vt.Tensor(a).softmax(axis=-1) * vt.Tensor(g_np)).sum().item(), x_np.copy())
+    np.testing.assert_allclose(sm_x.grad.to_numpy(), ng_sm, atol=2e-2, rtol=2e-2)
+
+    # 5. Wide rows (D = 384 > 256 workgroup size) vs exact NumPy reference
+    xw = rng.standard_normal((4, 384)).astype(np.float32)
+    ww = rng.standard_normal((384,)).astype(np.float32)
+    bw = rng.standard_normal((384,)).astype(np.float32)
+    tgt_w = np.array([17, 299, 383, 0], dtype=np.int32)
+
+    with vt.no_grad():
+        # RMSNorm
+        ref_rms = (xw / np.sqrt(np.mean(xw * xw, axis=-1, keepdims=True) + 1e-6)) * ww
+        np.testing.assert_allclose(F.rms_norm(vt.Tensor(xw), vt.Tensor(ww), eps=1e-6).numpy(), ref_rms, atol=1e-5, rtol=1e-4)
+
+        # LayerNorm
+        mu = np.mean(xw, axis=-1, keepdims=True)
+        var = np.mean((xw - mu) ** 2, axis=-1, keepdims=True)
+        ref_ln = ((xw - mu) / np.sqrt(var + 1e-5)) * ww + bw
+        np.testing.assert_allclose(F.layer_norm(vt.Tensor(xw), vt.Tensor(ww), vt.Tensor(bw), eps=1e-5).numpy(), ref_ln, atol=1e-5, rtol=1e-4)
+
+        # Softmax
+        ex = np.exp(xw - np.max(xw, axis=-1, keepdims=True))
+        ref_sm = ex / np.sum(ex, axis=-1, keepdims=True)
+        np.testing.assert_allclose(vt.Tensor(xw).softmax(axis=-1).numpy(), ref_sm, atol=1e-5, rtol=1e-4)
+
+        # CrossEntropy (inference / no_grad path)
+        ref_ce = float(-np.mean(np.log(ref_sm[np.arange(4), tgt_w])))
+        np.testing.assert_allclose(F.cross_entropy(vt.Tensor(xw), tgt_w).item(), ref_ce, atol=1e-5, rtol=1e-4)
+
+    # 6. LlamaBlock end-to-end training check (RMSNorm + Causal Attention + SwiGLU + CrossEntropy)
+    class TinyLlama(nn.Module):
+        def __init__(self, vocab=12, d_model=32):
+            super().__init__()
+            self.tok = nn.Embedding(vocab, d_model, seed=1)
+            self.block = nn.LlamaBlock(d_model, num_heads=4, hidden_dim=64, is_causal=True, seed=2)
+            self.norm = nn.RMSNorm(d_model)
+            self.head = nn.Linear(d_model, vocab, bias=False, seed=3)
+
+        def forward(self, idx):
+            return self.head(self.norm(self.block(self.tok(idx))))
+
+    llama = TinyLlama()
+    opt_ll = optim.AdamW(llama.parameters(), lr=3e-2)
+    seq_in = np.array([[0, 1, 2, 3, 4, 5, 6], [6, 5, 4, 3, 2, 1, 0]], dtype=np.int32)
+    seq_tgt = np.array([[1, 2, 3, 4, 5, 6, 7], [5, 4, 3, 2, 1, 0, 1]], dtype=np.int32)
+    l0 = F.cross_entropy(llama(seq_in), seq_tgt).item()
+    for _ in range(25):
+        opt_ll.zero_grad()
+        l = F.cross_entropy(llama(seq_in), seq_tgt)
+        l.backward()
+        opt_ll.step()
+    assert l.item() < l0 * 0.15

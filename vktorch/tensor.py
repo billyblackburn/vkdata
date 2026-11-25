@@ -372,13 +372,14 @@ class Tensor:
         return Tensor(th, requires_grad=req, dtype=None, _parents=(self,) if req else (), _backward=_bw if req else None)
 
     def silu(self) -> "Tensor":
-        sig = 1.0 / (1.0 + vnp.exp(-vnp.clip(self.data, -30.0, 30.0)))
-        out_data = self.data * sig
+        # Single-pass fused Vulkan SPIR-V SiLU forward + backward
+        from ._kernels import fused_silu_bwd, fused_silu_fwd
+
+        out_data = fused_silu_fwd(self.data)
         req = _GRAD_ENABLED and self.requires_grad
 
         def _bw(g: vnp.ndarray) -> None:
-            d = sig * (1.0 + self.data * (1.0 - sig))
-            self._accum_grad(g * d)
+            self._accum_grad(fused_silu_bwd(self.data, g))
 
         return Tensor(out_data, requires_grad=req, dtype=None, _parents=(self,) if req else (), _backward=_bw if req else None)
 
@@ -423,6 +424,18 @@ class Tensor:
         return Tensor(sq, requires_grad=req, dtype=None, _parents=(self,) if req else (), _backward=_bw if req else None)
 
     def softmax(self, axis: int = -1) -> "Tensor":
+        ax = axis + self.ndim if axis < 0 else axis
+        if ax == self.ndim - 1 and self.ndim >= 1:
+            from ._kernels import fused_softmax_bwd, fused_softmax_fwd
+
+            sm = fused_softmax_fwd(self.data)
+            req = _GRAD_ENABLED and self.requires_grad
+
+            def _bw(g: vnp.ndarray) -> None:
+                self._accum_grad(fused_softmax_bwd(sm, g))
+
+            return Tensor(sm, requires_grad=req, dtype=None, _parents=(self,) if req else (), _backward=_bw if req else None)
+
         m = vnp.max(self.data, axis=axis, keepdims=True)
         ex = vnp.exp(self.data - m)
         sm = ex / vnp.sum(ex, axis=axis, keepdims=True)

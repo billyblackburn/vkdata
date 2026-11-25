@@ -260,8 +260,7 @@ class RMSNorm(Module):
         self.weight = Parameter(_np.ones((int(dim),), dtype=_np.float32))
 
     def forward(self, x: Tensor) -> Tensor:
-        rms = ((x * x).mean(axis=-1, keepdims=True) + self.eps).sqrt()
-        return (x / rms) * self.weight
+        return F.rms_norm(x, self.weight, eps=self.eps)
 
 
 class SwiGLU(Module):
@@ -274,7 +273,7 @@ class SwiGLU(Module):
         self.w_down = Linear(hidden_dim, dim, bias=False, seed=None if seed is None else seed + 2)
 
     def forward(self, x: Tensor) -> Tensor:
-        return self.w_down(self.w_gate(x).silu() * self.w_up(x))
+        return self.w_down(F.swiglu(self.w_gate(x), self.w_up(x)))
 
 
 class LlamaBlock(Module):

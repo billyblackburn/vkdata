@@ -47,21 +47,86 @@ def dropout(x: Tensor, p: float = 0.1, training: bool = True, seed: Optional[int
     return x * Tensor(keep, requires_grad=False)
 
 
+def swiglu(gate: Tensor, up: Tensor) -> Tensor:
+    """Fused single-pass Vulkan SPIR-V SwiGLU activation: ``silu(gate) * up``."""
+    from ._kernels import fused_swiglu_bwd, fused_swiglu_fwd
+
+    out_data = fused_swiglu_fwd(gate.data, up.data)
+    req = is_grad_enabled() and (gate.requires_grad or up.requires_grad)
+
+    def _bw(g: vnp.ndarray) -> None:
+        dg, du = fused_swiglu_bwd(gate.data, up.data, g)
+        if gate.requires_grad:
+            gate._accum_grad(dg)
+        if up.requires_grad:
+            up._accum_grad(du)
+
+    return Tensor(out_data, requires_grad=req, dtype=None, _parents=(gate, up) if req else (), _backward=_bw if req else None)
+
+
+def rms_norm(
+    x: Tensor,
+    weight: Tensor,
+    eps: float = 1e-6,
+) -> Tensor:
+    """Fused Vulkan SPIR-V Root Mean Square Layer Normalization."""
+    from ._kernels import fused_rmsnorm_bwd, fused_rmsnorm_fwd
+
+    y_data, inv_rms = fused_rmsnorm_fwd(x.data, weight.data, eps=eps)
+    req = is_grad_enabled() and (x.requires_grad or weight.requires_grad)
+
+    def _bw(g: vnp.ndarray) -> None:
+        dx, dw = fused_rmsnorm_bwd(
+            x.data, weight.data, inv_rms, g,
+            need_dx=x.requires_grad,
+            need_dw=weight.requires_grad,
+        )
+        if dx is not None:
+            x._accum_grad(dx)
+        if dw is not None:
+            weight._accum_grad(dw)
+
+    return Tensor(y_data, requires_grad=req, dtype=None, _parents=(x, weight) if req else (), _backward=_bw if req else None)
+
+
 def layer_norm(
     x: Tensor,
     weight: Optional[Tensor] = None,
     bias: Optional[Tensor] = None,
     eps: float = 1e-5,
 ) -> Tensor:
-    mean = x.mean(axis=-1, keepdims=True)
-    diff = x - mean
-    var = (diff * diff).mean(axis=-1, keepdims=True)
-    norm = diff / (var + eps).sqrt()
+    """Fused Vulkan SPIR-V Layer Normalization over the last dimension."""
+    from ._kernels import fused_layernorm_bwd, fused_layernorm_fwd
+
+    w_data = weight.data if weight is not None else None
+    b_data = bias.data if bias is not None else None
+    y_data, mean, inv_std = fused_layernorm_fwd(x.data, w_data, b_data, eps=eps)
+
+    req_w = weight is not None and weight.requires_grad
+    req_b = bias is not None and bias.requires_grad
+    req = is_grad_enabled() and (x.requires_grad or req_w or req_b)
+
+    parents = [x]
     if weight is not None:
-        norm = norm * weight
+        parents.append(weight)
     if bias is not None:
-        norm = norm + bias
-    return norm
+        parents.append(bias)
+
+    def _bw(g: vnp.ndarray) -> None:
+        dx, dw, db = fused_layernorm_bwd(
+            x.data, w_data, mean, inv_std, g,
+            need_dx=x.requires_grad,
+            need_dw=req_w,
+            need_db=req_b,
+        )
+        if dx is not None:
+            x._accum_grad(dx)
+        if dw is not None and weight is not None:
+            weight._accum_grad(dw)
+        if db is not None and bias is not None:
+            bias._accum_grad(db)
+
+    return Tensor(y_data, requires_grad=req, dtype=None, _parents=tuple(parents) if req else (), _backward=_bw if req else None)
 
 
 def embedding(indices, weight: Tensor) -> Tensor:
@@ -109,38 +174,30 @@ def binary_cross_entropy_with_logits(logits: Tensor, target) -> Tensor:
 
 
 def cross_entropy(logits: Tensor, targets) -> Tensor:
-    """Numerically stable multi-class cross-entropy loss on Vulkan GPU.
+    """Single-pass fused Vulkan SPIR-V multi-class cross-entropy loss.
 
     Parameters
     ----------
     logits : Tensor of shape (N, C) or (..., C)
     targets : int32/int64 class indices of shape (N,) or (...)
     """
-    tgt_np = _np.asarray(targets.to_numpy() if isinstance(targets, (Tensor, vnp.ndarray)) else targets, dtype=_np.int32).ravel()
-    c_dim = logits.shape[-1]
-    n_rows = logits.size // c_dim
-    x2d = logits.data.contiguous().reshape(n_rows, c_dim)
+    from ._kernels import fused_cross_entropy
 
-    # Numerically stable log-softmax on GPU
-    m = vnp.max(x2d, axis=1, keepdims=True)
-    shifted = x2d - m
-    ex = vnp.exp(shifted)
-    sum_ex = vnp.sum(ex, axis=1, keepdims=True)
-    lsm = shifted - vnp.log(sum_ex)
+    if isinstance(targets, vnp.ndarray) and targets.dtype == _np.int32:
+        tgt_gpu = targets.ravel().contiguous()
+    else:
+        tgt_np = _np.asarray(
+            targets.to_numpy() if isinstance(targets, (Tensor, vnp.ndarray)) else targets,
+            dtype=_np.int32,
+        ).ravel()
+        tgt_gpu = vnp.array(tgt_np, dtype=_np.int32)
 
-    # One-hot target mask on GPU
-    oh_np = _np.zeros((n_rows, c_dim), dtype=_np.float32)
-    oh_np[_np.arange(n_rows), tgt_np] = 1.0
-    oh_gpu = vnp.array(oh_np, dtype=_np.float32)
-
-    loss_val = -vnp.sum(lsm * oh_gpu) * (1.0 / float(n_rows))
     req = is_grad_enabled() and logits.requires_grad
-    orig_shape = logits.shape
+    loss_val, dlogits = fused_cross_entropy(logits.data, tgt_gpu, compute_grad=req)
 
     def _bw(g: vnp.ndarray) -> None:
-        probs = ex / sum_ex
-        grad_2d = ((probs - oh_gpu) * (1.0 / float(n_rows))) * g
-        logits._accum_grad(grad_2d.reshape(orig_shape))
+        assert dlogits is not None
+        logits._accum_grad(dlogits * g)
 
     return Tensor(loss_val, requires_grad=req, dtype=None, _parents=(logits,) if req else (), _backward=_bw if req else None)
 

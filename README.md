@@ -50,10 +50,29 @@ Follow the numbered AI & ML curriculum from Stage `00` → Stage `05`:
 - [`earthquakes_3d_vkdata.ipynb`](examples/04_classical_ml/earthquakes_3d_vkdata.ipynb) — Spatial join + GPU K-Means hotspot discovery + 3D subduction-zone explorer on 2.12M real USGS earthquakes
 
 ### Stage 05 · Deep Learning & Transformers (`examples/05_deep_learning/`)
-*Reverse-mode autograd, MLPs, CNNs, Autoencoders, and modern LLMs on Vulkan GPU (with fused SPIR-V `AdamW`/`SGD`/`GELU`).*
+*Reverse-mode autograd, MLPs, CNNs, Autoencoders, and modern LLMs on Vulkan GPU (powered by fused SPIR-V kernels for `AdamW`, `SGD`, `GELU`, `SiLU`, `SwiGLU`, `RMSNorm`, `LayerNorm`, `Softmax`, and `CrossEntropy`).*
 - [`backprop_and_regularization_lab.ipynb`](examples/05_deep_learning/backprop_and_regularization_lab.ipynb) — Visual lab: step-by-step chain-rule backpropagation gradients & overfitting vs. `Dropout` + `AdamW` weight decay decision boundaries
 - [`vktorch_deep_learning_demo.ipynb`](examples/05_deep_learning/vktorch_deep_learning_demo.ipynb) — Train a **3-Spiral MLP** (100% acc + 2D decision boundary), a **2D `Conv2d` CNN** (100% acc), and a **Causal Mini-GPT Transformer** live on Vulkan GPU
 - [`autoencoder_and_mini_llama.ipynb`](examples/05_deep_learning/autoencoder_and_mini_llama.ipynb) — **Denoising Autoencoder** latent manifold visualized via `vkvis.UMAP` + **Modern Mini-Llama (`RMSNorm` + `SwiGLU` + Causal Attention)** text generation
+
+#### Why Fused GPU Kernels Make Deep Learning Faster (In Plain English)
+A modern GPU can do math *ridiculously* fast — usually much faster than it can carry numbers back and forth from video memory (VRAM).
+
+Think of it like cooking in a kitchen where the pantry (VRAM) is down the hall, and your cutting board (the GPU's tiny on-chip registers & shared memory) is right in front of you:
+- **Unfused ops (the slow way):** To compute something like `LayerNorm` or `RMSNorm`, a naive framework runs 6–10 separate mini-programs in a row — compute the mean, walk back to the pantry and save it; fetch everything again to subtract the mean, walk back and save it; fetch it again to square it, and so on. Most of the time is spent walking back and forth to VRAM, not doing math!
+- **Fused SPIR-V kernels (the fast way):** Instead of 10 separate trips, `vktorch` combines the entire forward or backward formula into **one single Vulkan compute shader** (`vktorch/_kernels.py`). Each group of GPU threads grabs a row of numbers once, does all the math right on the cutting board using fast shared memory, and writes only the final answer back to VRAM.
+
+Here is the real measured speedup on a **Steam Deck APU** (`1024 × 256` tensor, full forward + backward pass):
+
+| Operation | What It Does in an AI Model | Unfused (`vknumpy`) | Fused SPIR-V | Speedup |
+|---|---|---:|---:|---:|
+| **LayerNorm** | Keeps activations balanced in GPT-style Transformers | 19.98 ms | **6.09 ms** | **3.28×** |
+| **RMSNorm** | Simpler, faster normalization used in Llama & Gemma | 15.34 ms | **5.87 ms** | **2.61×** |
+| **SwiGLU** | Gated activation (`silu(gate) * up`) in modern LLM FFNs | 9.75 ms | **4.75 ms** | **2.05×** |
+| **Softmax** | Turns raw attention scores into probabilities (adds to 1) | — | **4.64 ms** | Single-pass |
+| **CrossEntropy** | Measures prediction error & computes gradients directly in VRAM | — | **1.73 ms** | No CPU one-hot |
+
+*(This is the exact same core idea behind real-world AI accelerators like Triton, FlashAttention, and `torch.compile` — and you can read every line of our GLSL shaders in [`vktorch/_kernels.py`](vktorch/_kernels.py)!)*
 
 ### Extras & GPU Showcase (`examples/extras_and_showcase/`)
 *Additional real-time GPU physics simulations & scientific visualization demos outside the core ML curriculum.*
@@ -83,7 +102,7 @@ Follow the numbered AI & ML curriculum from Stage `00` → Stage `05`:
 | **`vkspatial`** | `GeoPandas` / `cuSpatial` | Zero-copy SPIR-V 2D Morton `GeoDataFrame`, single-pass `sjoin`, GeoJSON I/O, `to_crs`, & **6-level 3D Barnes-Hut Octree (`BarnesHut3D`)** |
 | **`vkvis`** | `mlx-vis` / `UMAP` | Pure-Vulkan GPU dimensionality reduction & manifold learning: `UMAP`, `TSNE`, `PaCMAP`, `LocalMAP`, `TriMap`, `DREAMS`, `CNE`, `NNDescent`, & 2D/3D rendering |
 | **`vklearn`** | `scikit-learn` / `cuML` | `StandardScaler`, `MinMaxScaler`, `LinearRegression`, `Ridge`, `LogisticRegression`, `PCA`, `KMeans`, `NearestNeighbors`, `KNeighborsClassifier`, `Pipeline` |
-| **`vktorch`** | `PyTorch` | Dynamic reverse-mode autograd (`Tensor`, `.backward()`, `no_grad()`), `nn` (`Linear`, `Conv2d`, `MaxPool2d`, `LayerNorm`, `BatchNorm1d`, `Embedding`, `MultiheadAttention`, `TransformerBlock`), `optim` (`SGD`, `Adam`, `AdamW`, `CosineAnnealingLR`), `DataLoader`, & `.npz` checkpointing |
+| **`vktorch`** | `PyTorch` | Dynamic reverse-mode autograd (`Tensor`, `.backward()`, `no_grad()`), `nn` (`Linear`, `Conv2d`, `MaxPool2d`, `LayerNorm`, `RMSNorm`, `SwiGLU`, `BatchNorm1d`, `Embedding`, `MultiheadAttention`, `TransformerBlock`, `LlamaBlock`), fused SPIR-V kernels, `optim` (`SGD`, `Adam`, `AdamW`, `CosineAnnealingLR`), `DataLoader`, & `.npz` checkpointing |
 | **`vkastro`** | `Astropy` | GPU `SkyCoord` (`ICRS` ↔ `Galactic`, 3D Cartesian, `cone_search`), `aitoff_projection`, photometry, `FlatLambdaCDM` cosmology, & `read_fits` |
 
 ---
@@ -97,7 +116,7 @@ pixi run setup
 # 2. Build libvknumpy.so, libvkshader.so, and libvkspatial.so using all CPU cores
 pixi run build
 
-# 3. Run all 70 tests across all 14 packages
+# 3. Run all 71 tests across all 14 packages
 pixi run test
 
 # 4. Build & auditwheel-repair a manylinux wheel (for PyPI / pip install)
