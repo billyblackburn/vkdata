@@ -443,6 +443,20 @@ for idx, (_, fname, title) in enumerate(CHAPTERS):
     fp = chap_dir / fname
     html = fp.read_text(encoding="utf-8")
     if "vkbook-nav" in html:
+        # Ensure existing styled chapters also get the API Docs button
+        if "../reference.html" not in html:
+            html = html.replace(
+                '<a class="gloss-btn" href="../glossary.html">Glossary</a>',
+                '<a class="gloss-btn" href="../glossary.html">Glossary</a><a class="gloss-btn" href="../reference.html">API Docs</a>',
+                1,
+            )
+            html = html.replace(
+                '<a href="../glossary.html">Acronym Glossary</a>',
+                '<a href="../glossary.html">Acronym Glossary</a><a href="../reference.html">vkdata API Docs</a>',
+                1,
+            )
+            fp.write_text(html, encoding="utf-8")
+            print("Added API Docs link ->", fp)
         continue
     html = link_acronyms_in_markdown(html)
     prev_link = f'<a href="{CHAPTERS[idx-1][1]}">&larr; Prev</a>' if idx > 0 else ""
@@ -452,6 +466,7 @@ for idx, (_, fname, title) in enumerate(CHAPTERS):
         f'<span style="display:flex;gap:6px;align-items:center;">'
         f'<a href="../index.html">&larr; Home</a>'
         f'<a class="gloss-btn" href="../glossary.html">Glossary</a>'
+        f'<a class="gloss-btn" href="../reference.html">API Docs</a>'
         f'</span>'
         f'<span class="title">{title}</span>'
         f'<span style="display:flex;gap:6px;">{prev_link}{next_link}</span>'
@@ -461,6 +476,7 @@ for idx, (_, fname, title) in enumerate(CHAPTERS):
         f'<div class="vkbook-footer">'
         f'{prev_link or "<a href=\"../index.html\">&larr; Book Home</a>"}'
         f'<a href="../glossary.html">Acronym Glossary</a>'
+        f'<a href="../reference.html">vkdata API Docs</a>'
         f'{next_link or "<a href=\"../index.html\">Back to Table of Contents &rarr;</a>"}'
         f'</div>'
     )
@@ -558,11 +574,14 @@ glossary_html = f"""<!DOCTYPE html>
   <div class="nav">
     <button onclick="if (history.length > 1) history.back(); else location.href='index.html';">&larr; Back</button>
     <span class="title">Acronym Glossary ({len(GLOSSARY)} Terms)</span>
-    <a href="index.html">Book Home</a>
+    <span style="display:flex;gap:6px;flex-wrap:wrap;">
+      <a href="reference.html" style="color:var(--mint);border-color:rgba(114,241,184,0.45);">&#128218; API Docs</a>
+      <a href="index.html">Book Home</a>
+    </span>
   </div>
   <div class="wrap">
     <h1>Plain-English Acronym Glossary</h1>
-    <p class="sub">Every acronym in the book is clickable (dotted cyan underline) and links straight here. Type below to filter instantly:</p>
+    <p class="sub">Every acronym in the book is clickable (dotted cyan underline) and links straight here. Looking for Python functions &amp; signatures across all 16 packages? Jump to the <a href="reference.html" style="color:var(--mint);font-weight:700;text-decoration:none;border-bottom:1px dotted var(--mint);">vkdata API Reference &rarr;</a></p>
     <input class="search" id="q" type="search" placeholder="Filter acronyms (e.g. MLP, RMSE, SPIR-V, GELU, PCA)..." autofocus>
     <div class="grid" id="list">
 {chr(10).join(cards_html)}
@@ -689,7 +708,8 @@ index_html = f"""<!DOCTYPE html>
   <div class="wrap">
     <div class="top-bar">
       <span class="badge">Interactive Follow-Along Book &middot; Pure Vulkan GPU</span>
-      <a class="gloss-pill" href="glossary.html">&#128214; Plain-English Acronym Glossary ({len(GLOSSARY)} Terms)</a>
+      <a class="gloss-pill" href="glossary.html">&#128214; Acronym Glossary ({len(GLOSSARY)} Terms)</a>
+      <a class="gloss-pill" href="reference.html" style="color:var(--mint);border-color:rgba(114,241,184,0.55);background:rgba(114,241,184,0.10);">&#128218; vkdata API Reference (16 Packages)</a>
     </div>
     <h1>Hands-On AI, Machine Learning &amp; GPU Computing &mdash; Without CUDA or ROCm</h1>
     <p class="sub">
@@ -781,6 +801,27 @@ index_html = f"""<!DOCTYPE html>
       </a>
     </div>
 
+    <h2>Reference &middot; Glossary &amp; <code>vkdata</code> Toolset Documentation</h2>
+    <div class="grid">
+      <a class="card dt-vector" href="reference.html">
+        <div class="card-head">
+          <span class="ch">API Reference &middot; 16 Vulkan GPU Packages</span>
+          <span class="pill">Searchable Functions, Classes &amp; Signatures</span>
+        </div>
+        <h3><code>vkdata</code> Toolset Documentation (Complete Function Guide)</h3>
+        <p>Browse and search every exported class, method, and function across <code>vknumpy</code>, <code>vkpandas</code>, <code>vkscipy</code>, <code>vklearn</code>, <code>vktorch</code>, <code>vkvec</code>, <code>vktime</code>, <code>vkvis</code>, <code>vkspatial</code>, <code>vkastro</code>, and the visualization stack &mdash; with signatures, plain-English explanations, and quick-start examples.</p>
+      </a>
+
+      <a class="card dt-foundations" href="glossary.html">
+        <div class="card-head">
+          <span class="ch">Glossary &middot; {len(GLOSSARY)} Plain-English Terms</span>
+          <span class="pill">Tap-to-Explain in Every Chapter</span>
+        </div>
+        <h3>Plain-English AI, ML &amp; Vulkan Acronym Glossary</h3>
+        <p>Instant definitions for every acronym and layer name in the book &mdash; from <code>MLP</code>, <code>GELU</code>, and <code>Conv2d</code> to <code>SPIR-V</code>, <code>TF-IDF</code>, <code>BM25</code>, <code>RRF</code>, and <code>RoPE</code>.</p>
+      </a>
+    </div>
+
     <div class="note">
       <strong>Want to run the notebooks interactively on your own GPU?</strong><br>
       Clone <a href="https://github.com/billyblackburn/vkdata">github.com/billyblackburn/vkdata</a> and run
@@ -793,3 +834,10 @@ index_html = f"""<!DOCTYPE html>
 """
 Path("docs/index.html").write_text(index_html, encoding="utf-8")
 print("Styled SynthWave '84 -> docs/index.html")
+
+# Also regenerate the searchable 16-package vkdata API reference
+import sys
+sys.path.insert(0, str(Path.cwd()))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from build_reference import build_reference
+build_reference()

@@ -72,11 +72,14 @@
   <div class="nav">
     <button onclick="if (history.length > 1) history.back(); else location.href='index.html';">&larr; Back</button>
     <span class="title">Acronym Glossary (66 Terms)</span>
-    <a href="index.html">Book Home</a>
+    <span style="display:flex;gap:6px;flex-wrap:wrap;">
+      <a href="reference.html" style="color:var(--mint);border-color:rgba(114,241,184,0.45);">&#128218; API Docs</a>
+      <a href="index.html">Book Home</a>
+    </span>
   </div>
   <div class="wrap">
     <h1>Plain-English Acronym Glossary</h1>
-    <p class="sub">Every acronym in the book is clickable (dotted cyan underline) and links straight here. Type below to filter instantly:</p>
+    <p class="sub">Every acronym in the book is clickable (dotted cyan underline) and links straight here. Looking for Python functions &amp; signatures across all 16 packages? Jump to the <a href="reference.html" style="color:var(--mint);font-weight:700;text-decoration:none;border-bottom:1px dotted var(--mint);">vkdata API Reference &rarr;</a></p>
     <input class="search" id="q" type="search" placeholder="Filter acronyms (e.g. MLP, RMSE, SPIR-V, GELU, PCA)..." autofocus>
     <div class="grid" id="list">
       <div class="term-card" id="term-adamw" data-search="adamw adam with decoupled weight decay training the go-to modern neural network optimizer: adapts the learning rate for every weight individually and gently shrinks large weights to prevent overfitting.">

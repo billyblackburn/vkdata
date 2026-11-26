@@ -2,7 +2,7 @@
 
 ### *An Interactive, Follow-Along Book Powered by `vkdata` (Included!)*
 
-> **Read on your phone or browser right now:** **[https://billyblackburn.github.io/vkdata/](https://billyblackburn.github.io/vkdata/)**
+> **Read on your phone or browser right now:** **[https://billyblackburn.github.io/vkdata/](https://billyblackburn.github.io/vkdata/)** &nbsp;|&nbsp; **[API Reference (16 Packages)](https://billyblackburn.github.io/vkdata/reference.html)** &nbsp;|&nbsp; **[Glossary](https://billyblackburn.github.io/vkdata/glossary.html)**
 
 Most AI and machine learning books assume you own a modern NVIDIA CUDA GPU, a supported AMD ROCm card, or a cloud GPU subscription. **This book takes a different path:** it comes bundled with its own pure-Vulkan GPU toolkit (**`vkdata`**), so every single chapter runs live on the **Vulkan 1.3+ GPU you already own** — whether that's a **Steam Deck, AMD APU, older Radeon, Intel integrated/Arc GPU, older NVIDIA card, or Apple Silicon (MoltenVK)**.
 
