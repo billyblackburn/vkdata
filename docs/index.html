@@ -104,7 +104,7 @@
   <div class="wrap">
     <div class="top-bar">
       <span class="badge">Interactive Follow-Along Book &middot; Pure Vulkan GPU</span>
-      <a class="gloss-pill" href="glossary.html">&#128214; Acronym Glossary (66 Terms)</a>
+      <a class="gloss-pill" href="glossary.html">&#128214; Acronym Glossary (70 Terms)</a>
       <a class="gloss-pill" href="reference.html" style="color:var(--mint);border-color:rgba(114,241,184,0.55);background:rgba(114,241,184,0.10);">&#128218; vkdata API Reference (16 Packages)</a>
     </div>
     <h1>Hands-On AI, Machine Learning &amp; GPU Computing &mdash; Without CUDA or ROCm</h1>
@@ -134,12 +134,13 @@
       </a>
     </div>
 
-    <h2>Part I &middot; End-to-End Projects: Tabular, Image &amp; Vector Data</h2>
+    <h2>Part I &middot; End-to-End Projects: Tabular, Image, Vector &amp; Time-Series Data</h2>
     <p style="color:var(--muted);font-size:14px;margin:-6px 0 10px;">Every data type follows the same pattern: <strong>Feature Discovery &amp; Classical ML</strong> first, then <strong>Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
     <div class="dt-legend">
       <span class="dt-chip" style="--accent:#36f9f6;"><span class="dot"></span>Tabular Data (Ch. 1&ndash;2)</span>
       <span class="dt-chip" style="--accent:#ff7edb;"><span class="dot"></span>Image Data (Ch. 3&ndash;4)</span>
       <span class="dt-chip" style="--accent:#72f1b8;"><span class="dot"></span>Vector / Text &amp; NLP (Ch. 5&ndash;6)</span>
+      <span class="dt-chip" style="--accent:#ff9e64;"><span class="dot"></span>Time-Series &amp; Astronomy (Ch. 7&ndash;8)</span>
     </div>
     <div class="grid">
       <a class="card dt-tabular" href="chapters/01_housing_classical_ml.html">
@@ -195,6 +196,24 @@
         <h3>Full-Length BBC News: Learned Neural Embeddings &amp; <code>vkvec</code> Hybrid Search</h3>
         <p>Train a <code>vktorch</code> Neural Text Encoder in 12.2s on Steam Deck GPU to compress full articles into 64-D vectors (31&times; smaller), shatter the Synonym Wall (<code>0.000 &rarr; +0.999</code>), and fuse BM25 + Neural Search with <code>vkvec.HybridIndex</code>.</p>
       </a>
+
+      <a class="card dt-timeseries" href="chapters/07_solar_timeseries_classical_ml.html">
+        <div class="card-head">
+          <span class="ch">Chapter 7 &middot; Time-Series Data &middot; Astronomy &amp; Classical ML</span>
+          <span class="pill">11.1-Yr Cycle Found &middot; 35.39 RMSE</span>
+        </div>
+        <h3>277 Years of Solar Sunspots: Spectral Discovery &amp; Classical Forecasting (<code>vktime</code>)</h3>
+        <p>Load 3,334 real Royal Observatory of Belgium solar observations (1749&ndash;2026), discover the 11.11-year Solar Cycle with GPU <code>ACF</code> &amp; <code>periodogram</code>, fold 25 cycles with <code>phase_fold</code>, and forecast 12 months ahead without lookahead leakage.</p>
+      </a>
+
+      <a class="card dt-timeseries" href="chapters/08_solar_timeseries_neural_net.html">
+        <div class="card-head">
+          <span class="ch">Chapter 8 &middot; Time-Series Data &middot; Deep Temporal Neural Net</span>
+          <span class="pill">34.56 RMSE &middot; R&sup2; 0.752 &middot; 14.1s GPU</span>
+        </div>
+        <h3>Solar Cycle Forecasting: Beating Classical ML with <code>SolarForecasterNet</code> (<code>vktorch</code>)</h3>
+        <p>Train a skip-connected Temporal Neural Network (<code>LayerNorm</code> + <code>GELU</code> + <code>CosineAnnealingLR</code>) in 14.1s on Steam Deck GPU &mdash; beating Classical Ridge across unseen 1973&ndash;2026 Solar Cycles 21&ndash;25 and forecasting 2027.</p>
+      </a>
     </div>
 
     <h2>Reference &middot; Glossary &amp; <code>vkdata</code> Toolset Documentation</h2>
@@ -210,7 +229,7 @@
 
       <a class="card dt-foundations" href="glossary.html">
         <div class="card-head">
-          <span class="ch">Glossary &middot; 66 Plain-English Terms</span>
+          <span class="ch">Glossary &middot; 70 Plain-English Terms</span>
           <span class="pill">Tap-to-Explain in Every Chapter</span>
         </div>
         <h3>Plain-English AI, ML &amp; Vulkan Acronym Glossary</h3>

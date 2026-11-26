@@ -14,6 +14,8 @@ CHAPTERS = [
     ("examples/tldr_end2end/04_fashion_cnn_deep_learning.ipynb",   "04_fashion_cnn_deep_learning.html", "Ch. 4 &middot; Fashion 2D CNN"),
     ("examples/tldr_end2end/05_vector_search_classical_ml.ipynb",  "05_vector_search_classical_ml.html","Ch. 5 &middot; Vector Search &amp; Classical NLP"),
     ("examples/tldr_end2end/06_vector_embeddings_neural_net.ipynb","06_vector_embeddings_neural_net.html","Ch. 6 &middot; Neural Embeddings &amp; Deep NLP"),
+    ("examples/tldr_end2end/07_solar_timeseries_classical_ml.ipynb","07_solar_timeseries_classical_ml.html","Ch. 7 &middot; Solar Time-Series &amp; Classical ML"),
+    ("examples/tldr_end2end/08_solar_timeseries_neural_net.ipynb", "08_solar_timeseries_neural_net.html", "Ch. 8 &middot; Solar Forecaster Neural Net"),
 ]
 
 # (Term, Full Name, Category, Plain-English Explanation)
@@ -150,6 +152,14 @@ GLOSSARY = [
      "A simple, scale-invariant formula (sum of 1 / (60 + rank)) that combines ranked results from keyword search (BM25) and neural vector search into one stronger Hybrid Search list."),
     ("Hybrid Search", "BM25 Keyword + Neural Vector Search", "Vector & Text",
      "Running exact full-text search (BM25) and semantic GPU vector search together and fusing them with RRF — the production standard for RAG so both rare names/codes and synonyms match."),
+    ("ACF", "Autocorrelation Function", "Time-Series",
+     "Measures how strongly a time series correlates with a shifted copy of itself at lag k — peaks reveal repeating cycles like the 11-year solar cycle or 24-hour daily demand."),
+    ("FFT", "Fast Fourier Transform", "Time-Series",
+     "An algorithm that breaks a time-series signal into its underlying sine-wave frequencies, revealing hidden periodic cycles instantly."),
+    ("Periodogram", "Power Spectral Density Plot", "Time-Series",
+     "A plot of signal power vs. frequency computed via FFT — the tallest spike tells you the dominant repeating period (e.g. 11.11 years for solar sunspots)."),
+    ("Lookahead Leakage", "Peeking into the Future During Training", "Time-Series",
+     "The #1 time-series bug: randomly shuffling chronological data so your model trains on future timestamps to predict the past. Always use a chronological temporal_split instead!"),
 ]
 
 def _slug(term: str) -> str:
@@ -738,12 +748,13 @@ index_html = f"""<!DOCTYPE html>
       </a>
     </div>
 
-    <h2>Part I &middot; End-to-End Projects: Tabular, Image &amp; Vector Data</h2>
+    <h2>Part I &middot; End-to-End Projects: Tabular, Image, Vector &amp; Time-Series Data</h2>
     <p style="color:var(--muted);font-size:14px;margin:-6px 0 10px;">Every data type follows the same pattern: <strong>Feature Discovery &amp; Classical ML</strong> first, then <strong>Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
     <div class="dt-legend">
       <span class="dt-chip" style="--accent:#36f9f6;"><span class="dot"></span>Tabular Data (Ch. 1&ndash;2)</span>
       <span class="dt-chip" style="--accent:#ff7edb;"><span class="dot"></span>Image Data (Ch. 3&ndash;4)</span>
       <span class="dt-chip" style="--accent:#72f1b8;"><span class="dot"></span>Vector / Text &amp; NLP (Ch. 5&ndash;6)</span>
+      <span class="dt-chip" style="--accent:#ff9e64;"><span class="dot"></span>Time-Series &amp; Astronomy (Ch. 7&ndash;8)</span>
     </div>
     <div class="grid">
       <a class="card dt-tabular" href="chapters/01_housing_classical_ml.html">
@@ -798,6 +809,24 @@ index_html = f"""<!DOCTYPE html>
         </div>
         <h3>Full-Length BBC News: Learned Neural Embeddings &amp; <code>vkvec</code> Hybrid Search</h3>
         <p>Train a <code>vktorch</code> Neural Text Encoder in 12.2s on Steam Deck GPU to compress full articles into 64-D vectors (31&times; smaller), shatter the Synonym Wall (<code>0.000 &rarr; +0.999</code>), and fuse BM25 + Neural Search with <code>vkvec.HybridIndex</code>.</p>
+      </a>
+
+      <a class="card dt-timeseries" href="chapters/07_solar_timeseries_classical_ml.html">
+        <div class="card-head">
+          <span class="ch">Chapter 7 &middot; Time-Series Data &middot; Astronomy &amp; Classical ML</span>
+          <span class="pill">11.1-Yr Cycle Found &middot; 35.39 RMSE</span>
+        </div>
+        <h3>277 Years of Solar Sunspots: Spectral Discovery &amp; Classical Forecasting (<code>vktime</code>)</h3>
+        <p>Load 3,334 real Royal Observatory of Belgium solar observations (1749&ndash;2026), discover the 11.11-year Solar Cycle with GPU <code>ACF</code> &amp; <code>periodogram</code>, fold 25 cycles with <code>phase_fold</code>, and forecast 12 months ahead without lookahead leakage.</p>
+      </a>
+
+      <a class="card dt-timeseries" href="chapters/08_solar_timeseries_neural_net.html">
+        <div class="card-head">
+          <span class="ch">Chapter 8 &middot; Time-Series Data &middot; Deep Temporal Neural Net</span>
+          <span class="pill">34.56 RMSE &middot; R&sup2; 0.752 &middot; 14.1s GPU</span>
+        </div>
+        <h3>Solar Cycle Forecasting: Beating Classical ML with <code>SolarForecasterNet</code> (<code>vktorch</code>)</h3>
+        <p>Train a skip-connected Temporal Neural Network (<code>LayerNorm</code> + <code>GELU</code> + <code>CosineAnnealingLR</code>) in 14.1s on Steam Deck GPU &mdash; beating Classical Ridge across unseen 1973&ndash;2026 Solar Cycles 21&ndash;25 and forecasting 2027.</p>
       </a>
     </div>
 

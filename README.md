@@ -45,8 +45,8 @@ pixi run lab
 - **Foundations 2 — [Multi-Layer Perceptrons (MLPs): Bending Space, Solving XOR & LLM Parameters](examples/00_ai_foundations/02_multi_layer_perceptron.ipynb)**
   Wire 3 perceptrons (`OR` + `NAND` → `AND`) to solve `XOR` by hand, prove why `GELU`/`ReLU` activations prevent linear collapse, watch 1 Neuron (`60%`) → Tiny MLP `2→4→1` (4-sided diamond, `100%`) → Deep MLP `2→32→32→1` (smooth circle, `100%`), and follow the parameter ladder from **3 knobs to 8 Billion in Llama 3**.
 
-### Part I · End-to-End Projects: Tabular, Image & Vector Data (`examples/tldr_end2end/`)
-*Follow along across the 3 core AI data types — **Tabular**, **Image**, and **Vector / Text** — discovering features & benchmarking Classical ML first, then seeing if Deep Learning (`vktorch`) beats it on the exact same split.*
+### Part I · End-to-End Projects: Tabular, Image, Vector & Time-Series Data (`examples/tldr_end2end/`)
+*Follow along across all 4 core AI data types — **Tabular**, **Image**, **Vector / Text**, and **Time-Series** — discovering features & benchmarking Classical ML first, then seeing if Deep Learning (`vktorch`) beats it on the exact same split.*
 
 - **Chapter 1 *(Tabular Data)* — [California Housing: Feature Discovery & Classical ML](examples/tldr_end2end/01_housing_classical_ml.ipynb)**
   Load 20,640 Census districts, spot the `$500k` Census price cap on a GPU map, split without data leakage, engineer 36 domain + Haversine + `KMeans`-RBF features, and race `LinearRegression` → `Ridge` → GPU Distance-Weighted KNN (`$69.6k` → **`$52.7k` RMSE**, `0.640` → **`0.794` $R^2$**, plus an `87.5%` price-tier classifier).
@@ -60,6 +60,10 @@ pixi run lab
   Walk through the 3-step NLP pipeline on **2,225 complete multi-paragraph BBC News articles** (median 337 words, up to 4,492 words), chunk long articles into overlapping RAG passages with `vkvec.chunk_text`, run filtered Vulkan GPU Vector Search (`vkvec.VectorIndex`), visualize 5 topic islands with `vkvis.UMAP`, classify sections (`93.26%` BoW → **`97.30%`** TF-IDF + GPU Ridge), and hit the **Synonym Wall** (`0.000`).
 - **Chapter 6 *(Vector / Text Data · Deep NLP & Hybrid Search)* — [Full-Length BBC News: Learned Neural Embeddings & `vkvec` Hybrid Search](examples/tldr_end2end/06_vector_embeddings_neural_net.ipynb)**
   Train a `vktorch` Neural Text Encoder (`18` epochs in **`12.2s`** on Steam Deck GPU) to compress full articles into dense **64-D meaning vectors** (`31×` smaller than TF-IDF), shatter the Synonym Wall (**`0.000` → `+0.994` / `+0.999`** on zero-word-overlap synonyms!), fuse **Okapi `BM25` + 64-D Neural Search** with `vkvec.HybridIndex` (`RRF`), and beat Classical NLP (**`97.53%`**) with `.npz` + `.vkvec` persistence.
+- **Chapter 7 *(Time-Series Data · Astronomy & Classical ML)* — [277 Years of Solar Sunspots: Spectral Discovery & Classical Forecasting (`vktime`)](examples/tldr_end2end/07_solar_timeseries_classical_ml.ipynb)**
+  Load 3,334 real Royal Observatory of Belgium solar observations (1749–2026), automatically discover the **11.11-year Solar Cycle** with GPU `vktime.autocorrelation` & `periodogram`, fold 25 cycles with `phase_fold`, and forecast 12 months ahead without lookahead leakage (`49.46` → **`35.39` RMSE**, `R² = 0.740`).
+- **Chapter 8 *(Time-Series Data · Deep Temporal Neural Net)* — [Solar Cycle Forecasting: Beating Classical ML with `SolarForecasterNet` (`vktorch`)](examples/tldr_end2end/08_solar_timeseries_neural_net.ipynb)**
+  Train a skip-connected Temporal Neural Network (`LayerNorm` + `GELU` + `AdamW` + `CosineAnnealingLR`) in **`14.1s`** on Steam Deck GPU — beating Classical Ridge across unseen 1973–2026 Solar Cycles 21–25 (**`34.56` RMSE**, **`R² = 0.752`**), forecasting late 2027, and saving/reloading `.npz` checkpoints.
 
 ---
 

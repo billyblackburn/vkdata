@@ -71,7 +71,7 @@
 <body>
   <div class="nav">
     <button onclick="if (history.length > 1) history.back(); else location.href='index.html';">&larr; Back</button>
-    <span class="title">Acronym Glossary (66 Terms)</span>
+    <span class="title">Acronym Glossary (70 Terms)</span>
     <span style="display:flex;gap:6px;flex-wrap:wrap;">
       <a href="reference.html" style="color:var(--mint);border-color:rgba(114,241,184,0.45);">&#128218; API Docs</a>
       <a href="index.html">Book Home</a>
@@ -82,6 +82,14 @@
     <p class="sub">Every acronym in the book is clickable (dotted cyan underline) and links straight here. Looking for Python functions &amp; signatures across all 16 packages? Jump to the <a href="reference.html" style="color:var(--mint);font-weight:700;text-decoration:none;border-bottom:1px dotted var(--mint);">vkdata API Reference &rarr;</a></p>
     <input class="search" id="q" type="search" placeholder="Filter acronyms (e.g. MLP, RMSE, SPIR-V, GELU, PCA)..." autofocus>
     <div class="grid" id="list">
+      <div class="term-card" id="term-acf" data-search="acf autocorrelation function time-series measures how strongly a time series correlates with a shifted copy of itself at lag k — peaks reveal repeating cycles like the 11-year solar cycle or 24-hour daily demand.">
+        <div class="term-head">
+          <span class="term-abbr">ACF</span>
+          <span class="term-cat">Time-Series</span>
+        </div>
+        <div class="term-full">Autocorrelation Function</div>
+        <p class="term-desc">Measures how strongly a time series correlates with a shifted copy of itself at lag k — peaks reveal repeating cycles like the 11-year solar cycle or 24-hour daily demand.</p>
+      </div>
       <div class="term-card" id="term-adamw" data-search="adamw adam with decoupled weight decay training the go-to modern neural network optimizer: adapts the learning rate for every weight individually and gently shrinks large weights to prevent overfitting.">
         <div class="term-head">
           <span class="term-abbr">AdamW</span>
@@ -242,6 +250,14 @@
         <div class="term-full">Feed-Forward Network</div>
         <p class="term-desc">The MLP block inside every Transformer layer that processes each token independently and stores most of an LLM&#x27;s factual knowledge.</p>
       </div>
+      <div class="term-card" id="term-fft" data-search="fft fast fourier transform time-series an algorithm that breaks a time-series signal into its underlying sine-wave frequencies, revealing hidden periodic cycles instantly.">
+        <div class="term-head">
+          <span class="term-abbr">FFT</span>
+          <span class="term-cat">Time-Series</span>
+        </div>
+        <div class="term-full">Fast Fourier Transform</div>
+        <p class="term-desc">An algorithm that breaks a time-series signal into its underlying sine-wave frequencies, revealing hidden periodic cycles instantly.</p>
+      </div>
       <div class="term-card" id="term-gelu" data-search="gelu gaussian error linear unit activations a smooth modern activation function used in transformers and resnets that gently bends negative values toward zero so stacked layers can learn curves.">
         <div class="term-head">
           <span class="term-abbr">GELU</span>
@@ -321,6 +337,14 @@
         </div>
         <div class="term-full">Large Language Model</div>
         <p class="term-desc">A giant Transformer neural network (like Llama or GPT) trained on massive text datasets to predict the next word/token.</p>
+      </div>
+      <div class="term-card" id="term-lookahead-leakage" data-search="lookahead leakage peeking into the future during training time-series the #1 time-series bug: randomly shuffling chronological data so your model trains on future timestamps to predict the past. always use a chronological temporal_split instead!">
+        <div class="term-head">
+          <span class="term-abbr">Lookahead Leakage</span>
+          <span class="term-cat">Time-Series</span>
+        </div>
+        <div class="term-full">Peeking into the Future During Training</div>
+        <p class="term-desc">The #1 time-series bug: randomly shuffling chronological data so your model trains on future timestamps to predict the past. Always use a chronological temporal_split instead!</p>
       </div>
       <div class="term-card" id="term-lora" data-search="lora low-rank adaptation training fine-tunes a frozen pretrained model by adding two tiny trainable matrices (a and b) alongside a linear layer — then merges them back with zero inference overhead.">
         <div class="term-head">
@@ -433,6 +457,14 @@
         </div>
         <div class="term-full">Principal Component Analysis</div>
         <p class="term-desc">A classic dimensionality-reduction algorithm that compresses many correlated features (like 784 pixels) into a smaller set of top visual patterns.</p>
+      </div>
+      <div class="term-card" id="term-periodogram" data-search="periodogram power spectral density plot time-series a plot of signal power vs. frequency computed via fft — the tallest spike tells you the dominant repeating period (e.g. 11.11 years for solar sunspots).">
+        <div class="term-head">
+          <span class="term-abbr">Periodogram</span>
+          <span class="term-cat">Time-Series</span>
+        </div>
+        <div class="term-full">Power Spectral Density Plot</div>
+        <p class="term-desc">A plot of signal power vs. frequency computed via FFT — the tallest spike tells you the dominant repeating period (e.g. 11.11 years for solar sunspots).</p>
       </div>
       <div class="term-card" id="term-rag" data-search="rag retrieval-augmented generation vector &amp; text searching a vector database for the most relevant documents first, then feeding those retrieved snippets into an llm so it answers with grounded facts.">
         <div class="term-head">
