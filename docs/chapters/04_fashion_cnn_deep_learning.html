@@ -7836,7 +7836,7 @@ a.anchor-link {
     --jp-mirror-editor-string-2-color: #ff9e64 !important;
     --jp-mirror-editor-meta-color: #72f1b8 !important;
     --jp-mirror-editor-qualifier-color: #ff7edb !important;
-    --jp-mirror-editor-builtin-color: #ff7edb !important;
+    --jp-mirror-editor-builtin-color: #36f9f6 !important;
     --jp-mirror-editor-bracket-color: #b6b1d6 !important;
     --jp-mirror-editor-tag-color: #ff7edb !important;
     --jp-mirror-editor-attribute-color: #36f9f6 !important;
@@ -7871,6 +7871,16 @@ a.anchor-link {
   }
   .jp-RenderedMarkdown strong { color: #ffffff !important; }
   .jp-RenderedMarkdown a { color: #36f9f6 !important; }
+  .jp-RenderedMarkdown a.vk-term {
+    color: inherit !important;
+    text-decoration: underline dotted #36f9f6 !important;
+    text-underline-offset: 3px;
+    cursor: help;
+  }
+  .jp-RenderedMarkdown a.vk-term:hover {
+    color: #36f9f6 !important;
+    text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
+  }
   .jp-RenderedMarkdown code {
     background: #1b1728 !important; color: #ff7edb !important;
     border: 1px solid rgba(255, 126, 219, 0.25);
@@ -7887,7 +7897,7 @@ a.anchor-link {
     background: linear-gradient(90deg, rgba(255,126,219,0.6), rgba(54,249,246,0.6), transparent);
   }
   .jp-InputArea-editor {
-    background: #1e1a2b !important;
+    background: #1b1728 !important;
     border: 1px solid #495495 !important;
     border-radius: 10px !important;
     box-shadow: 0 0 18px rgba(54, 249, 246, 0.07);
@@ -7902,22 +7912,12 @@ a.anchor-link {
   /* SynthWave '84 Neon Vaporwave Python Syntax Highlighting (harmonized, zero harsh red) */
   .jp-CodeMirrorEditor, .jp-InputArea-editor, .highlight, .highlight pre { background: #1b1728 !important; color: #f4eee4 !important; }
   .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch { color: #848bbd !important; font-style: italic; }
-  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow {
-    color: #ff7edb !important; font-weight: 600;
-  }
+  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow { color: #ff7edb !important; font-weight: 600; }
   .highlight .o { color: #ff7edb !important; }
-  .highlight .nn, .highlight .nc, .highlight .nb, .highlight .bp {
-    color: #36f9f6 !important; font-weight: 500;
-  }
-  .highlight .nf, .highlight .fm, .highlight .nd {
-    color: #72f1b8 !important; font-weight: 600;
-  }
-  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si {
-    color: #ff9e64 !important;
-  }
-  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo {
-    color: #fede5d !important;
-  }
+  .highlight .nn, .highlight .nc, .highlight .nb, .highlight .bp { color: #36f9f6 !important; font-weight: 500; }
+  .highlight .nf, .highlight .fm, .highlight .nd { color: #72f1b8 !important; font-weight: 600; }
+  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si { color: #ff9e64 !important; }
+  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo { color: #fede5d !important; }
   .highlight .n { color: #f4eee4 !important; }
   .highlight .p { color: #b6b1d6 !important; }
 
@@ -7935,13 +7935,15 @@ a.anchor-link {
   }
   .vkbook-nav a {
     color: #36f9f6; text-decoration: none; font-weight: 600;
-    padding: 5px 11px; border-radius: 6px; background: #2a2139;
+    padding: 5px 10px; border-radius: 6px; background: #2a2139;
     border: 1px solid rgba(54, 249, 246, 0.45);
     text-shadow: 0 0 6px rgba(54, 249, 246, 0.35);
   }
-  .vkbook-nav a:hover {
-    background: #382c4f; border-color: #ff7edb; color: #ff7edb;
+  .vkbook-nav a.gloss-btn {
+    color: #fede5d; border-color: rgba(254, 222, 93, 0.45);
+    text-shadow: 0 0 6px rgba(254, 222, 93, 0.3);
   }
+  .vkbook-nav a:hover { background: #382c4f; border-color: #ff7edb; color: #ff7edb; }
   .vkbook-nav .title {
     color: #ff7edb; font-weight: 700;
     text-shadow: 0 0 10px rgba(255, 126, 219, 0.45);
@@ -7957,6 +7959,29 @@ a.anchor-link {
     padding: 8px 14px; background: #1e1a2b;
     border: 1px solid rgba(54, 249, 246, 0.45); border-radius: 8px;
   }
+
+  /* In-chapter SynthWave '84 tap-to-explain glossary drawer (never lose your place!) */
+  #vk-tip-box {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+    width: min(94vw, 540px); z-index: 2000; display: none;
+    background: #1b1528; color: #f4eee4;
+    border: 1px solid #36f9f6; border-radius: 14px; padding: 14px 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), 0 0 22px rgba(54, 249, 246, 0.28);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  #vk-tip-box .vk-tip-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  }
+  #vk-tip-box .vk-tip-term { color: #fede5d; font-weight: 800; font-size: 18px; }
+  #vk-tip-box .vk-tip-full { color: #36f9f6; font-weight: 600; font-size: 14px; margin: 2px 0 6px; }
+  #vk-tip-box .vk-tip-desc { color: #ede6f5; font-size: 14px; margin: 0 0 10px; line-height: 1.5; }
+  #vk-tip-box .vk-tip-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  #vk-tip-box button {
+    background: #2a2139; color: #ff7edb; border: 1px solid rgba(255,126,219,0.5);
+    border-radius: 7px; padding: 5px 12px; font-weight: 700; cursor: pointer; font-size: 13px;
+  }
+  #vk-tip-box a { color: #36f9f6; font-size: 13px; font-weight: 600; text-decoration: none; }
+
   @media (max-width: 768px) {
     body.jp-Notebook { padding: 0 !important; margin: 0 !important; }
     .jp-Notebook { padding: 8px !important; }
@@ -7971,7 +7996,7 @@ a.anchor-link {
 
 </head>
 <body class="jp-Notebook" data-jp-theme-light="false" data-jp-theme-name="JupyterLab Dark">
-<div class="vkbook-nav"><a href="../index.html">&larr; Book Home</a><span class="title">Ch. 4 &middot; Fashion 2D CNN</span><span style="display:flex;gap:6px;"><a href="03_fashion_classical_ml.html">&larr; Prev</a></span></div>
+<div class="vkbook-nav"><span style="display:flex;gap:6px;align-items:center;"><a href="../index.html">&larr; Home</a><a class="gloss-btn" href="../glossary.html">Glossary</a></span><span class="title">Ch. 4 &middot; Fashion 2D CNN</span><span style="display:flex;gap:6px;"><a href="03_fashion_classical_ml.html">&larr; Prev</a></span></div>
 
 <main>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fash-cnn-c00">
@@ -7980,20 +8005,20 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Chapter-4-%C2%B7-Fashion-MNIST:-Beating-Classical-CV-with-a-2D-CNN-(vktorch)">Chapter 4 · Fashion-MNIST: Beating Classical CV with a 2D CNN (<code>vktorch</code>)<a class="anchor-link" href="#Chapter-4-%C2%B7-Fashion-MNIST:-Beating-Classical-CV-with-a-2D-CNN-(vktorch)">¶</a></h1><p>In <strong>Chapter 3 (<code>03_fashion_classical_ml.ipynb</code>)</strong>, we flattened 28×28 clothing images, compressed them into 64 GPU <strong>"Eigen-Clothes"</strong> (<code>vklearn.PCA</code>), hand-crafted 246 Sobel/HOG edge features, and ran a 5-model Classical ML bake-off on Vulkan GPU:</p>
+<h1 id="Chapter-4-%C2%B7-Fashion-MNIST:-Beating-Classical-CV-with-a-2D-CNN-(vktorch)">Chapter 4 · Fashion-MNIST: Beating Classical CV with a 2D CNN (<code>vktorch</code>)<a class="anchor-link" href="#Chapter-4-%C2%B7-Fashion-MNIST:-Beating-Classical-CV-with-a-2D-CNN-(vktorch)">¶</a></h1><p>In <strong>Chapter 3 (<code>03_fashion_classical_ml.ipynb</code>)</strong>, we flattened 28×28 clothing images, compressed them into 64 <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> <strong>"Eigen-Clothes"</strong> (<code>vklearn.PCA</code>), hand-crafted 246 Sobel/<a class="vk-term" href="../glossary.html#term-hog" title="Histogram of Oriented Gradients: A classic computer vision feature descriptor that summarizes the direction and strength of edges inside small image grid cells." data-term="HOG" data-full="Histogram of Oriented Gradients" data-desc="A classic computer vision feature descriptor that summarizes the direction and strength of edges inside small image grid cells.">HOG</a> edge features, and ran a 5-model Classical <a class="vk-term" href="../glossary.html#term-ml" title="Machine Learning: Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself." data-term="ML" data-full="Machine Learning" data-desc="Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">ML</a> bake-off on Vulkan <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a>:</p>
 <ul>
-<li>Raw pixels + OvR <code>LogisticRegression</code>: <strong><code>81.50%</code></strong></li>
-<li><code>PCA (64)</code> + GPU <code>KNN</code>: <strong><code>83.75%</code></strong></li>
-<li><code>PCA + Hand-Crafted Edge/HOG</code> + OvR <code>LogisticRegression</code>: <strong><code>86.45%</code></strong> <em>(best Classical ML — but <code>Shirt</code> stalled at <code>57.5%</code>!)</em></li>
+<li>Raw pixels + <a class="vk-term" href="../glossary.html#term-ovr" title="One-vs-Rest: A strategy that turns a binary (Yes/No) classifier into a multi-class classifier by training one model per class (&#x27;Is it a Shirt? Is it a Sneaker? ...&#x27;)." data-term="OvR" data-full="One-vs-Rest" data-desc="A strategy that turns a binary (Yes/No) classifier into a multi-class classifier by training one model per class (&#x27;Is it a Shirt? Is it a Sneaker? ...&#x27;).">OvR</a> <code>LogisticRegression</code>: <strong><code>81.50%</code></strong></li>
+<li><code>PCA (64)</code> + <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> <code>KNN</code>: <strong><code>83.75%</code></strong></li>
+<li><code>PCA + Hand-Crafted Edge/HOG</code> + <a class="vk-term" href="../glossary.html#term-ovr" title="One-vs-Rest: A strategy that turns a binary (Yes/No) classifier into a multi-class classifier by training one model per class (&#x27;Is it a Shirt? Is it a Sneaker? ...&#x27;)." data-term="OvR" data-full="One-vs-Rest" data-desc="A strategy that turns a binary (Yes/No) classifier into a multi-class classifier by training one model per class (&#x27;Is it a Shirt? Is it a Sneaker? ...&#x27;).">OvR</a> <code>LogisticRegression</code>: <strong><code>86.45%</code></strong> <em>(best Classical <a class="vk-term" href="../glossary.html#term-ml" title="Machine Learning: Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself." data-term="ML" data-full="Machine Learning" data-desc="Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">ML</a> — but <code>Shirt</code> stalled at <code>57.5%</code>!)</em></li>
 </ul>
 <h3 id="Why-a-Convolutional-Neural-Network-(CNN)-Changes-Everything-(In-Plain-English)">Why a Convolutional Neural Network (CNN) Changes Everything (In Plain English)<a class="anchor-link" href="#Why-a-Convolutional-Neural-Network-(CNN)-Changes-Everything-(In-Plain-English)">¶</a></h3><p>When you flatten a <code>28 × 28</code> image into a 784-number row, you throw away 2D geometry — if a collar or sleeve shifts left by 2 pixels, it lands in completely different columns!</p>
 <p>A <strong>2D Convolutional Neural Network (<code>nn.Conv2d</code>)</strong> keeps the image 2D:</p>
 <ol>
-<li><strong><code>Conv2d</code> (Learned 3×3 Filters):</strong> Instead of us hand-coding Sobel edges, the GPU <em>learns</em> its own 3×3 pattern detectors — collars, sleeves, straps, heels, and fabric textures — and slides them across every position in the image!</li>
+<li><strong><code>Conv2d</code> (Learned 3×3 Filters):</strong> Instead of us hand-coding Sobel edges, the <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> <em>learns</em> its own 3×3 pattern detectors — collars, sleeves, straps, heels, and fabric textures — and slides them across every position in the image!</li>
 <li><strong>Strided Convolutions (<code>stride=2</code>):</strong> Just like modern ResNet and ConvNeXt architectures, stepping the filter by 2 pixels simultaneously detects features <em>and</em> shrinks the spatial map by 2× (<code>28×28 → 14×14 → 7×7</code>) in a single learned step.</li>
-<li><strong>Fused SPIR-V <code>GELU</code> + <code>LayerNorm</code> + <code>CrossEntropy</code> + <code>AdamW</code>:</strong> Every training step runs directly on your Vulkan GPU!</li>
+<li><strong>Fused <a class="vk-term" href="../glossary.html#term-spir-v" title="Standard Portable Intermediate Representation: The compact binary bytecode that Vulkan GPUs execute. Our fused kernels compile GLSL shaders into SPIR-V once and run natively in VRAM." data-term="SPIR-V" data-full="Standard Portable Intermediate Representation" data-desc="The compact binary bytecode that Vulkan GPUs execute. Our fused kernels compile GLSL shaders into SPIR-V once and run natively in VRAM.">SPIR-V</a> <code>GELU</code> + <code>LayerNorm</code> + <code>CrossEntropy</code> + <code>AdamW</code>:</strong> Every training step runs directly on your Vulkan <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a>!</li>
 </ol>
-<p>Let's load the <strong>exact same 12,000 train / 2,000 test split (<code>seed=42</code>)</strong> from Chapter 3 and see if our <code>vktorch</code> CNN beats <strong><code>86.45%</code></strong>!</p>
+<p>Let's load the <strong>exact same 12,000 train / 2,000 test split (<code>seed=42</code>)</strong> from Chapter 3 and see if our <code>vktorch</code> <a class="vk-term" href="../glossary.html#term-cnn" title="Convolutional Neural Network: A neural network designed for images that slides small learned 2D filters (like 3x3 patches) across pixels to detect edges, shapes, and textures." data-term="CNN" data-full="Convolutional Neural Network" data-desc="A neural network designed for images that slides small learned 2D filters (like 3x3 patches) across pixels to detect edges, shapes, and textures.">CNN</a> beats <strong><code>86.45%</code></strong>!</p>
 </div>
 </div>
 </div>
@@ -8104,7 +8129,7 @@ a.anchor-link {
 <li><strong>Stage 2 (<code>Conv2d(16 -&gt; 32, 3×3, stride=2)</code> + <code>GELU</code>):</strong> Combines edges into 32 higher-level clothing parts (collars, straps, sleeves, soles), downsampling <code>14×14 → 7×7</code>.</li>
 <li><strong>Classifier Head (<code>Flatten -&gt; Linear(1568 -&gt; 128) -&gt; LayerNorm -&gt; GELU -&gt; Dropout(0.2) -&gt; Linear(128 -&gt; 10)</code>):</strong> Turns the 32 spatial feature maps into 10 class logits!</li>
 </ul>
-<p>Let's train it for <strong>15 epochs</strong> (<code>batch_size=512</code>) with fused SPIR-V <code>AdamW</code> + <code>CosineAnnealingLR</code> + fused <code>CrossEntropyLoss</code>!</p>
+<p>Let's train it for <strong>15 epochs</strong> (<code>batch_size=512</code>) with fused <a class="vk-term" href="../glossary.html#term-spir-v" title="Standard Portable Intermediate Representation: The compact binary bytecode that Vulkan GPUs execute. Our fused kernels compile GLSL shaders into SPIR-V once and run natively in VRAM." data-term="SPIR-V" data-full="Standard Portable Intermediate Representation" data-desc="The compact binary bytecode that Vulkan GPUs execute. Our fused kernels compile GLSL shaders into SPIR-V once and run natively in VRAM.">SPIR-V</a> <code>AdamW</code> + <code>CosineAnnealingLR</code> + fused <code>CrossEntropyLoss</code>!</p>
 </div>
 </div>
 </div>
@@ -8326,7 +8351,7 @@ Finished 15 epochs in 46.4s -&gt; Best CNN Test Accuracy: 87.85%
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Step-2:-Full-Classical-ML-vs.-2D-CNN-Leaderboard">Step 2: Full Classical ML vs. 2D CNN Leaderboard<a class="anchor-link" href="#Step-2:-Full-Classical-ML-vs.-2D-CNN-Leaderboard">¶</a></h2><p>Let's compare Chapter 3's Classical ML models against our <code>vktorch</code> 2D CNN on the <strong>exact same 2,000 test images</strong>, plot the live accuracy curve crossing every Classical ML benchmark line, and inspect the per-class jump (especially on <code>Shirt</code>!)!</p>
+<h2 id="Step-2:-Full-Classical-ML-vs.-2D-CNN-Leaderboard">Step 2: Full Classical ML vs. 2D CNN Leaderboard<a class="anchor-link" href="#Step-2:-Full-Classical-ML-vs.-2D-CNN-Leaderboard">¶</a></h2><p>Let's compare Chapter 3's Classical <a class="vk-term" href="../glossary.html#term-ml" title="Machine Learning: Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself." data-term="ML" data-full="Machine Learning" data-desc="Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">ML</a> models against our <code>vktorch</code> 2D <a class="vk-term" href="../glossary.html#term-cnn" title="Convolutional Neural Network: A neural network designed for images that slides small learned 2D filters (like 3x3 patches) across pixels to detect edges, shapes, and textures." data-term="CNN" data-full="Convolutional Neural Network" data-desc="A neural network designed for images that slides small learned 2D filters (like 3x3 patches) across pixels to detect edges, shapes, and textures.">CNN</a> on the <strong>exact same 2,000 test images</strong>, plot the live accuracy curve crossing every Classical <a class="vk-term" href="../glossary.html#term-ml" title="Machine Learning: Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself." data-term="ML" data-full="Machine Learning" data-desc="Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">ML</a> benchmark line, and inspect the per-class jump (especially on <code>Shirt</code>!)!</p>
 </div>
 </div>
 </div>
@@ -8473,7 +8498,7 @@ Per-Class Accuracy: Classical CV (Ch.3) -&gt; vktorch 2D CNN (Ch.4):
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Step-3:-Peek-Inside-the-CNN's-Brain-(Learned-Filters-&amp;-Feature-Maps!)">Step 3: Peek Inside the CNN's Brain (Learned Filters &amp; Feature Maps!)<a class="anchor-link" href="#Step-3:-Peek-Inside-the-CNN's-Brain-(Learned-Filters-&amp;-Feature-Maps!)">¶</a></h2><p>One of the coolest parts of Deep Learning is that you can <em>look inside</em> the first convolutional layer (<code>conv1</code>) to see the 16 <code>3 × 3</code> filters the GPU invented all by itself — and see how those filters light up on a real test <code>Sneaker</code> and <code>Shirt</code>!</p>
+<h2 id="Step-3:-Peek-Inside-the-CNN's-Brain-(Learned-Filters-&amp;-Feature-Maps!)">Step 3: Peek Inside the CNN's Brain (Learned Filters &amp; Feature Maps!)<a class="anchor-link" href="#Step-3:-Peek-Inside-the-CNN's-Brain-(Learned-Filters-&amp;-Feature-Maps!)">¶</a></h2><p>One of the coolest parts of Deep Learning is that you can <em>look inside</em> the first convolutional layer (<code>conv1</code>) to see the 16 <code>3 × 3</code> filters the <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> invented all by itself — and see how those filters light up on a real test <code>Sneaker</code> and <code>Shirt</code>!</p>
 </div>
 </div>
 </div>
@@ -8575,9 +8600,9 @@ Per-Class Accuracy: Classical CV (Ch.3) -&gt; vktorch 2D CNN (Ch.4):
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="What-Did-We-Learn-Across-Chapters-3-&amp;-4?">What Did We Learn Across Chapters 3 &amp; 4?<a class="anchor-link" href="#What-Did-We-Learn-Across-Chapters-3-&amp;-4?">¶</a></h3><ol>
-<li><strong>Why Deep Learning beat Classical CV on images:</strong> In Chapter 3, we had to manually invent PCA "Eigen-Clothes" + Sobel edges + spatial pooling grids to reach <code>86.45%</code>. In Chapter 4, <code>FashionCNN</code> took <strong>raw 2D pixels</strong> and <em>learned</em> its own 3×3 filters end-to-end via backpropagation — crossing every Classical ML benchmark and dramatically boosting the hardest classes (<code>Shirt</code>, <code>Coat</code>, <code>Pullover</code>, <code>T-shirt</code>)!</li>
+<li><strong>Why Deep Learning beat Classical <a class="vk-term" href="../glossary.html#term-cv" title="Computer Vision: Teaching computers to understand images and video — from hand-crafted edge detectors (Classical CV) to learned 2D CNNs." data-term="CV" data-full="Computer Vision" data-desc="Teaching computers to understand images and video — from hand-crafted edge detectors (Classical CV) to learned 2D CNNs.">CV</a> on images:</strong> In Chapter 3, we had to manually invent <a class="vk-term" href="../glossary.html#term-pca" title="Principal Component Analysis: A classic dimensionality-reduction algorithm that compresses many correlated features (like 784 pixels) into a smaller set of top visual patterns." data-term="PCA" data-full="Principal Component Analysis" data-desc="A classic dimensionality-reduction algorithm that compresses many correlated features (like 784 pixels) into a smaller set of top visual patterns.">PCA</a> "Eigen-Clothes" + Sobel edges + spatial pooling grids to reach <code>86.45%</code>. In Chapter 4, <code>FashionCNN</code> took <strong>raw 2D pixels</strong> and <em>learned</em> its own 3×3 filters end-to-end via backpropagation — crossing every Classical <a class="vk-term" href="../glossary.html#term-ml" title="Machine Learning: Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself." data-term="ML" data-full="Machine Learning" data-desc="Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">ML</a> benchmark and dramatically boosting the hardest classes (<code>Shirt</code>, <code>Coat</code>, <code>Pullover</code>, <code>T-shirt</code>)!</li>
 <li><strong>Same pattern, bigger lesson:</strong><ul>
-<li><strong>Tabular data (Chapters 1–2):</strong> Feature discovery mattered <em>hugely</em> for both Classical ML and Deep Learning.</li>
+<li><strong>Tabular data (Chapters 1–2):</strong> Feature discovery mattered <em>hugely</em> for both Classical <a class="vk-term" href="../glossary.html#term-ml" title="Machine Learning: Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself." data-term="ML" data-full="Machine Learning" data-desc="Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">ML</a> and Deep Learning.</li>
 <li><strong>Image data (Chapters 3–4):</strong> Giving the model the right <strong>inductive bias</strong> (<code>Conv2d</code> + <code>MaxPool2d</code> respecting 2D neighborhoods) beats hand-crafted features hands-down!</li>
 </ul>
 </li>
@@ -8588,6 +8613,35 @@ Per-Class Accuracy: Classical CV (Ch.3) -&gt; vktorch 2D CNN (Ch.4):
 </div>
 </main>
 
-<div class="vkbook-footer"><a href="03_fashion_classical_ml.html">&larr; Prev</a><a href="../index.html">Back to Table of Contents &rarr;</a></div>
+<div class="vkbook-footer"><a href="03_fashion_classical_ml.html">&larr; Prev</a><a href="../glossary.html">Acronym Glossary</a><a href="../index.html">Back to Table of Contents &rarr;</a></div>
+<div id="vk-tip-box" role="dialog" aria-live="polite">
+  <div class="vk-tip-head">
+    <span class="vk-tip-term" id="vk-t-abbr"></span>
+    <button type="button" onclick="document.getElementById('vk-tip-box').style.display='none'">Close</button>
+  </div>
+  <div class="vk-tip-full" id="vk-t-full"></div>
+  <p class="vk-tip-desc" id="vk-t-desc"></p>
+  <div class="vk-tip-actions">
+    <span style="font-size:12px;color:#848bbd;">Tap anywhere outside to dismiss</span>
+    <a id="vk-t-more" href="../glossary.html">Open Full Glossary &rarr;</a>
+  </div>
+</div>
+<script>
+  document.addEventListener('click', (e) => {
+    const box = document.getElementById('vk-tip-box');
+    const a = e.target.closest('a.vk-term');
+    if (a) {
+      e.preventDefault();
+      document.getElementById('vk-t-abbr').textContent = a.dataset.term || a.textContent;
+      document.getElementById('vk-t-full').textContent = a.dataset.full || '';
+      document.getElementById('vk-t-desc').textContent = a.dataset.desc || a.title || '';
+      document.getElementById('vk-t-more').href = a.getAttribute('href');
+      box.style.display = 'block';
+    } else if (box.style.display === 'block' && !e.target.closest('#vk-tip-box')) {
+      box.style.display = 'none';
+    }
+  });
+</script>
+
 </body>
 </html>

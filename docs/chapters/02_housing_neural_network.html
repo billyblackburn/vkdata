@@ -7836,7 +7836,7 @@ a.anchor-link {
     --jp-mirror-editor-string-2-color: #ff9e64 !important;
     --jp-mirror-editor-meta-color: #72f1b8 !important;
     --jp-mirror-editor-qualifier-color: #ff7edb !important;
-    --jp-mirror-editor-builtin-color: #ff7edb !important;
+    --jp-mirror-editor-builtin-color: #36f9f6 !important;
     --jp-mirror-editor-bracket-color: #b6b1d6 !important;
     --jp-mirror-editor-tag-color: #ff7edb !important;
     --jp-mirror-editor-attribute-color: #36f9f6 !important;
@@ -7871,6 +7871,16 @@ a.anchor-link {
   }
   .jp-RenderedMarkdown strong { color: #ffffff !important; }
   .jp-RenderedMarkdown a { color: #36f9f6 !important; }
+  .jp-RenderedMarkdown a.vk-term {
+    color: inherit !important;
+    text-decoration: underline dotted #36f9f6 !important;
+    text-underline-offset: 3px;
+    cursor: help;
+  }
+  .jp-RenderedMarkdown a.vk-term:hover {
+    color: #36f9f6 !important;
+    text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
+  }
   .jp-RenderedMarkdown code {
     background: #1b1728 !important; color: #ff7edb !important;
     border: 1px solid rgba(255, 126, 219, 0.25);
@@ -7887,7 +7897,7 @@ a.anchor-link {
     background: linear-gradient(90deg, rgba(255,126,219,0.6), rgba(54,249,246,0.6), transparent);
   }
   .jp-InputArea-editor {
-    background: #1e1a2b !important;
+    background: #1b1728 !important;
     border: 1px solid #495495 !important;
     border-radius: 10px !important;
     box-shadow: 0 0 18px rgba(54, 249, 246, 0.07);
@@ -7902,22 +7912,12 @@ a.anchor-link {
   /* SynthWave '84 Neon Vaporwave Python Syntax Highlighting (harmonized, zero harsh red) */
   .jp-CodeMirrorEditor, .jp-InputArea-editor, .highlight, .highlight pre { background: #1b1728 !important; color: #f4eee4 !important; }
   .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch { color: #848bbd !important; font-style: italic; }
-  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow {
-    color: #ff7edb !important; font-weight: 600;
-  }
+  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow { color: #ff7edb !important; font-weight: 600; }
   .highlight .o { color: #ff7edb !important; }
-  .highlight .nn, .highlight .nc, .highlight .nb, .highlight .bp {
-    color: #36f9f6 !important; font-weight: 500;
-  }
-  .highlight .nf, .highlight .fm, .highlight .nd {
-    color: #72f1b8 !important; font-weight: 600;
-  }
-  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si {
-    color: #ff9e64 !important;
-  }
-  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo {
-    color: #fede5d !important;
-  }
+  .highlight .nn, .highlight .nc, .highlight .nb, .highlight .bp { color: #36f9f6 !important; font-weight: 500; }
+  .highlight .nf, .highlight .fm, .highlight .nd { color: #72f1b8 !important; font-weight: 600; }
+  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si { color: #ff9e64 !important; }
+  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo { color: #fede5d !important; }
   .highlight .n { color: #f4eee4 !important; }
   .highlight .p { color: #b6b1d6 !important; }
 
@@ -7935,13 +7935,15 @@ a.anchor-link {
   }
   .vkbook-nav a {
     color: #36f9f6; text-decoration: none; font-weight: 600;
-    padding: 5px 11px; border-radius: 6px; background: #2a2139;
+    padding: 5px 10px; border-radius: 6px; background: #2a2139;
     border: 1px solid rgba(54, 249, 246, 0.45);
     text-shadow: 0 0 6px rgba(54, 249, 246, 0.35);
   }
-  .vkbook-nav a:hover {
-    background: #382c4f; border-color: #ff7edb; color: #ff7edb;
+  .vkbook-nav a.gloss-btn {
+    color: #fede5d; border-color: rgba(254, 222, 93, 0.45);
+    text-shadow: 0 0 6px rgba(254, 222, 93, 0.3);
   }
+  .vkbook-nav a:hover { background: #382c4f; border-color: #ff7edb; color: #ff7edb; }
   .vkbook-nav .title {
     color: #ff7edb; font-weight: 700;
     text-shadow: 0 0 10px rgba(255, 126, 219, 0.45);
@@ -7957,6 +7959,29 @@ a.anchor-link {
     padding: 8px 14px; background: #1e1a2b;
     border: 1px solid rgba(54, 249, 246, 0.45); border-radius: 8px;
   }
+
+  /* In-chapter SynthWave '84 tap-to-explain glossary drawer (never lose your place!) */
+  #vk-tip-box {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+    width: min(94vw, 540px); z-index: 2000; display: none;
+    background: #1b1528; color: #f4eee4;
+    border: 1px solid #36f9f6; border-radius: 14px; padding: 14px 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), 0 0 22px rgba(54, 249, 246, 0.28);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  #vk-tip-box .vk-tip-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  }
+  #vk-tip-box .vk-tip-term { color: #fede5d; font-weight: 800; font-size: 18px; }
+  #vk-tip-box .vk-tip-full { color: #36f9f6; font-weight: 600; font-size: 14px; margin: 2px 0 6px; }
+  #vk-tip-box .vk-tip-desc { color: #ede6f5; font-size: 14px; margin: 0 0 10px; line-height: 1.5; }
+  #vk-tip-box .vk-tip-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  #vk-tip-box button {
+    background: #2a2139; color: #ff7edb; border: 1px solid rgba(255,126,219,0.5);
+    border-radius: 7px; padding: 5px 12px; font-weight: 700; cursor: pointer; font-size: 13px;
+  }
+  #vk-tip-box a { color: #36f9f6; font-size: 13px; font-weight: 600; text-decoration: none; }
+
   @media (max-width: 768px) {
     body.jp-Notebook { padding: 0 !important; margin: 0 !important; }
     .jp-Notebook { padding: 8px !important; }
@@ -7971,7 +7996,7 @@ a.anchor-link {
 
 </head>
 <body class="jp-Notebook" data-jp-theme-light="false" data-jp-theme-name="JupyterLab Dark">
-<div class="vkbook-nav"><a href="../index.html">&larr; Book Home</a><span class="title">Ch. 2 &middot; Housing Neural Net</span><span style="display:flex;gap:6px;"><a href="01_housing_classical_ml.html">&larr; Prev</a><a href="03_fashion_classical_ml.html">Next &rarr;</a></span></div>
+<div class="vkbook-nav"><span style="display:flex;gap:6px;align-items:center;"><a href="../index.html">&larr; Home</a><a class="gloss-btn" href="../glossary.html">Glossary</a></span><span class="title">Ch. 2 &middot; Housing Neural Net</span><span style="display:flex;gap:6px;"><a href="01_housing_classical_ml.html">&larr; Prev</a><a href="03_fashion_classical_ml.html">Next &rarr;</a></span></div>
 
 <main>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=nn-c00">
@@ -7980,16 +8005,16 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="TL;DR-End-to-End-%232:-California-Housing-%E2%80%94-Deep-Learning-with-vktorch">TL;DR End-to-End #2: California Housing — Deep Learning with <code>vktorch</code><a class="anchor-link" href="#TL;DR-End-to-End-%232:-California-Housing-%E2%80%94-Deep-Learning-with-vktorch">¶</a></h1><p>In <strong>Notebook #1 (<code>01_housing_classical_ml.ipynb</code>)</strong>, we cleaned the 20,640-district California Housing dataset, discovered 36 domain + geographic features, and ran a Classical ML bake-off on Vulkan GPU:</p>
+<h1 id="TL;DR-End-to-End-%232:-California-Housing-%E2%80%94-Deep-Learning-with-vktorch">TL;DR End-to-End #2: California Housing — Deep Learning with <code>vktorch</code><a class="anchor-link" href="#TL;DR-End-to-End-%232:-California-Housing-%E2%80%94-Deep-Learning-with-vktorch">¶</a></h1><p>In <strong>Notebook #1 (<code>01_housing_classical_ml.ipynb</code>)</strong>, we cleaned the 20,640-district California Housing dataset, discovered 36 domain + geographic features, and ran a Classical <a class="vk-term" href="../glossary.html#term-ml" title="Machine Learning: Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself." data-term="ML" data-full="Machine Learning" data-desc="Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">ML</a> bake-off on Vulkan <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a>:</p>
 <ul>
-<li>Baseline <code>LinearRegression</code> (8 raw features): <strong><code>$69,601</code> RMSE</strong> (<code>R² = 0.6401</code>)</li>
-<li>Engineered <code>Ridge</code> (36 features): <strong><code>$61,388</code> RMSE</strong> (<code>R² = 0.7200</code>)</li>
-<li>GPU Distance-Weighted <code>KNN</code> (<code>k=15</code>): <strong><code>$52,690</code> RMSE</strong> (<code>R² = 0.7938</code>)</li>
+<li>Baseline <code>LinearRegression</code> (8 raw features): <strong><code>$69,601</code> <a class="vk-term" href="../glossary.html#term-rmse" title="Root Mean Squared Error: Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better." data-term="RMSE" data-full="Root Mean Squared Error" data-desc="Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better.">RMSE</a></strong> (<code>R² = 0.6401</code>)</li>
+<li>Engineered <code>Ridge</code> (36 features): <strong><code>$61,388</code> <a class="vk-term" href="../glossary.html#term-rmse" title="Root Mean Squared Error: Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better." data-term="RMSE" data-full="Root Mean Squared Error" data-desc="Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better.">RMSE</a></strong> (<code>R² = 0.7200</code>)</li>
+<li><a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> Distance-Weighted <code>KNN</code> (<code>k=15</code>): <strong><code>$52,690</code> <a class="vk-term" href="../glossary.html#term-rmse" title="Root Mean Squared Error: Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better." data-term="RMSE" data-full="Root Mean Squared Error" data-desc="Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better.">RMSE</a></strong> (<code>R² = 0.7938</code>)</li>
 </ul>
-<p><strong>Now the big question:</strong> Can a <strong><code>vktorch</code> Deep Neural Network</strong> — powered by our fused SPIR-V GPU kernels (<code>LayerNorm</code>, <code>GELU</code>, <code>AdamW</code>) — beat <strong><code>$52,690</code> RMSE</strong> on the <strong>exact same train/test split</strong>?</p>
+<p><strong>Now the big question:</strong> Can a <strong><code>vktorch</code> Deep Neural Network</strong> — powered by our fused <a class="vk-term" href="../glossary.html#term-spir-v" title="Standard Portable Intermediate Representation: The compact binary bytecode that Vulkan GPUs execute. Our fused kernels compile GLSL shaders into SPIR-V once and run natively in VRAM." data-term="SPIR-V" data-full="Standard Portable Intermediate Representation" data-desc="The compact binary bytecode that Vulkan GPUs execute. Our fused kernels compile GLSL shaders into SPIR-V once and run natively in VRAM.">SPIR-V</a> <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> kernels (<code>LayerNorm</code>, <code>GELU</code>, <code>AdamW</code>) — beat <strong><code>$52,690</code> <a class="vk-term" href="../glossary.html#term-rmse" title="Root Mean Squared Error: Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better." data-term="RMSE" data-full="Root Mean Squared Error" data-desc="Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better.">RMSE</a></strong> on the <strong>exact same train/test split</strong>?</p>
 <p>We'll also test two classic deep-learning myths along the way:</p>
 <ol>
-<li><em>"Do neural networks still benefit from feature engineering?"</em> (We'll compare a <strong>Raw 8-feature MLP</strong> vs. our <strong>Engineered 36-feature Residual MLP</strong>!)</li>
+<li><em>"Do neural networks still benefit from feature engineering?"</em> (We'll compare a <strong>Raw 8-feature <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a></strong> vs. our <strong>Engineered 36-feature Residual <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a></strong>!)</li>
 <li><em>"Why do we scale targets (<code>y / $100k</code>), use <code>LayerNorm</code> + skip connections, and cosine learning-rate decay?"</em> — explained in plain English as we go.</li>
 </ol>
 </div>
@@ -8156,10 +8181,10 @@ ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 |
 <h2 id="Step-1:-Designing-a-Tabular-Residual-Neural-Network-(vktorch.nn)">Step 1: Designing a Tabular Residual Neural Network (<code>vktorch.nn</code>)<a class="anchor-link" href="#Step-1:-Designing-a-Tabular-Residual-Neural-Network-(vktorch.nn)">¶</a></h2><p>Why not just stack 4 plain <code>Linear -&gt; ReLU</code> layers? Three practical tricks make tabular neural networks train <strong>faster and more accurately</strong>:</p>
 <ol>
 <li><strong>Scale the target (<code>$ / 100,000</code>):</strong> If you predict raw dollars (<code>$200,000</code>), Mean Squared Error starts around <code>40,000,000,000</code> and gradients explode! Predicting in units of <code>$100k</code> (<code>~2.0</code>) keeps gradients calm and smooth.</li>
-<li><strong>Pre-Norm Residual Blocks (<code>x + F(LayerNorm(x))</code>):</strong> Just like modern Transformers, a <strong>skip connection</strong> (<code>x + ...</code>) lets gradients flow straight through the network without vanishing, while our <strong>fused SPIR-V <code>LayerNorm</code> + <code>GELU</code></strong> keeps every layer well-behaved and fast in VRAM.</li>
+<li><strong>Pre-Norm Residual Blocks (<code>x + F(LayerNorm(x))</code>):</strong> Just like modern Transformers, a <strong>skip connection</strong> (<code>x + ...</code>) lets gradients flow straight through the network without vanishing, while our <strong>fused <a class="vk-term" href="../glossary.html#term-spir-v" title="Standard Portable Intermediate Representation: The compact binary bytecode that Vulkan GPUs execute. Our fused kernels compile GLSL shaders into SPIR-V once and run natively in VRAM." data-term="SPIR-V" data-full="Standard Portable Intermediate Representation" data-desc="The compact binary bytecode that Vulkan GPUs execute. Our fused kernels compile GLSL shaders into SPIR-V once and run natively in VRAM.">SPIR-V</a> <code>LayerNorm</code> + <code>GELU</code></strong> keeps every layer well-behaved and fast in <a class="vk-term" href="../glossary.html#term-vram" title="Video RAM (GPU Memory): The high-speed memory attached to your GPU where tensors, model weights, and shaders live while training." data-term="VRAM" data-full="Video RAM (GPU Memory)" data-desc="The high-speed memory attached to your GPU where tensors, model weights, and shaders live while training.">VRAM</a>.</li>
 <li><strong><code>AdamW</code> + <code>CosineAnnealingLR</code>:</strong> Start with a brisk learning rate (<code>3e-3</code>) to learn the big patterns quickly, then gently cool it down like a cosine wave so the weights settle into a sharp, low-error minimum.</li>
 </ol>
-<p>Let's define <code>HousingResNet</code> and a reusable GPU training loop!</p>
+<p>Let's define <code>HousingResNet</code> and a reusable <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> training loop!</p>
 </div>
 </div>
 </div>
@@ -8418,7 +8443,7 @@ Finished in 37.0s -&gt; Best Test RMSE: $48,180
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Step-3:-Full-Classical-ML-vs.-Deep-Learning-Leaderboard">Step 3: Full Classical ML vs. Deep Learning Leaderboard<a class="anchor-link" href="#Step-3:-Full-Classical-ML-vs.-Deep-Learning-Leaderboard">¶</a></h2><p>Let's compare every model from <strong>Notebook #1 (Classical ML)</strong> and <strong>Notebook #2 (<code>vktorch</code> Deep Learning)</strong> on the <strong>exact same 4,128 held-out test districts</strong>, and plot the live training curves against the Classical ML benchmarks!</p>
+<h2 id="Step-3:-Full-Classical-ML-vs.-Deep-Learning-Leaderboard">Step 3: Full Classical ML vs. Deep Learning Leaderboard<a class="anchor-link" href="#Step-3:-Full-Classical-ML-vs.-Deep-Learning-Leaderboard">¶</a></h2><p>Let's compare every model from <strong>Notebook #1 (Classical <a class="vk-term" href="../glossary.html#term-ml" title="Machine Learning: Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself." data-term="ML" data-full="Machine Learning" data-desc="Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">ML</a>)</strong> and <strong>Notebook #2 (<code>vktorch</code> Deep Learning)</strong> on the <strong>exact same 4,128 held-out test districts</strong>, and plot the live training curves against the Classical <a class="vk-term" href="../glossary.html#term-ml" title="Machine Learning: Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself." data-term="ML" data-full="Machine Learning" data-desc="Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">ML</a> benchmarks!</p>
 </div>
 </div>
 </div>
@@ -8610,8 +8635,8 @@ Custom Neighborhood Appraisals (vktorch Residual Neural Network):
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="What-Did-We-Learn-Across-Notebook-%231-&amp;-Notebook-%232?">What Did We Learn Across Notebook #1 &amp; Notebook #2?<a class="anchor-link" href="#What-Did-We-Learn-Across-Notebook-%231-&amp;-Notebook-%232?">¶</a></h3><ol>
 <li><strong>Neural networks CAN learn nonlinear geography from scratch</strong> — even on the 8 raw columns, <code>HousingResNet</code> dramatically beat <code>LinearRegression</code> and <code>Ridge</code>!</li>
-<li><strong>Feature discovery STILL wins for Deep Learning</strong> — feeding our 36 discovered features (<code>ocean_proximity</code>, Haversine distances, <code>KMeans</code> hubs, room/bedroom ratios) pushed <code>vktorch</code> <strong>past every classical ML model</strong>, achieving the lowest RMSE and highest $R^2$ of the entire series.</li>
-<li><strong>Speed vs. accuracy trade-off:</strong> <code>Ridge</code> trains in <code>22 ms</code>, GPU <code>KNN</code> runs in <code>380 ms</code>, and <code>vktorch</code> trains a 45-epoch deep residual network in seconds on a handheld Vulkan GPU — now you know when to reach for each tool!</li>
+<li><strong>Feature discovery STILL wins for Deep Learning</strong> — feeding our 36 discovered features (<code>ocean_proximity</code>, Haversine distances, <code>KMeans</code> hubs, room/bedroom ratios) pushed <code>vktorch</code> <strong>past every classical <a class="vk-term" href="../glossary.html#term-ml" title="Machine Learning: Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself." data-term="ML" data-full="Machine Learning" data-desc="Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">ML</a> model</strong>, achieving the lowest <a class="vk-term" href="../glossary.html#term-rmse" title="Root Mean Squared Error: Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better." data-term="RMSE" data-full="Root Mean Squared Error" data-desc="Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better.">RMSE</a> and highest $R^2$ of the entire series.</li>
+<li><strong>Speed vs. accuracy trade-off:</strong> <code>Ridge</code> trains in <code>22 ms</code>, <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> <code>KNN</code> runs in <code>380 ms</code>, and <code>vktorch</code> trains a 45-epoch deep residual network in seconds on a handheld Vulkan <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> — now you know when to reach for each tool!</li>
 </ol>
 </div>
 </div>
@@ -8619,6 +8644,35 @@ Custom Neighborhood Appraisals (vktorch Residual Neural Network):
 </div>
 </main>
 
-<div class="vkbook-footer"><a href="01_housing_classical_ml.html">&larr; Prev</a><a href="03_fashion_classical_ml.html">Next &rarr;</a></div>
+<div class="vkbook-footer"><a href="01_housing_classical_ml.html">&larr; Prev</a><a href="../glossary.html">Acronym Glossary</a><a href="03_fashion_classical_ml.html">Next &rarr;</a></div>
+<div id="vk-tip-box" role="dialog" aria-live="polite">
+  <div class="vk-tip-head">
+    <span class="vk-tip-term" id="vk-t-abbr"></span>
+    <button type="button" onclick="document.getElementById('vk-tip-box').style.display='none'">Close</button>
+  </div>
+  <div class="vk-tip-full" id="vk-t-full"></div>
+  <p class="vk-tip-desc" id="vk-t-desc"></p>
+  <div class="vk-tip-actions">
+    <span style="font-size:12px;color:#848bbd;">Tap anywhere outside to dismiss</span>
+    <a id="vk-t-more" href="../glossary.html">Open Full Glossary &rarr;</a>
+  </div>
+</div>
+<script>
+  document.addEventListener('click', (e) => {
+    const box = document.getElementById('vk-tip-box');
+    const a = e.target.closest('a.vk-term');
+    if (a) {
+      e.preventDefault();
+      document.getElementById('vk-t-abbr').textContent = a.dataset.term || a.textContent;
+      document.getElementById('vk-t-full').textContent = a.dataset.full || '';
+      document.getElementById('vk-t-desc').textContent = a.dataset.desc || a.title || '';
+      document.getElementById('vk-t-more').href = a.getAttribute('href');
+      box.style.display = 'block';
+    } else if (box.style.display === 'block' && !e.target.closest('#vk-tip-box')) {
+      box.style.display = 'none';
+    }
+  });
+</script>
+
 </body>
 </html>

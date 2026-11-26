@@ -7836,7 +7836,7 @@ a.anchor-link {
     --jp-mirror-editor-string-2-color: #ff9e64 !important;
     --jp-mirror-editor-meta-color: #72f1b8 !important;
     --jp-mirror-editor-qualifier-color: #ff7edb !important;
-    --jp-mirror-editor-builtin-color: #ff7edb !important;
+    --jp-mirror-editor-builtin-color: #36f9f6 !important;
     --jp-mirror-editor-bracket-color: #b6b1d6 !important;
     --jp-mirror-editor-tag-color: #ff7edb !important;
     --jp-mirror-editor-attribute-color: #36f9f6 !important;
@@ -7871,6 +7871,16 @@ a.anchor-link {
   }
   .jp-RenderedMarkdown strong { color: #ffffff !important; }
   .jp-RenderedMarkdown a { color: #36f9f6 !important; }
+  .jp-RenderedMarkdown a.vk-term {
+    color: inherit !important;
+    text-decoration: underline dotted #36f9f6 !important;
+    text-underline-offset: 3px;
+    cursor: help;
+  }
+  .jp-RenderedMarkdown a.vk-term:hover {
+    color: #36f9f6 !important;
+    text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
+  }
   .jp-RenderedMarkdown code {
     background: #1b1728 !important; color: #ff7edb !important;
     border: 1px solid rgba(255, 126, 219, 0.25);
@@ -7887,7 +7897,7 @@ a.anchor-link {
     background: linear-gradient(90deg, rgba(255,126,219,0.6), rgba(54,249,246,0.6), transparent);
   }
   .jp-InputArea-editor {
-    background: #1e1a2b !important;
+    background: #1b1728 !important;
     border: 1px solid #495495 !important;
     border-radius: 10px !important;
     box-shadow: 0 0 18px rgba(54, 249, 246, 0.07);
@@ -7902,22 +7912,12 @@ a.anchor-link {
   /* SynthWave '84 Neon Vaporwave Python Syntax Highlighting (harmonized, zero harsh red) */
   .jp-CodeMirrorEditor, .jp-InputArea-editor, .highlight, .highlight pre { background: #1b1728 !important; color: #f4eee4 !important; }
   .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch { color: #848bbd !important; font-style: italic; }
-  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow {
-    color: #ff7edb !important; font-weight: 600;
-  }
+  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow { color: #ff7edb !important; font-weight: 600; }
   .highlight .o { color: #ff7edb !important; }
-  .highlight .nn, .highlight .nc, .highlight .nb, .highlight .bp {
-    color: #36f9f6 !important; font-weight: 500;
-  }
-  .highlight .nf, .highlight .fm, .highlight .nd {
-    color: #72f1b8 !important; font-weight: 600;
-  }
-  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si {
-    color: #ff9e64 !important;
-  }
-  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo {
-    color: #fede5d !important;
-  }
+  .highlight .nn, .highlight .nc, .highlight .nb, .highlight .bp { color: #36f9f6 !important; font-weight: 500; }
+  .highlight .nf, .highlight .fm, .highlight .nd { color: #72f1b8 !important; font-weight: 600; }
+  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si { color: #ff9e64 !important; }
+  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo { color: #fede5d !important; }
   .highlight .n { color: #f4eee4 !important; }
   .highlight .p { color: #b6b1d6 !important; }
 
@@ -7935,13 +7935,15 @@ a.anchor-link {
   }
   .vkbook-nav a {
     color: #36f9f6; text-decoration: none; font-weight: 600;
-    padding: 5px 11px; border-radius: 6px; background: #2a2139;
+    padding: 5px 10px; border-radius: 6px; background: #2a2139;
     border: 1px solid rgba(54, 249, 246, 0.45);
     text-shadow: 0 0 6px rgba(54, 249, 246, 0.35);
   }
-  .vkbook-nav a:hover {
-    background: #382c4f; border-color: #ff7edb; color: #ff7edb;
+  .vkbook-nav a.gloss-btn {
+    color: #fede5d; border-color: rgba(254, 222, 93, 0.45);
+    text-shadow: 0 0 6px rgba(254, 222, 93, 0.3);
   }
+  .vkbook-nav a:hover { background: #382c4f; border-color: #ff7edb; color: #ff7edb; }
   .vkbook-nav .title {
     color: #ff7edb; font-weight: 700;
     text-shadow: 0 0 10px rgba(255, 126, 219, 0.45);
@@ -7957,6 +7959,29 @@ a.anchor-link {
     padding: 8px 14px; background: #1e1a2b;
     border: 1px solid rgba(54, 249, 246, 0.45); border-radius: 8px;
   }
+
+  /* In-chapter SynthWave '84 tap-to-explain glossary drawer (never lose your place!) */
+  #vk-tip-box {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+    width: min(94vw, 540px); z-index: 2000; display: none;
+    background: #1b1528; color: #f4eee4;
+    border: 1px solid #36f9f6; border-radius: 14px; padding: 14px 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), 0 0 22px rgba(54, 249, 246, 0.28);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  #vk-tip-box .vk-tip-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  }
+  #vk-tip-box .vk-tip-term { color: #fede5d; font-weight: 800; font-size: 18px; }
+  #vk-tip-box .vk-tip-full { color: #36f9f6; font-weight: 600; font-size: 14px; margin: 2px 0 6px; }
+  #vk-tip-box .vk-tip-desc { color: #ede6f5; font-size: 14px; margin: 0 0 10px; line-height: 1.5; }
+  #vk-tip-box .vk-tip-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  #vk-tip-box button {
+    background: #2a2139; color: #ff7edb; border: 1px solid rgba(255,126,219,0.5);
+    border-radius: 7px; padding: 5px 12px; font-weight: 700; cursor: pointer; font-size: 13px;
+  }
+  #vk-tip-box a { color: #36f9f6; font-size: 13px; font-weight: 600; text-decoration: none; }
+
   @media (max-width: 768px) {
     body.jp-Notebook { padding: 0 !important; margin: 0 !important; }
     .jp-Notebook { padding: 8px !important; }
@@ -7971,7 +7996,7 @@ a.anchor-link {
 
 </head>
 <body class="jp-Notebook" data-jp-theme-light="false" data-jp-theme-name="JupyterLab Dark">
-<div class="vkbook-nav"><a href="../index.html">&larr; Book Home</a><span class="title">Foundations &middot; Multi-Layer Perceptrons</span><span style="display:flex;gap:6px;"><a href="00_the_perceptron.html">&larr; Prev</a><a href="01_housing_classical_ml.html">Next &rarr;</a></span></div>
+<div class="vkbook-nav"><span style="display:flex;gap:6px;align-items:center;"><a href="../index.html">&larr; Home</a><a class="gloss-btn" href="../glossary.html">Glossary</a></span><span class="title">Foundations &middot; Multi-Layer Perceptrons</span><span style="display:flex;gap:6px;"><a href="00_the_perceptron.html">&larr; Prev</a><a href="01_housing_classical_ml.html">Next &rarr;</a></span></div>
 
 <main>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=mlp-c00">
@@ -7988,7 +8013,7 @@ Look at <code>XOR</code> ("one or the other, <strong>but not both</strong>") in 
 <li><strong>Hidden Neuron 2 (<code>NAND</code>):</strong> <em>"Are they NOT both <code>1</code>?"</em></li>
 <li><strong>Output Neuron (<code>AND</code>):</strong> <em>"Are BOTH of those answers true?"</em></li>
 </ul>
-<p>That 2-layer team of 3 tiny perceptrons <strong>IS a Multi-Layer Perceptron (MLP)</strong>! Let's run it right now.</p>
+<p>That 2-layer team of 3 tiny perceptrons <strong>IS a Multi-Layer Perceptron (<a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a>)</strong>! Let's run it right now.</p>
 </div>
 </div>
 </div>
@@ -8056,12 +8081,12 @@ Look at <code>XOR</code> ("one or the other, <strong>but not both</strong>") in 
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Step-1:-Why-Activation-Functions-(GELU-/-ReLU)-Are-Mandatory!">Step 1: Why Activation Functions (<code>GELU</code> / <code>ReLU</code>) Are Mandatory!<a class="anchor-link" href="#Step-1:-Why-Activation-Functions-(GELU-/-ReLU)-Are-Mandatory!">¶</a></h2><p>When we train an MLP on a GPU with <code>vktorch</code>, we don't hand-pick <code>OR</code> and <code>NAND</code> weights — we let backpropagation <strong>learn</strong> the hidden layer automatically!</p>
+<h2 id="Step-1:-Why-Activation-Functions-(GELU-/-ReLU)-Are-Mandatory!">Step 1: Why Activation Functions (<code>GELU</code> / <code>ReLU</code>) Are Mandatory!<a class="anchor-link" href="#Step-1:-Why-Activation-Functions-(GELU-/-ReLU)-Are-Mandatory!">¶</a></h2><p>When we train an <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a> on a <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> with <code>vktorch</code>, we don't hand-pick <code>OR</code> and <code>NAND</code> weights — we let backpropagation <strong>learn</strong> the hidden layer automatically!</p>
 <p><strong>One crucial catch:</strong> If you stack <code>nn.Linear</code> layers <em>without</em> a non-linear <strong>activation function</strong> (<code>GELU</code>, <code>ReLU</code>, <code>SiLU</code>) between them, the math collapses:</p>
 <blockquote>
 <p><em>A straight line of a straight line is still just <strong>one straight line</strong>!</em></p>
 </blockquote>
-<p>Watch what happens on <code>XOR</code> when we train a 2-layer network <strong>without</strong> an activation vs. <strong>with</strong> our fused SPIR-V <code>nn.GELU()</code>!</p>
+<p>Watch what happens on <code>XOR</code> when we train a 2-layer network <strong>without</strong> an activation vs. <strong>with</strong> our fused <a class="vk-term" href="../glossary.html#term-spir-v" title="Standard Portable Intermediate Representation: The compact binary bytecode that Vulkan GPUs execute. Our fused kernels compile GLSL shaders into SPIR-V once and run natively in VRAM." data-term="SPIR-V" data-full="Standard Portable Intermediate Representation" data-desc="The compact binary bytecode that Vulkan GPUs execute. Our fused kernels compile GLSL shaders into SPIR-V once and run natively in VRAM.">SPIR-V</a> <code>nn.GELU()</code>!</p>
 </div>
 </div>
 </div>
@@ -8140,11 +8165,11 @@ ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 |
 <hr/>
 <h2 id="Step-2:-Expanding-on-MLPs-%E2%80%94-Width,-Depth-&amp;-Bending-Curved-Boundaries!">Step 2: Expanding on MLPs — Width, Depth &amp; Bending Curved Boundaries!<a class="anchor-link" href="#Step-2:-Expanding-on-MLPs-%E2%80%94-Width,-Depth-&amp;-Bending-Curved-Boundaries!">¶</a></h2><p><code>XOR</code> only has 4 points. What about a real curved dataset where one class is trapped <strong>inside a ring</strong> surrounded by the other class (<strong>Concentric Circles</strong>)?</p>
 <p>No single straight line can separate a circle from the ring around it — a single perceptron gets stuck near <code>50%</code>!
-Let's compare <strong>3 models</strong> on our Vulkan GPU so you can literally <em>see</em> what <strong>hidden-layer width</strong> and <strong>depth</strong> do:</p>
+Let's compare <strong>3 models</strong> on our Vulkan <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> so you can literally <em>see</em> what <strong>hidden-layer width</strong> and <strong>depth</strong> do:</p>
 <ol>
 <li><strong>Single Neuron (<code>vklearn.LogisticRegression</code>):</strong> 1 straight line → fails (~50%).</li>
-<li><strong>Tiny MLP (<code>2 → 4 → 1</code>):</strong> 1 hidden layer of just <strong>4 neurons</strong> → combines 4 bent lines into a rough polygon around the inner circle!</li>
-<li><strong>Deep MLP (<code>2 → 32 → 32 → 1</code> with <code>GELU</code>):</strong> 2 hidden layers of <strong>32 neurons</strong> → sculpts a smooth circular boundary (<strong>~100% accuracy</strong>)!</li>
+<li><strong>Tiny <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a> (<code>2 → 4 → 1</code>):</strong> 1 hidden layer of just <strong>4 neurons</strong> → combines 4 bent lines into a rough polygon around the inner circle!</li>
+<li><strong>Deep <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a> (<code>2 → 32 → 32 → 1</code> with <code>GELU</code>):</strong> 2 hidden layers of <strong>32 neurons</strong> → sculpts a smooth circular boundary (<strong>~100% accuracy</strong>)!</li>
 </ol>
 </div>
 </div>
@@ -8301,9 +8326,9 @@ Let's compare <strong>3 models</strong> on our Vulkan GPU so you can literally <
 </tbody>
 </table>
 <h3 id="Where-You'll-See-MLPs-Next-in-This-Book">Where You'll See MLPs Next in This Book<a class="anchor-link" href="#Where-You'll-See-MLPs-Next-in-This-Book">¶</a></h3><ul>
-<li><strong>Chapter 2 (<code>HousingResNet</code>):</strong> A deeper Residual MLP with <code>LayerNorm</code> + skip connections that beat Classical ML on California Housing (<code>$48.2k</code> RMSE).</li>
-<li><strong>Chapter 4 (<code>FashionCNN</code>):</strong> Uses an MLP classifier head on top of 2D convolutional filters (<code>87.85%</code> on Fashion-MNIST).</li>
-<li><strong>Chapter 20 (<code>Mini-Llama</code>):</strong> Every Transformer block contains a gated MLP (<code>SwiGLU</code>) that stores most of an LLM's factual knowledge!</li>
+<li><strong>Chapter 2 (<code>HousingResNet</code>):</strong> A deeper Residual <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a> with <code>LayerNorm</code> + skip connections that beat Classical <a class="vk-term" href="../glossary.html#term-ml" title="Machine Learning: Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself." data-term="ML" data-full="Machine Learning" data-desc="Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">ML</a> on California Housing (<code>$48.2k</code> <a class="vk-term" href="../glossary.html#term-rmse" title="Root Mean Squared Error: Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better." data-term="RMSE" data-full="Root Mean Squared Error" data-desc="Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better.">RMSE</a>).</li>
+<li><strong>Chapter 4 (<code>FashionCNN</code>):</strong> Uses an <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a> classifier head on top of 2D convolutional filters (<code>87.85%</code> on Fashion-MNIST).</li>
+<li><strong>Chapter 20 (<code>Mini-Llama</code>):</strong> Every Transformer block contains a gated <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a> (<code>SwiGLU</code>) that stores most of an <a class="vk-term" href="../glossary.html#term-llm" title="Large Language Model: A giant Transformer neural network (like Llama or GPT) trained on massive text datasets to predict the next word/token." data-term="LLM" data-full="Large Language Model" data-desc="A giant Transformer neural network (like Llama or GPT) trained on massive text datasets to predict the next word/token.">LLM</a>'s factual knowledge!</li>
 </ul>
 </div>
 </div>
@@ -8334,13 +8359,13 @@ Let's compare <strong>3 models</strong> on our Vulkan GPU so you can literally <
 <td>One straight line</td>
 </tr>
 <tr>
-<td><strong>Tiny MLP</strong></td>
+<td><strong>Tiny <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a></strong></td>
 <td><code>2 → 4 → 1</code></td>
 <td style="text-align:right"><strong>17</strong></td>
 <td>A rough 4-sided diamond</td>
 </tr>
 <tr>
-<td><strong>Deep MLP</strong></td>
+<td><strong>Deep <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a></strong></td>
 <td><code>2 → 32 → 32 → 1</code></td>
 <td style="text-align:right"><strong>1,185</strong></td>
 <td>A silky-smooth circle</td>
@@ -8354,9 +8379,9 @@ Let's compare <strong>3 models</strong> on our Vulkan GPU so you can literally <
 </tbody>
 </table>
 <ul>
-<li>Instead of 2 inputs (<code>x1, x2</code>), an LLM represents each word/token as a list of <strong>4,096 numbers</strong> and passes it through <strong>32 stacked Transformer blocks</strong>.</li>
-<li><strong>Roughly two-thirds of all parameters in an LLM live inside its MLP layers</strong> (<code>SwiGLU</code> feed-forward blocks — each expanding <code>4,096 → 14,336 → 4,096</code>, holding ~176 million weights per block!).</li>
-<li>Just like jumping from <strong>17 parameters</strong> (a boxy diamond) to <strong>1,185 parameters</strong> (a smooth circle) let our MLP sculpt finer shapes, scaling to <strong>billions of parameters</strong> gives an LLM enough <code>w · x + b</code> knobs to store language, facts, and reasoning!</li>
+<li>Instead of 2 inputs (<code>x1, x2</code>), an <a class="vk-term" href="../glossary.html#term-llm" title="Large Language Model: A giant Transformer neural network (like Llama or GPT) trained on massive text datasets to predict the next word/token." data-term="LLM" data-full="Large Language Model" data-desc="A giant Transformer neural network (like Llama or GPT) trained on massive text datasets to predict the next word/token.">LLM</a> represents each word/token as a list of <strong>4,096 numbers</strong> and passes it through <strong>32 stacked Transformer blocks</strong>.</li>
+<li><strong>Roughly two-thirds of all parameters in an <a class="vk-term" href="../glossary.html#term-llm" title="Large Language Model: A giant Transformer neural network (like Llama or GPT) trained on massive text datasets to predict the next word/token." data-term="LLM" data-full="Large Language Model" data-desc="A giant Transformer neural network (like Llama or GPT) trained on massive text datasets to predict the next word/token.">LLM</a> live inside its <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a> layers</strong> (<code>SwiGLU</code> feed-forward blocks — each expanding <code>4,096 → 14,336 → 4,096</code>, holding ~176 million weights per block!).</li>
+<li>Just like jumping from <strong>17 parameters</strong> (a boxy diamond) to <strong>1,185 parameters</strong> (a smooth circle) let our <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a> sculpt finer shapes, scaling to <strong>billions of parameters</strong> gives an <a class="vk-term" href="../glossary.html#term-llm" title="Large Language Model: A giant Transformer neural network (like Llama or GPT) trained on massive text datasets to predict the next word/token." data-term="LLM" data-full="Large Language Model" data-desc="A giant Transformer neural network (like Llama or GPT) trained on massive text datasets to predict the next word/token.">LLM</a> enough <code>w · x + b</code> knobs to store language, facts, and reasoning!</li>
 </ul>
 </div>
 </div>
@@ -8364,6 +8389,35 @@ Let's compare <strong>3 models</strong> on our Vulkan GPU so you can literally <
 </div>
 </main>
 
-<div class="vkbook-footer"><a href="00_the_perceptron.html">&larr; Prev</a><a href="01_housing_classical_ml.html">Next &rarr;</a></div>
+<div class="vkbook-footer"><a href="00_the_perceptron.html">&larr; Prev</a><a href="../glossary.html">Acronym Glossary</a><a href="01_housing_classical_ml.html">Next &rarr;</a></div>
+<div id="vk-tip-box" role="dialog" aria-live="polite">
+  <div class="vk-tip-head">
+    <span class="vk-tip-term" id="vk-t-abbr"></span>
+    <button type="button" onclick="document.getElementById('vk-tip-box').style.display='none'">Close</button>
+  </div>
+  <div class="vk-tip-full" id="vk-t-full"></div>
+  <p class="vk-tip-desc" id="vk-t-desc"></p>
+  <div class="vk-tip-actions">
+    <span style="font-size:12px;color:#848bbd;">Tap anywhere outside to dismiss</span>
+    <a id="vk-t-more" href="../glossary.html">Open Full Glossary &rarr;</a>
+  </div>
+</div>
+<script>
+  document.addEventListener('click', (e) => {
+    const box = document.getElementById('vk-tip-box');
+    const a = e.target.closest('a.vk-term');
+    if (a) {
+      e.preventDefault();
+      document.getElementById('vk-t-abbr').textContent = a.dataset.term || a.textContent;
+      document.getElementById('vk-t-full').textContent = a.dataset.full || '';
+      document.getElementById('vk-t-desc').textContent = a.dataset.desc || a.title || '';
+      document.getElementById('vk-t-more').href = a.getAttribute('href');
+      box.style.display = 'block';
+    } else if (box.style.display === 'block' && !e.target.closest('#vk-tip-box')) {
+      box.style.display = 'none';
+    }
+  });
+</script>
+
 </body>
 </html>

@@ -21,17 +21,22 @@
       line-height: 1.6; min-height: 100vh;
     }
     .wrap { max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; }
+    .top-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
     .badge {
       display: inline-block; font-size: 12px; font-weight: 700;
       color: var(--cyan); border: 1px solid rgba(54, 249, 246, 0.55);
       background: rgba(54, 249, 246, 0.1); padding: 4px 12px; border-radius: 999px;
-      margin-bottom: 14px; text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
-      box-shadow: 0 0 14px rgba(54, 249, 246, 0.15);
+      text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
     }
+    .gloss-pill {
+      display: inline-block; font-size: 12px; font-weight: 700; text-decoration: none;
+      color: var(--yellow); border: 1px solid rgba(254, 222, 93, 0.55);
+      background: rgba(254, 222, 93, 0.1); padding: 4px 12px; border-radius: 999px;
+    }
+    .gloss-pill:hover { background: rgba(254, 222, 93, 0.22); }
     h1 {
       font-size: clamp(26px, 5vw, 40px); line-height: 1.18; margin: 0 0 12px;
-      color: var(--pink);
-      text-shadow: 0 0 18px rgba(255, 126, 219, 0.55);
+      color: var(--pink); text-shadow: 0 0 18px rgba(255, 126, 219, 0.55);
     }
     .sub { color: var(--muted); font-size: 16px; margin: 0 0 26px; }
     h2 {
@@ -54,12 +59,10 @@
     .ch {
       color: var(--yellow); font-weight: 700; font-size: 13px;
       text-transform: uppercase; letter-spacing: 0.05em;
-      text-shadow: 0 0 6px rgba(254, 222, 93, 0.35);
     }
     .pill {
       font-size: 12px; font-weight: 700; color: var(--mint);
-      background: rgba(114, 241, 184, 0.12);
-      border: 1px solid rgba(114, 241, 184, 0.35);
+      background: rgba(114, 241, 184, 0.12); border: 1px solid rgba(114, 241, 184, 0.35);
       padding: 2px 9px; border-radius: 6px;
     }
     .card h3 { margin: 6px 0 6px; font-size: 18px; color: #ffffff; }
@@ -67,42 +70,42 @@
     .note {
       margin-top: 30px; background: #1a1626; border: 1px solid rgba(54, 249, 246, 0.4);
       border-radius: 12px; padding: 15px 18px; font-size: 14px; color: var(--muted);
-      box-shadow: 0 0 18px rgba(54, 249, 246, 0.1);
     }
     .note strong { color: var(--yellow); }
     .note a { color: var(--cyan); text-decoration: none; font-weight: 600; }
-    code {
-      background: #2b2340; padding: 2px 6px; border-radius: 5px;
-      font-size: 13px; color: var(--pink);
-    }
+    code { background: #2b2340; padding: 2px 6px; border-radius: 5px; font-size: 13px; color: var(--pink); }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="badge">Interactive Follow-Along Book &middot; Pure Vulkan GPU</div>
+    <div class="top-bar">
+      <span class="badge">Interactive Follow-Along Book &middot; Pure Vulkan GPU</span>
+      <a class="gloss-pill" href="glossary.html">&#128214; Plain-English Acronym Glossary (39 Terms)</a>
+    </div>
     <h1>Hands-On AI, Machine Learning &amp; GPU Computing &mdash; Without CUDA or ROCm</h1>
     <p class="sub">
       Learn how AI actually works on the Vulkan GPU you already own (Steam Deck, AMD APU, Intel iGPU/Arc, older Radeon/NVIDIA, or Apple MoltenVK) &mdash; powered by the bundled <code>vkdata</code> toolkit.
+      <em>Tip: Tap or hover any <span style="border-bottom:1px dotted #36f9f6;color:#f4eee4;">dotted acronym</span> in a chapter to jump straight to its plain-English definition!</em>
     </p>
 
-    <h2>Start Here &middot; Building Blocks of AI</h2>
+    <h2>Part 0 &middot; AI Foundations: Building Blocks of Neural Networks</h2>
     <div class="grid">
       <a class="card" href="chapters/00_the_perceptron.html">
         <div class="card-head">
-          <span class="ch">Foundations &middot; 1 Artificial Neuron</span>
-          <span class="pill">AND / OR &rarr; GPU Neuron &rarr; XOR Wall</span>
+          <span class="ch">Foundations 1 &middot; 1 Artificial Neuron</span>
+          <span class="pill">5 Gates &rarr; GPU Neuron &rarr; XOR Wall</span>
         </div>
         <h3>The Perceptron: How a Single Artificial Neuron Works</h3>
-        <p>Start from zero: weighted votes, watching a single straight line learn with <code>vklearn.Perceptron</code>, running the same neuron on your Vulkan GPU with <code>vktorch</code>, and hitting the famous XOR limit.</p>
+        <p>Start from zero: weighted votes (AND, OR, NOT, NAND, NOR), watching a single straight line learn with <code>vklearn.Perceptron</code>, running the same neuron on your Vulkan GPU with <code>vktorch</code>, and hitting the famous XOR limit.</p>
       </a>
 
       <a class="card" href="chapters/00b_multi_layer_perceptron.html">
         <div class="card-head">
-          <span class="ch">Foundations &middot; Hidden Layers &amp; Activations</span>
-          <span class="pill">XOR 100% &middot; 1 Neuron &rarr; Tiny MLP &rarr; Deep MLP</span>
+          <span class="ch">Foundations 2 &middot; Hidden Layers &amp; LLMs</span>
+          <span class="pill">XOR 100% &middot; 3 Params &rarr; 8B Llama</span>
         </div>
-        <h3>Multi-Layer Perceptrons (MLPs): Bending Space &amp; Solving XOR</h3>
-        <p>Wire 3 perceptrons together to solve XOR by hand, see why <code>GELU</code>/<code>ReLU</code> activations are mandatory, and watch 4 neurons draw a diamond while 32&times;32 sculpts a smooth circle on Vulkan GPU.</p>
+        <h3>Multi-Layer Perceptrons (MLPs): Bending Space, Solving XOR &amp; LLM Parameters</h3>
+        <p>Wire 3 perceptrons together to solve XOR by hand, see why <code>GELU</code>/<code>ReLU</code> activations are mandatory, watch 4 neurons draw a diamond while 32&times;32 sculpts a smooth circle, and trace the parameter ladder up to 8B LLMs.</p>
       </a>
     </div>
 

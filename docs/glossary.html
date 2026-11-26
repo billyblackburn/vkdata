@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acronym Glossary &amp; Index &mdash; Hands-On AI, ML &amp; GPU Computing (vkdata)</title>
+  <style>
+    :root {
+      --bg: #262335; --card: #1e1a2b; --border: #495495;
+      --text: #f4eee4; --muted: #b6b1d6;
+      --pink: #ff7edb; --cyan: #36f9f6; --yellow: #fede5d; --mint: #72f1b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background-color: var(--bg); color: var(--text);
+      background-image:
+        radial-gradient(circle at 18% 0%, rgba(255, 126, 219, 0.14), transparent 42%),
+        radial-gradient(circle at 85% 5%, rgba(54, 249, 246, 0.12), transparent 38%),
+        linear-gradient(180deg, #241b2f 0%, #262335 45%, #1c1828 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6; min-height: 100vh;
+    }
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: linear-gradient(90deg, #1b1528, #241b35, #1b1528);
+      border-bottom: 1px solid var(--pink);
+      box-shadow: 0 2px 16px rgba(255, 126, 219, 0.22);
+      padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    }
+    .nav a, .nav button {
+      color: var(--cyan); background: #2a2139; border: 1px solid rgba(54, 249, 246, 0.45);
+      border-radius: 6px; padding: 5px 11px; font-weight: 600; font-size: 14px;
+      text-decoration: none; cursor: pointer;
+    }
+    .nav .title { color: var(--pink); font-weight: 700; text-shadow: 0 0 10px rgba(255, 126, 219, 0.45); }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
+    h1 { color: var(--pink); text-shadow: 0 0 14px rgba(255, 126, 219, 0.5); margin: 0 0 8px; }
+    .sub { color: var(--muted); margin: 0 0 18px; font-size: 15px; }
+    .search {
+      width: 100%; padding: 11px 14px; border-radius: 10px;
+      background: #1b1728; color: var(--text); font-size: 15px;
+      border: 1px solid var(--cyan); outline: none; margin-bottom: 20px;
+      box-shadow: 0 0 14px rgba(54, 249, 246, 0.12);
+    }
+    .search::placeholder { color: #848bbd; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .term-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px; scroll-margin-top: 72px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .term-card:target {
+      border-color: var(--cyan);
+      box-shadow: 0 0 24px rgba(54, 249, 246, 0.35);
+      background: #231d36;
+    }
+    .term-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .term-abbr {
+      font-size: 20px; font-weight: 800; color: var(--yellow);
+      text-shadow: 0 0 8px rgba(254, 222, 93, 0.35);
+    }
+    .term-cat {
+      font-size: 12px; font-weight: 700; color: var(--mint);
+      background: rgba(114, 241, 184, 0.12); border: 1px solid rgba(114, 241, 184, 0.35);
+      padding: 2px 8px; border-radius: 6px;
+    }
+    .term-full { color: var(--cyan); font-weight: 600; font-size: 14.5px; margin: 2px 0 6px; }
+    .term-desc { color: var(--text); margin: 0; font-size: 14.5px; }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <button onclick="if (history.length > 1) history.back(); else location.href='index.html';">&larr; Back</button>
+    <span class="title">Acronym Glossary (39 Terms)</span>
+    <a href="index.html">Book Home</a>
+  </div>
+  <div class="wrap">
+    <h1>Plain-English Acronym Glossary</h1>
+    <p class="sub">Every acronym in the book is clickable (dotted cyan underline) and links straight here. Type below to filter instantly:</p>
+    <input class="search" id="q" type="search" placeholder="Filter acronyms (e.g. MLP, RMSE, SPIR-V, GELU, PCA)..." autofocus>
+    <div class="grid" id="list">
+      <div class="term-card" id="term-adamw" data-search="adamw adam with decoupled weight decay training the go-to modern neural network optimizer: adapts the learning rate for every weight individually and gently shrinks large weights to prevent overfitting.">
+        <div class="term-head">
+          <span class="term-abbr">AdamW</span>
+          <span class="term-cat">Training</span>
+        </div>
+        <div class="term-full">Adam with Decoupled Weight Decay</div>
+        <p class="term-desc">The go-to modern neural network optimizer: adapts the learning rate for every weight individually and gently shrinks large weights to prevent overfitting.</p>
+      </div>
+      <div class="term-card" id="term-ai" data-search="ai artificial intelligence general the broad field of building computer programs that can learn patterns, make decisions, or generate text and images.">
+        <div class="term-head">
+          <span class="term-abbr">AI</span>
+          <span class="term-cat">General</span>
+        </div>
+        <div class="term-full">Artificial Intelligence</div>
+        <p class="term-desc">The broad field of building computer programs that can learn patterns, make decisions, or generate text and images.</p>
+      </div>
+      <div class="term-card" id="term-apu" data-search="apu accelerated processing unit hardware &amp; vulkan a single chip combining a cpu and gpu that share unified memory — like the amd chip inside the steam deck.">
+        <div class="term-head">
+          <span class="term-abbr">APU</span>
+          <span class="term-cat">Hardware &amp; Vulkan</span>
+        </div>
+        <div class="term-full">Accelerated Processing Unit</div>
+        <p class="term-desc">A single chip combining a CPU and GPU that share unified memory — like the AMD chip inside the Steam Deck.</p>
+      </div>
+      <div class="term-card" id="term-bce" data-search="bce binary cross-entropy metrics &amp; losses the standard loss function for yes/no (0 vs 1) classification that rewards confident correct probabilities and heavily penalizes confident wrong guesses.">
+        <div class="term-head">
+          <span class="term-abbr">BCE</span>
+          <span class="term-cat">Metrics &amp; Losses</span>
+        </div>
+        <div class="term-full">Binary Cross-Entropy</div>
+        <p class="term-desc">The standard loss function for Yes/No (0 vs 1) classification that rewards confident correct probabilities and heavily penalizes confident wrong guesses.</p>
+      </div>
+      <div class="term-card" id="term-cnn" data-search="cnn convolutional neural network deep learning a neural network designed for images that slides small learned 2d filters (like 3x3 patches) across pixels to detect edges, shapes, and textures.">
+        <div class="term-head">
+          <span class="term-abbr">CNN</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Convolutional Neural Network</div>
+        <p class="term-desc">A neural network designed for images that slides small learned 2D filters (like 3x3 patches) across pixels to detect edges, shapes, and textures.</p>
+      </div>
+      <div class="term-card" id="term-csv" data-search="csv comma-separated values data &amp; ml a plain-text table format where each line is a row and columns are separated by commas.">
+        <div class="term-head">
+          <span class="term-abbr">CSV</span>
+          <span class="term-cat">Data &amp; ML</span>
+        </div>
+        <div class="term-full">Comma-Separated Values</div>
+        <p class="term-desc">A plain-text table format where each line is a row and columns are separated by commas.</p>
+      </div>
+      <div class="term-card" id="term-cuda" data-search="cuda compute unified device architecture hardware &amp; vulkan nvidia&#x27;s proprietary gpu programming platform. most ai libraries require it — vkdata uses open vulkan instead so you don&#x27;t need an nvidia card!">
+        <div class="term-head">
+          <span class="term-abbr">CUDA</span>
+          <span class="term-cat">Hardware &amp; Vulkan</span>
+        </div>
+        <div class="term-full">Compute Unified Device Architecture</div>
+        <p class="term-desc">NVIDIA&#x27;s proprietary GPU programming platform. Most AI libraries require it — vkdata uses open Vulkan instead so you don&#x27;t need an NVIDIA card!</p>
+      </div>
+      <div class="term-card" id="term-cv" data-search="cv computer vision general teaching computers to understand images and video — from hand-crafted edge detectors (classical cv) to learned 2d cnns.">
+        <div class="term-head">
+          <span class="term-abbr">CV</span>
+          <span class="term-cat">General</span>
+        </div>
+        <div class="term-full">Computer Vision</div>
+        <p class="term-desc">Teaching computers to understand images and video — from hand-crafted edge detectors (Classical CV) to learned 2D CNNs.</p>
+      </div>
+      <div class="term-card" id="term-dl" data-search="dl deep learning general a branch of machine learning that stacks multiple layers of artificial neurons (neural networks) to learn complex patterns.">
+        <div class="term-head">
+          <span class="term-abbr">DL</span>
+          <span class="term-cat">General</span>
+        </div>
+        <div class="term-full">Deep Learning</div>
+        <p class="term-desc">A branch of Machine Learning that stacks multiple layers of artificial neurons (neural networks) to learn complex patterns.</p>
+      </div>
+      <div class="term-card" id="term-eda" data-search="eda exploratory data analysis data &amp; ml inspecting and visualizing your dataset (maps, histograms, missing values, caps/outliers) before training any model.">
+        <div class="term-head">
+          <span class="term-abbr">EDA</span>
+          <span class="term-cat">Data &amp; ML</span>
+        </div>
+        <div class="term-full">Exploratory Data Analysis</div>
+        <p class="term-desc">Inspecting and visualizing your dataset (maps, histograms, missing values, caps/outliers) BEFORE training any model.</p>
+      </div>
+      <div class="term-card" id="term-ffn" data-search="ffn feed-forward network deep learning the mlp block inside every transformer layer that processes each token independently and stores most of an llm&#x27;s factual knowledge.">
+        <div class="term-head">
+          <span class="term-abbr">FFN</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Feed-Forward Network</div>
+        <p class="term-desc">The MLP block inside every Transformer layer that processes each token independently and stores most of an LLM&#x27;s factual knowledge.</p>
+      </div>
+      <div class="term-card" id="term-gelu" data-search="gelu gaussian error linear unit activations a smooth modern activation function used in transformers and resnets that gently bends negative values toward zero so stacked layers can learn curves.">
+        <div class="term-head">
+          <span class="term-abbr">GELU</span>
+          <span class="term-cat">Activations</span>
+        </div>
+        <div class="term-full">Gaussian Error Linear Unit</div>
+        <p class="term-desc">A smooth modern activation function used in Transformers and ResNets that gently bends negative values toward zero so stacked layers can learn curves.</p>
+      </div>
+      <div class="term-card" id="term-glsl" data-search="glsl opengl shading language hardware &amp; vulkan a c-like language for writing gpu compute shaders that compile to spir-v for vulkan.">
+        <div class="term-head">
+          <span class="term-abbr">GLSL</span>
+          <span class="term-cat">Hardware &amp; Vulkan</span>
+        </div>
+        <div class="term-full">OpenGL Shading Language</div>
+        <p class="term-desc">A C-like language for writing GPU compute shaders that compile to SPIR-V for Vulkan.</p>
+      </div>
+      <div class="term-card" id="term-gpu" data-search="gpu graphics processing unit hardware &amp; vulkan a chip with thousands of tiny parallel cores originally built for 3d graphics, now ideal for doing millions of ai math operations at once.">
+        <div class="term-head">
+          <span class="term-abbr">GPU</span>
+          <span class="term-cat">Hardware &amp; Vulkan</span>
+        </div>
+        <div class="term-full">Graphics Processing Unit</div>
+        <p class="term-desc">A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.</p>
+      </div>
+      <div class="term-card" id="term-hog" data-search="hog histogram of oriented gradients classical ml a classic computer vision feature descriptor that summarizes the direction and strength of edges inside small image grid cells.">
+        <div class="term-head">
+          <span class="term-abbr">HOG</span>
+          <span class="term-cat">Classical ML</span>
+        </div>
+        <div class="term-full">Histogram of Oriented Gradients</div>
+        <p class="term-desc">A classic computer vision feature descriptor that summarizes the direction and strength of edges inside small image grid cells.</p>
+      </div>
+      <div class="term-card" id="term-knn" data-search="knn k-nearest neighbors classical ml a simple non-linear algorithm that predicts an answer by finding the k most similar training examples and averaging or voting on their labels.">
+        <div class="term-head">
+          <span class="term-abbr">KNN</span>
+          <span class="term-cat">Classical ML</span>
+        </div>
+        <div class="term-full">K-Nearest Neighbors</div>
+        <p class="term-desc">A simple non-linear algorithm that predicts an answer by finding the K most similar training examples and averaging or voting on their labels.</p>
+      </div>
+      <div class="term-card" id="term-layernorm" data-search="layernorm layer normalization deep learning rescales each row of neuron outputs to mean 0 and variance 1 so deep networks train smoothly without exploding or vanishing numbers.">
+        <div class="term-head">
+          <span class="term-abbr">LayerNorm</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Layer Normalization</div>
+        <p class="term-desc">Rescales each row of neuron outputs to mean 0 and variance 1 so deep networks train smoothly without exploding or vanishing numbers.</p>
+      </div>
+      <div class="term-card" id="term-llm" data-search="llm large language model deep learning a giant transformer neural network (like llama or gpt) trained on massive text datasets to predict the next word/token.">
+        <div class="term-head">
+          <span class="term-abbr">LLM</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Large Language Model</div>
+        <p class="term-desc">A giant Transformer neural network (like Llama or GPT) trained on massive text datasets to predict the next word/token.</p>
+      </div>
+      <div class="term-card" id="term-lut" data-search="lut lookup table data &amp; ml a fast 256-entry color table (used by vkcolorcet) that maps numbers to rgb colors in one instant lookup.">
+        <div class="term-head">
+          <span class="term-abbr">LUT</span>
+          <span class="term-cat">Data &amp; ML</span>
+        </div>
+        <div class="term-full">Lookup Table</div>
+        <p class="term-desc">A fast 256-entry color table (used by vkcolorcet) that maps numbers to RGB colors in one instant lookup.</p>
+      </div>
+      <div class="term-card" id="term-mae" data-search="mae mean absolute error metrics &amp; losses average of |prediction - actual|. your average mistake in real-world units, less sensitive to extreme outliers than rmse.">
+        <div class="term-head">
+          <span class="term-abbr">MAE</span>
+          <span class="term-cat">Metrics &amp; Losses</span>
+        </div>
+        <div class="term-full">Mean Absolute Error</div>
+        <p class="term-desc">Average of |prediction - actual|. Your average mistake in real-world units, less sensitive to extreme outliers than RMSE.</p>
+      </div>
+      <div class="term-card" id="term-ml" data-search="ml machine learning general teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">
+        <div class="term-head">
+          <span class="term-abbr">ML</span>
+          <span class="term-cat">General</span>
+        </div>
+        <div class="term-full">Machine Learning</div>
+        <p class="term-desc">Teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.</p>
+      </div>
+      <div class="term-card" id="term-mlp" data-search="mlp multi-layer perceptron deep learning the classic neural network: stacked layers of neurons with non-linear activation functions (like gelu or relu) in between so it can learn curved boundaries.">
+        <div class="term-head">
+          <span class="term-abbr">MLP</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Multi-Layer Perceptron</div>
+        <p class="term-desc">The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.</p>
+      </div>
+      <div class="term-card" id="term-mse" data-search="mse mean squared error metrics &amp; losses average of (prediction - actual)^2. penalizes big mistakes heavily; the standard training loss for regression.">
+        <div class="term-head">
+          <span class="term-abbr">MSE</span>
+          <span class="term-cat">Metrics &amp; Losses</span>
+        </div>
+        <div class="term-full">Mean Squared Error</div>
+        <p class="term-desc">Average of (prediction - actual)^2. Penalizes big mistakes heavily; the standard training loss for regression.</p>
+      </div>
+      <div class="term-card" id="term-nand" data-search="nand not-and logic gates outputs 0 only when both inputs are 1 (and 1 otherwise). every digital computer chip can be built purely from nand gates!">
+        <div class="term-head">
+          <span class="term-abbr">NAND</span>
+          <span class="term-cat">Logic Gates</span>
+        </div>
+        <div class="term-full">Not-AND</div>
+        <p class="term-desc">Outputs 0 ONLY when both inputs are 1 (and 1 otherwise). Every digital computer chip can be built purely from NAND gates!</p>
+      </div>
+      <div class="term-card" id="term-nn" data-search="nn neural network deep learning a network of interconnected artificial neurons organized in layers that learn weights from data via backpropagation.">
+        <div class="term-head">
+          <span class="term-abbr">NN</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Neural Network</div>
+        <p class="term-desc">A network of interconnected artificial neurons organized in layers that learn weights from data via backpropagation.</p>
+      </div>
+      <div class="term-card" id="term-nor" data-search="nor not-or logic gates outputs 1 only when both inputs are 0 (&#x27;neither x1 nor x2&#x27;).">
+        <div class="term-head">
+          <span class="term-abbr">NOR</span>
+          <span class="term-cat">Logic Gates</span>
+        </div>
+        <div class="term-full">Not-OR</div>
+        <p class="term-desc">Outputs 1 ONLY when both inputs are 0 (&#x27;neither x1 NOR x2&#x27;).</p>
+      </div>
+      <div class="term-card" id="term-ovr" data-search="ovr one-vs-rest classical ml a strategy that turns a binary (yes/no) classifier into a multi-class classifier by training one model per class (&#x27;is it a shirt? is it a sneaker? ...&#x27;).">
+        <div class="term-head">
+          <span class="term-abbr">OvR</span>
+          <span class="term-cat">Classical ML</span>
+        </div>
+        <div class="term-full">One-vs-Rest</div>
+        <p class="term-desc">A strategy that turns a binary (Yes/No) classifier into a multi-class classifier by training one model per class (&#x27;Is it a Shirt? Is it a Sneaker? ...&#x27;).</p>
+      </div>
+      <div class="term-card" id="term-pca" data-search="pca principal component analysis classical ml a classic dimensionality-reduction algorithm that compresses many correlated features (like 784 pixels) into a smaller set of top visual patterns.">
+        <div class="term-head">
+          <span class="term-abbr">PCA</span>
+          <span class="term-cat">Classical ML</span>
+        </div>
+        <div class="term-full">Principal Component Analysis</div>
+        <p class="term-desc">A classic dimensionality-reduction algorithm that compresses many correlated features (like 784 pixels) into a smaller set of top visual patterns.</p>
+      </div>
+      <div class="term-card" id="term-rbf" data-search="rbf radial basis function classical ml a smooth bell-curve similarity score exp(-dist^2 / 2*sigma^2) that equals 1 right next to a landmark/hub and fades smoothly to 0 far away.">
+        <div class="term-head">
+          <span class="term-abbr">RBF</span>
+          <span class="term-cat">Classical ML</span>
+        </div>
+        <div class="term-full">Radial Basis Function</div>
+        <p class="term-desc">A smooth bell-curve similarity score exp(-dist^2 / 2*sigma^2) that equals 1 right next to a landmark/hub and fades smoothly to 0 far away.</p>
+      </div>
+      <div class="term-card" id="term-relu" data-search="relu rectified linear unit activations the simplest popular activation function: max(0, x). keeps positive numbers unchanged and turns negative numbers into 0.">
+        <div class="term-head">
+          <span class="term-abbr">ReLU</span>
+          <span class="term-cat">Activations</span>
+        </div>
+        <div class="term-full">Rectified Linear Unit</div>
+        <p class="term-desc">The simplest popular activation function: max(0, x). Keeps positive numbers unchanged and turns negative numbers into 0.</p>
+      </div>
+      <div class="term-card" id="term-rmse" data-search="rmse root mean squared error metrics &amp; losses square root of mse — puts your typical prediction error back into real-world units (like dollars for house prices!). lower is better.">
+        <div class="term-head">
+          <span class="term-abbr">RMSE</span>
+          <span class="term-cat">Metrics &amp; Losses</span>
+        </div>
+        <div class="term-full">Root Mean Squared Error</div>
+        <p class="term-desc">Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better.</p>
+      </div>
+      <div class="term-card" id="term-rmsnorm" data-search="rmsnorm root mean square normalization deep learning a simpler, faster version of layernorm (skips subtracting the mean) used in modern llms like llama and gemma.">
+        <div class="term-head">
+          <span class="term-abbr">RMSNorm</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Root Mean Square Normalization</div>
+        <p class="term-desc">A simpler, faster version of LayerNorm (skips subtracting the mean) used in modern LLMs like Llama and Gemma.</p>
+      </div>
+      <div class="term-card" id="term-rocm" data-search="rocm radeon open compute hardware &amp; vulkan amd&#x27;s gpu compute platform, which only supports select desktop/datacenter radeon cards — unlike vulkan, which works on almost any gpu.">
+        <div class="term-head">
+          <span class="term-abbr">ROCm</span>
+          <span class="term-cat">Hardware &amp; Vulkan</span>
+        </div>
+        <div class="term-full">Radeon Open Compute</div>
+        <p class="term-desc">AMD&#x27;s GPU compute platform, which only supports select desktop/datacenter Radeon cards — unlike Vulkan, which works on almost any GPU.</p>
+      </div>
+      <div class="term-card" id="term-sgd" data-search="sgd stochastic gradient descent training the classic training algorithm that nudges model weights downhill (against the gradient) on small random batches of data.">
+        <div class="term-head">
+          <span class="term-abbr">SGD</span>
+          <span class="term-cat">Training</span>
+        </div>
+        <div class="term-full">Stochastic Gradient Descent</div>
+        <p class="term-desc">The classic training algorithm that nudges model weights downhill (against the gradient) on small random batches of data.</p>
+      </div>
+      <div class="term-card" id="term-silu" data-search="silu sigmoid linear unit (swish) activations a smooth activation function defined as x * sigmoid(x), widely used inside modern llama/gemma swiglu blocks.">
+        <div class="term-head">
+          <span class="term-abbr">SiLU</span>
+          <span class="term-cat">Activations</span>
+        </div>
+        <div class="term-full">Sigmoid Linear Unit (Swish)</div>
+        <p class="term-desc">A smooth activation function defined as x * sigmoid(x), widely used inside modern Llama/Gemma SwiGLU blocks.</p>
+      </div>
+      <div class="term-card" id="term-spir-v" data-search="spir-v standard portable intermediate representation hardware &amp; vulkan the compact binary bytecode that vulkan gpus execute. our fused kernels compile glsl shaders into spir-v once and run natively in vram.">
+        <div class="term-head">
+          <span class="term-abbr">SPIR-V</span>
+          <span class="term-cat">Hardware &amp; Vulkan</span>
+        </div>
+        <div class="term-full">Standard Portable Intermediate Representation</div>
+        <p class="term-desc">The compact binary bytecode that Vulkan GPUs execute. Our fused kernels compile GLSL shaders into SPIR-V once and run natively in VRAM.</p>
+      </div>
+      <div class="term-card" id="term-swiglu" data-search="swiglu swish-gated linear unit deep learning a modern gated mlp block (silu(gate) * up) used in llama and gemma transformers that outperforms standard relu/gelu ffns.">
+        <div class="term-head">
+          <span class="term-abbr">SwiGLU</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Swish-Gated Linear Unit</div>
+        <p class="term-desc">A modern gated MLP block (silu(gate) * up) used in Llama and Gemma Transformers that outperforms standard ReLU/GELU FFNs.</p>
+      </div>
+      <div class="term-card" id="term-vram" data-search="vram video ram (gpu memory) hardware &amp; vulkan the high-speed memory attached to your gpu where tensors, model weights, and shaders live while training.">
+        <div class="term-head">
+          <span class="term-abbr">VRAM</span>
+          <span class="term-cat">Hardware &amp; Vulkan</span>
+        </div>
+        <div class="term-full">Video RAM (GPU Memory)</div>
+        <p class="term-desc">The high-speed memory attached to your GPU where tensors, model weights, and shaders live while training.</p>
+      </div>
+      <div class="term-card" id="term-xor" data-search="xor exclusive or logic gates a logic rule that outputs 1 when the two inputs are different ((0,1) or (1,0)) and 0 when they are the same. famous because 1 straight line cannot solve it!">
+        <div class="term-head">
+          <span class="term-abbr">XOR</span>
+          <span class="term-cat">Logic Gates</span>
+        </div>
+        <div class="term-full">Exclusive OR</div>
+        <p class="term-desc">A logic rule that outputs 1 when the two inputs are DIFFERENT ((0,1) or (1,0)) and 0 when they are the same. Famous because 1 straight line cannot solve it!</p>
+      </div>
+    </div>
+  </div>
+  <script>
+    const q = document.getElementById('q');
+    const cards = Array.from(document.querySelectorAll('.term-card'));
+    q.addEventListener('input', () => {
+      const v = q.value.trim().toLowerCase();
+      for (const c of cards) c.style.display = (!v || c.dataset.search.includes(v)) ? '' : 'none';
+    });
+  </script>
+</body>
+</html>

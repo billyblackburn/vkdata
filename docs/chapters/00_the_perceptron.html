@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>00_the_perceptron</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>01_the_perceptron</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -7836,7 +7836,7 @@ a.anchor-link {
     --jp-mirror-editor-string-2-color: #ff9e64 !important;
     --jp-mirror-editor-meta-color: #72f1b8 !important;
     --jp-mirror-editor-qualifier-color: #ff7edb !important;
-    --jp-mirror-editor-builtin-color: #ff7edb !important;
+    --jp-mirror-editor-builtin-color: #36f9f6 !important;
     --jp-mirror-editor-bracket-color: #b6b1d6 !important;
     --jp-mirror-editor-tag-color: #ff7edb !important;
     --jp-mirror-editor-attribute-color: #36f9f6 !important;
@@ -7871,6 +7871,16 @@ a.anchor-link {
   }
   .jp-RenderedMarkdown strong { color: #ffffff !important; }
   .jp-RenderedMarkdown a { color: #36f9f6 !important; }
+  .jp-RenderedMarkdown a.vk-term {
+    color: inherit !important;
+    text-decoration: underline dotted #36f9f6 !important;
+    text-underline-offset: 3px;
+    cursor: help;
+  }
+  .jp-RenderedMarkdown a.vk-term:hover {
+    color: #36f9f6 !important;
+    text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
+  }
   .jp-RenderedMarkdown code {
     background: #1b1728 !important; color: #ff7edb !important;
     border: 1px solid rgba(255, 126, 219, 0.25);
@@ -7887,7 +7897,7 @@ a.anchor-link {
     background: linear-gradient(90deg, rgba(255,126,219,0.6), rgba(54,249,246,0.6), transparent);
   }
   .jp-InputArea-editor {
-    background: #1e1a2b !important;
+    background: #1b1728 !important;
     border: 1px solid #495495 !important;
     border-radius: 10px !important;
     box-shadow: 0 0 18px rgba(54, 249, 246, 0.07);
@@ -7902,22 +7912,12 @@ a.anchor-link {
   /* SynthWave '84 Neon Vaporwave Python Syntax Highlighting (harmonized, zero harsh red) */
   .jp-CodeMirrorEditor, .jp-InputArea-editor, .highlight, .highlight pre { background: #1b1728 !important; color: #f4eee4 !important; }
   .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch { color: #848bbd !important; font-style: italic; }
-  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow {
-    color: #ff7edb !important; font-weight: 600;
-  }
+  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow { color: #ff7edb !important; font-weight: 600; }
   .highlight .o { color: #ff7edb !important; }
-  .highlight .nn, .highlight .nc, .highlight .nb, .highlight .bp {
-    color: #36f9f6 !important; font-weight: 500;
-  }
-  .highlight .nf, .highlight .fm, .highlight .nd {
-    color: #72f1b8 !important; font-weight: 600;
-  }
-  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si {
-    color: #ff9e64 !important;
-  }
-  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo {
-    color: #fede5d !important;
-  }
+  .highlight .nn, .highlight .nc, .highlight .nb, .highlight .bp { color: #36f9f6 !important; font-weight: 500; }
+  .highlight .nf, .highlight .fm, .highlight .nd { color: #72f1b8 !important; font-weight: 600; }
+  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si { color: #ff9e64 !important; }
+  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo { color: #fede5d !important; }
   .highlight .n { color: #f4eee4 !important; }
   .highlight .p { color: #b6b1d6 !important; }
 
@@ -7935,13 +7935,15 @@ a.anchor-link {
   }
   .vkbook-nav a {
     color: #36f9f6; text-decoration: none; font-weight: 600;
-    padding: 5px 11px; border-radius: 6px; background: #2a2139;
+    padding: 5px 10px; border-radius: 6px; background: #2a2139;
     border: 1px solid rgba(54, 249, 246, 0.45);
     text-shadow: 0 0 6px rgba(54, 249, 246, 0.35);
   }
-  .vkbook-nav a:hover {
-    background: #382c4f; border-color: #ff7edb; color: #ff7edb;
+  .vkbook-nav a.gloss-btn {
+    color: #fede5d; border-color: rgba(254, 222, 93, 0.45);
+    text-shadow: 0 0 6px rgba(254, 222, 93, 0.3);
   }
+  .vkbook-nav a:hover { background: #382c4f; border-color: #ff7edb; color: #ff7edb; }
   .vkbook-nav .title {
     color: #ff7edb; font-weight: 700;
     text-shadow: 0 0 10px rgba(255, 126, 219, 0.45);
@@ -7957,6 +7959,29 @@ a.anchor-link {
     padding: 8px 14px; background: #1e1a2b;
     border: 1px solid rgba(54, 249, 246, 0.45); border-radius: 8px;
   }
+
+  /* In-chapter SynthWave '84 tap-to-explain glossary drawer (never lose your place!) */
+  #vk-tip-box {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+    width: min(94vw, 540px); z-index: 2000; display: none;
+    background: #1b1528; color: #f4eee4;
+    border: 1px solid #36f9f6; border-radius: 14px; padding: 14px 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), 0 0 22px rgba(54, 249, 246, 0.28);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  #vk-tip-box .vk-tip-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  }
+  #vk-tip-box .vk-tip-term { color: #fede5d; font-weight: 800; font-size: 18px; }
+  #vk-tip-box .vk-tip-full { color: #36f9f6; font-weight: 600; font-size: 14px; margin: 2px 0 6px; }
+  #vk-tip-box .vk-tip-desc { color: #ede6f5; font-size: 14px; margin: 0 0 10px; line-height: 1.5; }
+  #vk-tip-box .vk-tip-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  #vk-tip-box button {
+    background: #2a2139; color: #ff7edb; border: 1px solid rgba(255,126,219,0.5);
+    border-radius: 7px; padding: 5px 12px; font-weight: 700; cursor: pointer; font-size: 13px;
+  }
+  #vk-tip-box a { color: #36f9f6; font-size: 13px; font-weight: 600; text-decoration: none; }
+
   @media (max-width: 768px) {
     body.jp-Notebook { padding: 0 !important; margin: 0 !important; }
     .jp-Notebook { padding: 8px !important; }
@@ -7971,7 +7996,7 @@ a.anchor-link {
 
 </head>
 <body class="jp-Notebook" data-jp-theme-light="false" data-jp-theme-name="JupyterLab Dark">
-<div class="vkbook-nav"><a href="../index.html">&larr; Book Home</a><span class="title">Foundations &middot; The Perceptron</span><span style="display:flex;gap:6px;"><a href="00b_multi_layer_perceptron.html">Next &rarr;</a></span></div>
+<div class="vkbook-nav"><span style="display:flex;gap:6px;align-items:center;"><a href="../index.html">&larr; Home</a><a class="gloss-btn" href="../glossary.html">Glossary</a></span><span class="title">Foundations &middot; The Perceptron</span><span style="display:flex;gap:6px;"><a href="00b_multi_layer_perceptron.html">Next &rarr;</a></span></div>
 
 <main>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=perc-c00">
@@ -7993,7 +8018,7 @@ a.anchor-link {
 <li>Compute the total score: <code>score = w1 * x1 + w2 * x2 + b</code>.</li>
 <li>If <code>score &gt;= 0</code>, output <strong><code>1</code> (Yes!)</strong> — otherwise output <strong><code>0</code> (No!)</strong>.</li>
 </ol>
-<p>That's it! Every massive AI model — from image classifiers to ChatGPT — is built by wiring together thousands or billions of tiny weighted votes just like this one.</p>
+<p>That's it! Every massive <a class="vk-term" href="../glossary.html#term-ai" title="Artificial Intelligence: The broad field of building computer programs that can learn patterns, make decisions, or generate text and images." data-term="AI" data-full="Artificial Intelligence" data-desc="The broad field of building computer programs that can learn patterns, make decisions, or generate text and images.">AI</a> model — from image classifiers to ChatGPT — is built by wiring together thousands or billions of tiny weighted votes just like this one.</p>
 </div>
 </div>
 </div>
@@ -8246,7 +8271,7 @@ ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 |
 <p>Modern deep learning makes <strong>one tiny upgrade</strong>: replace the hard step with a smooth S-curve (<strong><code>sigmoid</code></strong>) that outputs a probability between <code>0.0</code> and <code>1.0</code>.</p>
 <ul>
 <li><code>nn.Linear(2, 1)</code> <strong>literally IS a single neuron</strong> (<code>w1 * x1 + w2 * x2 + b</code>)!</li>
-<li>Wrapping it with <code>BCEWithLogitsLoss</code> (sigmoid + binary cross-entropy) lets our Vulkan GPU compute exact gradients with <code>loss.backward()</code> and smoothly update <code>w1, w2, b</code>!</li>
+<li>Wrapping it with <code>BCEWithLogitsLoss</code> (sigmoid + binary cross-entropy) lets our Vulkan <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> compute exact gradients with <code>loss.backward()</code> and smoothly update <code>w1, w2, b</code>!</li>
 </ul>
 <p><em>(Fun fact: A single smooth neuron with sigmoid is mathematically identical to <strong><code>LogisticRegression</code></strong> from Chapters 1 &amp; 3!)</em></p>
 </div>
@@ -8321,10 +8346,10 @@ vklearn.LogisticRegression: w = [2.41 1.69], b = +0.40  -&gt;  Accuracy = 100.0%
 <h3 id="What-Did-the-Perceptron-Just-Learn?-(In-Plain-English)">What Did the Perceptron Just Learn? (In Plain English)<a class="anchor-link" href="#What-Did-the-Perceptron-Just-Learn?-(In-Plain-English)">¶</a></h3><ol>
 <li><strong>Where it started (<code>w = [-0.25, -0.45]</code>, 2% accuracy):</strong> Both weights were negative, so the neuron had the world completely backwards — voting <em>"Go for a walk"</em> on cold/blue points and <em>"Stay inside"</em> on warm/orange points.</li>
 <li><strong>Classic 1957 Perceptron (<code>w = [+0.14, +0.03], b = +0.05</code>, 100%):</strong> After 28 mistake corrections, both weights flipped <strong>positive</strong> (<em>higher <code>x1</code> and higher <code>x2</code> → vote Yes!</em>). Notice the dividing line is steep and stops the <em>instant</em> it reaches 0 mistakes — the classic perceptron is "lazy" and quits as soon as all training points are on the right side.</li>
-<li><strong>Smooth GPU Neuron (<code>w = [+2.38, +1.65], b = +0.14</code>, 100%):</strong> Both <code>vktorch</code> and <code>vklearn.LogisticRegression</code> (<code>[+2.41, +1.69]</code>) learned almost the exact same balanced weights! Because the smooth <code>sigmoid</code> loss rewards <em>confident</em> predictions instead of stopping at 0 mistakes, it rotated the white line into a <strong>clean diagonal right down the center of the gap</strong> between both clusters.</li>
-<li><strong>Why are the GPU neuron's weights ~15× bigger (<code>2.38</code> vs <code>0.14</code>)?</strong><ul>
+<li><strong>Smooth <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> Neuron (<code>w = [+2.38, +1.65], b = +0.14</code>, 100%):</strong> Both <code>vktorch</code> and <code>vklearn.LogisticRegression</code> (<code>[+2.41, +1.69]</code>) learned almost the exact same balanced weights! Because the smooth <code>sigmoid</code> loss rewards <em>confident</em> predictions instead of stopping at 0 mistakes, it rotated the white line into a <strong>clean diagonal right down the center of the gap</strong> between both clusters.</li>
+<li><strong>Why are the <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> neuron's weights ~15× bigger (<code>2.38</code> vs <code>0.14</code>)?</strong><ul>
 <li>The classic <code>score &gt;= 0</code> perceptron only cares about the <strong>sign</strong> (<code>+</code> or <code>-</code>), so multiplying its weights by 10 draws the <em>exact same line</em>. With a small <code>lr = 0.015</code>, its weights simply stayed small.</li>
-<li>For a smooth <code>sigmoid</code> neuron, <strong>bigger weights = higher confidence!</strong> A tiny score like <code>+0.14</code> only gives <code>sigmoid(0.14) = 53%</code> confidence (high loss), whereas <code>+4.0</code> gives <code>98%</code> confidence (near-zero loss). So the GPU neuron intentionally grows its weights to be confident on both clusters — while the <strong>ratio</strong> (<code>2.38 : 1.65</code>) sets the cleaner diagonal angle!</li>
+<li>For a smooth <code>sigmoid</code> neuron, <strong>bigger weights = higher confidence!</strong> A tiny score like <code>+0.14</code> only gives <code>sigmoid(0.14) = 53%</code> confidence (high loss), whereas <code>+4.0</code> gives <code>98%</code> confidence (near-zero loss). So the <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> neuron intentionally grows its weights to be confident on both clusters — while the <strong>ratio</strong> (<code>2.38 : 1.65</code>) sets the cleaner diagonal angle!</li>
 </ul>
 </li>
 </ol>
@@ -8341,14 +8366,14 @@ vklearn.LogisticRegression: w = [2.41 1.69], b = +0.40  -&gt;  Accuracy = 100.0%
 <hr/>
 <h2 id="Step-3:-The-Famous-Limit-of-One-Neuron-(Why-We-Need-Networks!)">Step 3: The Famous Limit of One Neuron (Why We Need <em>Networks</em>!)<a class="anchor-link" href="#Step-3:-The-Famous-Limit-of-One-Neuron-(Why-We-Need-Networks!)">¶</a></h2><p>A single perceptron can draw <strong>any straight line</strong> — which solves <code>AND</code>, <code>OR</code>, and any linearly separable dataset cleanly.</p>
 <p><strong>But what if the answer isn't separable by a single straight line?</strong>
-Look at the <strong>XOR ("exclusive OR")</strong> puzzle:</p>
+Look at the <strong><a class="vk-term" href="../glossary.html#term-xor" title="Exclusive OR: A logic rule that outputs 1 when the two inputs are DIFFERENT ((0,1) or (1,0)) and 0 when they are the same. Famous because 1 straight line cannot solve it!" data-term="XOR" data-full="Exclusive OR" data-desc="A logic rule that outputs 1 when the two inputs are DIFFERENT ((0,1) or (1,0)) and 0 when they are the same. Famous because 1 straight line cannot solve it!">XOR</a> ("exclusive OR")</strong> puzzle:</p>
 <ul>
 <li><code>(0, 0) -&gt; 0</code> (neither)</li>
 <li><code>(1, 1) -&gt; 0</code> (both)</li>
 <li><code>(0, 1) -&gt; 1</code> (only one!)</li>
 <li><code>(1, 0) -&gt; 1</code> (only one!)</li>
 </ul>
-<p>Let's let our single GPU neuron try its hardest on <code>XOR</code> — and watch what happens!</p>
+<p>Let's let our single <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> neuron try its hardest on <code>XOR</code> — and watch what happens!</p>
 </div>
 </div>
 </div>
@@ -8397,7 +8422,7 @@ Smooth GPU Neuron on XOR  -&gt; probs:       [0.5, 0.5, 0.5, 0.5]  (stuck at 50%
 <h3 id="Key-Takeaway">Key Takeaway<a class="anchor-link" href="#Key-Takeaway">¶</a></h3><ul>
 <li><strong>One neuron = one straight line.</strong> It's fast, transparent, and solves simple problems (<code>AND</code>, <code>OR</code>, linear splits) perfectly.</li>
 <li><strong>On <code>XOR</code>, a single neuron is mathematically stuck at ~50%</strong> — because no single straight line can separate opposite corners!</li>
-<li><strong>Next step:</strong> Wire <strong>just 4 neurons together</strong> in a hidden layer (a <strong>Multi-Layer Perceptron / MLP</strong>) so they can combine multiple straight lines into curved boundaries — and that's the exact leap that unlocks all of Deep Learning!</li>
+<li><strong>Next step:</strong> Wire <strong>just 4 neurons together</strong> in a hidden layer (a <strong>Multi-Layer Perceptron / <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a></strong>) so they can combine multiple straight lines into curved boundaries — and that's the exact leap that unlocks all of Deep Learning!</li>
 </ul>
 </div>
 </div>
@@ -8405,6 +8430,35 @@ Smooth GPU Neuron on XOR  -&gt; probs:       [0.5, 0.5, 0.5, 0.5]  (stuck at 50%
 </div>
 </main>
 
-<div class="vkbook-footer"><a href="../index.html">&larr; Book Home</a><a href="00b_multi_layer_perceptron.html">Next &rarr;</a></div>
+<div class="vkbook-footer"><a href="../index.html">&larr; Book Home</a><a href="../glossary.html">Acronym Glossary</a><a href="00b_multi_layer_perceptron.html">Next &rarr;</a></div>
+<div id="vk-tip-box" role="dialog" aria-live="polite">
+  <div class="vk-tip-head">
+    <span class="vk-tip-term" id="vk-t-abbr"></span>
+    <button type="button" onclick="document.getElementById('vk-tip-box').style.display='none'">Close</button>
+  </div>
+  <div class="vk-tip-full" id="vk-t-full"></div>
+  <p class="vk-tip-desc" id="vk-t-desc"></p>
+  <div class="vk-tip-actions">
+    <span style="font-size:12px;color:#848bbd;">Tap anywhere outside to dismiss</span>
+    <a id="vk-t-more" href="../glossary.html">Open Full Glossary &rarr;</a>
+  </div>
+</div>
+<script>
+  document.addEventListener('click', (e) => {
+    const box = document.getElementById('vk-tip-box');
+    const a = e.target.closest('a.vk-term');
+    if (a) {
+      e.preventDefault();
+      document.getElementById('vk-t-abbr').textContent = a.dataset.term || a.textContent;
+      document.getElementById('vk-t-full').textContent = a.dataset.full || '';
+      document.getElementById('vk-t-desc').textContent = a.dataset.desc || a.title || '';
+      document.getElementById('vk-t-more').href = a.getAttribute('href');
+      box.style.display = 'block';
+    } else if (box.style.display === 'block' && !e.target.closest('#vk-tip-box')) {
+      box.style.display = 'none';
+    }
+  });
+</script>
+
 </body>
 </html>
