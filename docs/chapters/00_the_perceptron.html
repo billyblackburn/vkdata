@@ -7812,91 +7812,136 @@ a.anchor-link {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   :root {
-    --jp-layout-color0: #0d1117 !important;
-    --jp-layout-color1: #161b22 !important;
-    --jp-layout-color2: #1f2633 !important;
-    --jp-border-color1: #30363d !important;
-    --jp-border-color2: #262c36 !important;
-    --jp-ui-font-color1: #e6edf3 !important;
-    --jp-content-font-color1: #e6edf3 !important;
-    --jp-cell-editor-background: #161b22 !important;
-    --jp-cell-editor-border-color: #30363d !important;
+    --jp-layout-color0: #262335 !important;
+    --jp-layout-color1: #1e1a2b !important;
+    --jp-layout-color2: #2a2139 !important;
+    --jp-border-color1: #495495 !important;
+    --jp-border-color2: #3b3355 !important;
+    --jp-ui-font-color1: #f4eee4 !important;
+    --jp-content-font-color1: #f4eee4 !important;
+    --jp-cell-editor-background: #1e1a2b !important;
+    --jp-cell-editor-border-color: #495495 !important;
   }
   html, body, body.jp-Notebook {
-    background-color: #0d1117 !important;
-    color: #e6edf3 !important;
+    background-color: #262335 !important;
+    background-image: radial-gradient(circle at 20% 0%, rgba(255, 126, 219, 0.09), transparent 45%),
+                      radial-gradient(circle at 85% 10%, rgba(54, 249, 246, 0.08), transparent 40%) !important;
+    color: #f4eee4 !important;
   }
   .jp-RenderedMarkdown {
-    color: #e6edf3 !important;
-    line-height: 1.65;
+    color: #ede6f5 !important;
+    line-height: 1.68;
   }
-  .jp-RenderedMarkdown h1, .jp-RenderedMarkdown h2, .jp-RenderedMarkdown h3 {
-    color: #f0f6fc !important;
-    border-color: #30363d !important;
+  .jp-RenderedMarkdown h1 {
+    color: #ff7edb !important;
+    text-shadow: 0 0 12px rgba(255, 126, 219, 0.45);
+    border-color: #495495 !important;
   }
-  .jp-RenderedMarkdown a { color: #58a6ff !important; }
+  .jp-RenderedMarkdown h2 {
+    color: #36f9f6 !important;
+    text-shadow: 0 0 10px rgba(54, 249, 246, 0.35);
+    border-color: #495495 !important;
+  }
+  .jp-RenderedMarkdown h3 {
+    color: #fede5d !important;
+    text-shadow: 0 0 8px rgba(254, 222, 93, 0.3);
+  }
+  .jp-RenderedMarkdown strong { color: #ffffff !important; }
+  .jp-RenderedMarkdown a { color: #36f9f6 !important; }
   .jp-RenderedMarkdown code {
-    background: #1f2633 !important; color: #79c0ff !important;
+    background: #1b1728 !important; color: #ff7edb !important;
+    border: 1px solid rgba(255, 126, 219, 0.25);
     padding: 2px 6px; border-radius: 5px;
   }
   .jp-RenderedMarkdown blockquote {
-    border-left: 3px solid #58a6ff !important;
-    background: #131922; padding: 8px 14px; border-radius: 0 8px 8px 0;
-    color: #c9d1d9 !important;
+    border-left: 3px solid #ff7edb !important;
+    background: #1e1a2b; padding: 10px 14px; border-radius: 0 8px 8px 0;
+    color: #d6cceb !important;
+    box-shadow: 0 0 16px rgba(255, 126, 219, 0.08);
+  }
+  .jp-RenderedMarkdown hr {
+    border: none; height: 1px;
+    background: linear-gradient(90deg, rgba(255,126,219,0.6), rgba(54,249,246,0.6), transparent);
   }
   .jp-InputArea-editor {
-    background: #161b22 !important;
-    border: 1px solid #30363d !important;
-    border-radius: 8px !important;
+    background: #1e1a2b !important;
+    border: 1px solid #495495 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 0 18px rgba(54, 249, 246, 0.07);
   }
   .jp-OutputArea-output pre {
-    color: #c9d1d9 !important;
-    background: #0f141b !important;
-    border-radius: 6px; padding: 8px 10px;
+    color: #d7cef0 !important;
+    background: #171422 !important;
+    border: 1px solid rgba(73, 84, 149, 0.45);
+    border-radius: 8px; padding: 10px 12px;
   }
 
-  /* Vibrant VS Code / GitHub Dark Python syntax highlighting (Pygments tokens) */
-  .highlight { background: #161b22 !important; color: #e6edf3 !important; }
-  .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch { color: #8b949e !important; font-style: italic; }
-  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc { color: #ff7b72 !important; font-weight: 600; }
-  .highlight .ow { color: #ff7b72 !important; }
-  .highlight .o { color: #d2a8ff !important; }
-  .highlight .nf, .highlight .fm { color: #d2a8ff !important; font-weight: 600; }
-  .highlight .nc { color: #ffa657 !important; font-weight: 600; }
-  .highlight .nb, .highlight .bp { color: #79c0ff !important; }
-  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si { color: #a5d6ff !important; }
-  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo { color: #79c0ff !important; }
-  .highlight .n { color: #e6edf3 !important; }
-  .highlight .nd { color: #d2a8ff !important; }
-  .highlight .nn { color: #ffa657 !important; }
-  .highlight .p { color: #c9d1d9 !important; }
+  /* SynthWave '84 Neon Vaporwave Python Syntax Highlighting */
+  .highlight { background: #1e1a2b !important; color: #f4eee4 !important; }
+  .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch { color: #848bbd !important; font-style: italic; }
+  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow {
+    color: #fede5d !important; font-weight: 600;
+    text-shadow: 0 0 6px rgba(254, 222, 93, 0.28);
+  }
+  .highlight .o { color: #fede5d !important; }
+  .highlight .nf, .highlight .fm {
+    color: #36f9f6 !important; font-weight: 600;
+    text-shadow: 0 0 8px rgba(54, 249, 246, 0.4);
+  }
+  .highlight .nc, .highlight .nn {
+    color: #fe4450 !important; font-weight: 600;
+    text-shadow: 0 0 8px rgba(254, 68, 80, 0.35);
+  }
+  .highlight .nb, .highlight .bp {
+    color: #ff7edb !important;
+    text-shadow: 0 0 6px rgba(255, 126, 219, 0.35);
+  }
+  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si {
+    color: #ff8b39 !important;
+  }
+  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo {
+    color: #f97e72 !important;
+    text-shadow: 0 0 6px rgba(249, 126, 114, 0.3);
+  }
+  .highlight .nd { color: #72f1b8 !important; text-shadow: 0 0 6px rgba(114, 241, 184, 0.35); }
+  .highlight .n { color: #f4eee4 !important; }
+  .highlight .p { color: #b6b1d6 !important; }
 
-  /* Sticky dark top & bottom chapter navigation */
+  /* Sticky SynthWave '84 top & bottom chapter navigation */
   .vkbook-nav {
     position: sticky; top: 0; z-index: 1000;
-    background: #11151d; color: #e6edf3;
-    border-bottom: 1px solid #30363d;
+    background: linear-gradient(90deg, #1b1528, #241b35, #1b1528);
+    color: #f4eee4;
+    border-bottom: 1px solid #ff7edb;
+    box-shadow: 0 2px 16px rgba(255, 126, 219, 0.22);
     padding: 10px 14px; display: flex; flex-wrap: wrap;
     align-items: center; justify-content: space-between; gap: 8px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 14px;
   }
   .vkbook-nav a {
-    color: #58a6ff; text-decoration: none; font-weight: 600;
-    padding: 5px 11px; border-radius: 6px; background: #1c2331;
-    border: 1px solid #30363d;
+    color: #36f9f6; text-decoration: none; font-weight: 600;
+    padding: 5px 11px; border-radius: 6px; background: #2a2139;
+    border: 1px solid rgba(54, 249, 246, 0.45);
+    text-shadow: 0 0 6px rgba(54, 249, 246, 0.35);
   }
-  .vkbook-nav a:hover { background: #263145; }
-  .vkbook-nav .title { color: #f0f6fc; font-weight: 600; }
+  .vkbook-nav a:hover {
+    background: #382c4f; border-color: #ff7edb; color: #ff7edb;
+  }
+  .vkbook-nav .title {
+    color: #ff7edb; font-weight: 700;
+    text-shadow: 0 0 10px rgba(255, 126, 219, 0.45);
+  }
   .vkbook-footer {
-    margin: 32px 0 24px; padding: 14px; border-top: 1px solid #30363d;
+    margin: 32px 0 24px; padding: 14px;
+    border-top: 1px solid #495495;
     display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   .vkbook-footer a {
-    color: #58a6ff; text-decoration: none; font-weight: 600;
-    padding: 8px 14px; background: #161b22;
-    border: 1px solid #30363d; border-radius: 8px;
+    color: #36f9f6; text-decoration: none; font-weight: 600;
+    padding: 8px 14px; background: #1e1a2b;
+    border: 1px solid rgba(54, 249, 246, 0.45); border-radius: 8px;
   }
   @media (max-width: 768px) {
     body.jp-Notebook { padding: 0 !important; margin: 0 !important; }

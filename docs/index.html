@@ -6,54 +6,83 @@
   <title>Hands-On AI, ML &amp; GPU Computing — Without CUDA or ROCm (vkdata)</title>
   <style>
     :root {
-      --bg: #0d1117; --card: #161b22; --border: #30363d;
-      --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff; --green: #3fb950;
+      --bg: #262335; --card: #1e1a2b; --border: #495495;
+      --text: #f4eee4; --muted: #b6b1d6;
+      --pink: #ff7edb; --cyan: #36f9f6; --yellow: #fede5d; --mint: #72f1b8;
     }
     * { box-sizing: border-box; }
     body {
-      margin: 0; background: var(--bg); color: var(--text);
+      margin: 0; background-color: var(--bg); color: var(--text);
+      background-image:
+        radial-gradient(circle at 18% 0%, rgba(255, 126, 219, 0.16), transparent 42%),
+        radial-gradient(circle at 85% 5%, rgba(54, 249, 246, 0.14), transparent 38%),
+        linear-gradient(180deg, #241b2f 0%, #262335 45%, #1c1828 100%);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      line-height: 1.6;
+      line-height: 1.6; min-height: 100vh;
     }
     .wrap { max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; }
     .badge {
-      display: inline-block; font-size: 12px; font-weight: 600;
-      color: var(--green); border: 1px solid rgba(63,185,80,0.4);
-      background: rgba(63,185,80,0.12); padding: 3px 10px; border-radius: 999px;
-      margin-bottom: 12px;
+      display: inline-block; font-size: 12px; font-weight: 700;
+      color: var(--cyan); border: 1px solid rgba(54, 249, 246, 0.55);
+      background: rgba(54, 249, 246, 0.1); padding: 4px 12px; border-radius: 999px;
+      margin-bottom: 14px; text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
+      box-shadow: 0 0 14px rgba(54, 249, 246, 0.15);
     }
-    h1 { font-size: clamp(26px, 5vw, 38px); line-height: 1.2; margin: 0 0 10px; }
-    .sub { color: var(--muted); font-size: 16px; margin: 0 0 24px; }
-    h2 { font-size: 20px; margin: 32px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+    h1 {
+      font-size: clamp(26px, 5vw, 40px); line-height: 1.18; margin: 0 0 12px;
+      color: var(--pink);
+      text-shadow: 0 0 18px rgba(255, 126, 219, 0.55);
+    }
+    .sub { color: var(--muted); font-size: 16px; margin: 0 0 26px; }
+    h2 {
+      font-size: 20px; margin: 32px 0 14px; color: var(--cyan);
+      text-shadow: 0 0 10px rgba(54, 249, 246, 0.4);
+      border-bottom: 1px solid rgba(255, 126, 219, 0.35); padding-bottom: 6px;
+    }
     .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
     .card {
       display: block; text-decoration: none; color: inherit;
       background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; padding: 16px 18px; transition: border-color 0.15s, transform 0.15s;
+      border-radius: 12px; padding: 16px 18px;
+      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
     }
-    .card:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .card:hover {
+      border-color: var(--pink); transform: translateY(-2px);
+      box-shadow: 0 0 22px rgba(255, 126, 219, 0.25);
+    }
     .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-    .ch { color: var(--accent); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
-    .pill {
-      font-size: 12px; font-weight: 600; color: #7ee787;
-      background: rgba(63,185,80,0.14); padding: 2px 8px; border-radius: 6px;
+    .ch {
+      color: var(--yellow); font-weight: 700; font-size: 13px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      text-shadow: 0 0 6px rgba(254, 222, 93, 0.35);
     }
-    .card h3 { margin: 6px 0 6px; font-size: 18px; }
+    .pill {
+      font-size: 12px; font-weight: 700; color: var(--mint);
+      background: rgba(114, 241, 184, 0.12);
+      border: 1px solid rgba(114, 241, 184, 0.35);
+      padding: 2px 9px; border-radius: 6px;
+    }
+    .card h3 { margin: 6px 0 6px; font-size: 18px; color: #ffffff; }
     .card p { margin: 0; color: var(--muted); font-size: 14.5px; }
     .note {
-      margin-top: 28px; background: #131922; border: 1px solid var(--border);
-      border-radius: 10px; padding: 14px 16px; font-size: 14px; color: var(--muted);
+      margin-top: 30px; background: #1a1626; border: 1px solid rgba(54, 249, 246, 0.4);
+      border-radius: 12px; padding: 15px 18px; font-size: 14px; color: var(--muted);
+      box-shadow: 0 0 18px rgba(54, 249, 246, 0.1);
     }
-    .note a { color: var(--accent); text-decoration: none; font-weight: 600; }
-    code { background: #1f2633; padding: 2px 6px; border-radius: 5px; font-size: 13px; color: #d2e0ff; }
+    .note strong { color: var(--yellow); }
+    .note a { color: var(--cyan); text-decoration: none; font-weight: 600; }
+    code {
+      background: #2b2340; padding: 2px 6px; border-radius: 5px;
+      font-size: 13px; color: var(--pink);
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="badge">Interactive Follow-Along Book &middot; Pure Vulkan GPU</div>
-    <h1>Hands-On AI, Machine Learning &amp; GPU Computing — Without CUDA or ROCm</h1>
+    <h1>Hands-On AI, Machine Learning &amp; GPU Computing &mdash; Without CUDA or ROCm</h1>
     <p class="sub">
-      Learn how AI actually works on the Vulkan GPU you already own (Steam Deck, AMD APU, Intel iGPU/Arc, older Radeon/NVIDIA, or Apple MoltenVK) — powered by the bundled <code>vkdata</code> toolkit.
+      Learn how AI actually works on the Vulkan GPU you already own (Steam Deck, AMD APU, Intel iGPU/Arc, older Radeon/NVIDIA, or Apple MoltenVK) &mdash; powered by the bundled <code>vkdata</code> toolkit.
     </p>
 
     <h2>Start Here &middot; Building Blocks of AI</h2>
@@ -64,7 +93,7 @@
           <span class="pill">AND / OR &rarr; GPU Neuron &rarr; XOR Wall</span>
         </div>
         <h3>The Perceptron: How a Single Artificial Neuron Works</h3>
-        <p>Start from zero: weighted votes, watching a single straight line learn from mistakes, running the same neuron on your Vulkan GPU with <code>vktorch</code>, and hitting the famous XOR limit.</p>
+        <p>Start from zero: weighted votes, watching a single straight line learn with <code>vklearn.Perceptron</code>, running the same neuron on your Vulkan GPU with <code>vktorch</code>, and hitting the famous XOR limit.</p>
       </a>
     </div>
 
@@ -85,7 +114,7 @@
           <span class="pill">$48.2k RMSE &middot; R&sup2; 0.828</span>
         </div>
         <h3>California Housing: Beating Classical ML with a Deep Neural Network</h3>
-        <p>Train a <code>vktorch</code> Pre-Norm Residual MLP (fused SPIR-V LayerNorm, GELU, AdamW) on the exact same split — beating GPU KNN by -$4,510 RMSE with .npz checkpointing.</p>
+        <p>Train a <code>vktorch</code> Pre-Norm Residual MLP (fused SPIR-V LayerNorm, GELU, AdamW) on the exact same split &mdash; beating GPU KNN by -$4,510 RMSE with .npz checkpointing.</p>
       </a>
 
       <a class="card" href="chapters/03_fashion_classical_ml.html">
@@ -94,7 +123,7 @@
           <span class="pill">81.5% &rarr; 86.45% Acc</span>
         </div>
         <h3>Fashion-MNIST: Image Feature Discovery &amp; Classical Computer Vision</h3>
-        <p>Visualize GPU "Average Clothing" prototypes, discover Eigen-Clothes with PCA, hand-craft Sobel/HOG edge features, and analyze the 10&times;10 confusion matrix.</p>
+        <p>Visualize GPU &ldquo;Average Clothing&rdquo; prototypes, discover Eigen-Clothes with PCA, hand-craft Sobel/HOG edge features, and analyze the 10&times;10 confusion matrix.</p>
       </a>
 
       <a class="card" href="chapters/04_fashion_cnn_deep_learning.html">
