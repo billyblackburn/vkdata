@@ -127,7 +127,7 @@ Here is the real measured speedup on a **Steam Deck APU** (`1024 × 256` tensor,
 
 ---
 
-## Appendix A · The Included `vkdata` Toolkit (14 Pure-Vulkan Packages)
+## Appendix A · The Included `vkdata` Toolkit (15 Pure-Vulkan Packages)
 
 Every chapter in this book runs on the bundled `vkdata` toolkit — powered by `llama.cpp`'s `ggml-vulkan`, `Tencent/ncnn`, and custom SPIR-V compute shaders sharing a **single `VkDevice` and zero-copy `VkBuffer`s**.
 
@@ -146,6 +146,7 @@ Every chapter in this book runs on the bundled `vkdata` toolkit — powered by `
 | **`vkvis`** | `mlx-vis` / `UMAP` | Pure-Vulkan GPU manifold learning: `UMAP`, `TSNE`, `PaCMAP`, `LocalMAP`, `TriMap`, `DREAMS`, `CNE`, `NNDescent`, & 2D/3D rendering |
 | **`vklearn`** | `scikit-learn` / `cuML` | `StandardScaler`, `MinMaxScaler`, `LinearRegression`, `Ridge`, `LogisticRegression`, `PCA`, `KMeans`, `NearestNeighbors`, `KNeighborsClassifier`, `Pipeline` |
 | **`vktorch`** | `PyTorch` | Dynamic reverse-mode autograd (`Tensor`, `.backward()`, `no_grad()`), `nn` (`Linear`, `LoRALinear`, `Conv2d`, `MaxPool2d`, `LayerNorm`, `RMSNorm`, `SwiGLU`, `Embedding`, `MultiheadAttention`, `KVCache`, `TransformerBlock`, `LlamaBlock`), fused SPIR-V kernels (incl. `RoPE` & `im2col`/`col2im`), `optim` (`SGD`, `Adam`, `AdamW`, `CosineAnnealingLR`), `DataLoader`, & `.npz` checkpointing |
+| **`vkvec`** | `FAISS` / `ChromaDB` | In-VRAM Vulkan GPU Vector Database (`VectorIndex` with Cosine/L2/Dot search, `where=` metadata filtering, `.save()`/`.load()`), GPU `TfidfVectorizer`, `cosine_similarity`, & RAG `chunk_text` |
 | **`vkastro`** | `Astropy` | GPU `SkyCoord`, `aitoff_projection`, photometry, `FlatLambdaCDM` cosmology, & `read_fits` |
 
 ---
