@@ -281,3 +281,29 @@ class DataFrame:
             out_cols[out_name] = col._take(r_idx)
 
         return DataFrame(out_cols)
+
+    def describe(self, *, max_categories: int = 8) -> str:
+        """Return a readable GPU-computed summary of ranges, NaNs, and categorical counts."""
+        n_rows, n_cols = self.shape
+        col_w = max((len(c) for c in self._columns), default=8)
+        lines = [f"vkpandas.DataFrame ({n_rows:,} rows x {n_cols} columns)"]
+        for name, s in self._columns.items():
+            n_nan = int(s.isna().sum())
+            if s.is_string:
+                vc = s.value_counts()
+                items = list(vc.items())
+                shown = ", ".join(f"{k}({int(v)})" for k, v in items[:max_categories])
+                if len(items) > max_categories:
+                    shown += f", ... (+{len(items) - max_categories} more)"
+                lines.append(f"  {name:{col_w}s} | CATEGORICAL ({len(items)} unique): {shown}")
+            else:
+                clean = s.dropna() if n_nan else s
+                if len(clean) == 0:
+                    lines.append(f"  {name:{col_w}s} | ALL NaN (NaNs={n_nan})")
+                else:
+                    lines.append(
+                        f"  {name:{col_w}s} | min={float(clean.min()):10.2f}  "
+                        f"mean={float(clean.mean()):10.2f}  std={float(clean.std()):9.2f}  "
+                        f"max={float(clean.max()):10.2f}  NaNs={n_nan}"
+                    )
+        return "\n".join(lines)
