@@ -20,8 +20,31 @@ SYNTHWAVE84_CSS = """
     --jp-border-color2: #3b3355 !important;
     --jp-ui-font-color1: #f4eee4 !important;
     --jp-content-font-color1: #f4eee4 !important;
-    --jp-cell-editor-background: #1e1a2b !important;
+    --jp-cell-editor-background: #1b1728 !important;
     --jp-cell-editor-border-color: #495495 !important;
+    --jp-mirror-editor-keyword-color: #fede5d !important;
+    --jp-mirror-editor-atom-color: #f97e72 !important;
+    --jp-mirror-editor-number-color: #f97e72 !important;
+    --jp-mirror-editor-def-color: #36f9f6 !important;
+    --jp-mirror-editor-variable-color: #f4eee4 !important;
+    --jp-mirror-editor-variable-2-color: #ff7edb !important;
+    --jp-mirror-editor-variable-3-color: #72f1b8 !important;
+    --jp-mirror-editor-punctuation-color: #b6b1d6 !important;
+    --jp-mirror-editor-property-color: #36f9f6 !important;
+    --jp-mirror-editor-operator-color: #fede5d !important;
+    --jp-mirror-editor-comment-color: #848bbd !important;
+    --jp-mirror-editor-string-color: #ff8b39 !important;
+    --jp-mirror-editor-string-2-color: #ff8b39 !important;
+    --jp-mirror-editor-meta-color: #72f1b8 !important;
+    --jp-mirror-editor-qualifier-color: #ff7edb !important;
+    --jp-mirror-editor-builtin-color: #ff7edb !important;
+    --jp-mirror-editor-bracket-color: #b6b1d6 !important;
+    --jp-mirror-editor-tag-color: #ff7edb !important;
+    --jp-mirror-editor-attribute-color: #36f9f6 !important;
+    --jp-mirror-editor-header-color: #ff7edb !important;
+    --jp-mirror-editor-quote-color: #72f1b8 !important;
+    --jp-mirror-editor-link-color: #36f9f6 !important;
+    --jp-mirror-editor-error-color: #fe4450 !important;
   }
   html, body, body.jp-Notebook {
     background-color: #262335 !important;
@@ -78,7 +101,7 @@ SYNTHWAVE84_CSS = """
   }
 
   /* SynthWave '84 Neon Vaporwave Python Syntax Highlighting */
-  .highlight { background: #1e1a2b !important; color: #f4eee4 !important; }
+  .jp-CodeMirrorEditor, .jp-InputArea-editor, .highlight, .highlight pre { background: #1b1728 !important; color: #f4eee4 !important; }
   .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch { color: #848bbd !important; font-style: italic; }
   .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow {
     color: #fede5d !important; font-weight: 600;
