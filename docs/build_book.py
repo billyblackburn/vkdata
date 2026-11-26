@@ -630,24 +630,48 @@ index_html = f"""<!DOCTYPE html>
       border-bottom: 1px solid rgba(255, 126, 219, 0.35); padding-bottom: 6px;
     }}
     .grid {{ display: grid; grid-template-columns: 1fr; gap: 14px; }}
+    .dt-legend {{
+      display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px;
+    }}
+    .dt-chip {{
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04); border: 1px solid var(--accent, var(--border));
+      color: var(--accent, var(--text));
+    }}
+    .dt-chip .dot {{
+      width: 8px; height: 8px; border-radius: 50%; background: var(--accent, var(--cyan));
+      box-shadow: 0 0 8px var(--accent, var(--cyan));
+    }}
     .card {{
+      --accent: var(--pink);
+      --accent-bg: rgba(255, 126, 219, 0.10);
+      --accent-glow: rgba(255, 126, 219, 0.28);
       display: block; text-decoration: none; color: inherit;
-      background: var(--card); border: 1px solid var(--border);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
       border-radius: 12px; padding: 16px 18px;
       transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
     }}
+    .card.dt-foundations {{ --accent: #fede5d; --accent-bg: rgba(254, 222, 93, 0.12);  --accent-glow: rgba(254, 222, 93, 0.25); }}
+    .card.dt-tabular     {{ --accent: #36f9f6; --accent-bg: rgba(54, 249, 246, 0.11);  --accent-glow: rgba(54, 249, 246, 0.26); }}
+    .card.dt-image       {{ --accent: #ff7edb; --accent-bg: rgba(255, 126, 219, 0.11); --accent-glow: rgba(255, 126, 219, 0.28); }}
+    .card.dt-vector      {{ --accent: #72f1b8; --accent-bg: rgba(114, 241, 184, 0.11); --accent-glow: rgba(114, 241, 184, 0.26); }}
+    .card.dt-timeseries  {{ --accent: #ff9e64; --accent-bg: rgba(255, 158, 100, 0.12); --accent-glow: rgba(255, 158, 100, 0.26); }}
     .card:hover {{
-      border-color: var(--pink); transform: translateY(-2px);
-      box-shadow: 0 0 22px rgba(255, 126, 219, 0.25);
+      border-color: var(--accent); transform: translateY(-2px);
+      box-shadow: 0 0 22px var(--accent-glow);
     }}
     .card-head {{ display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }}
     .ch {{
-      color: var(--yellow); font-weight: 700; font-size: 13px;
+      color: var(--accent); font-weight: 700; font-size: 13px;
       text-transform: uppercase; letter-spacing: 0.05em;
+      text-shadow: 0 0 8px var(--accent-glow);
     }}
     .pill {{
-      font-size: 12px; font-weight: 700; color: var(--mint);
-      background: rgba(114, 241, 184, 0.12); border: 1px solid rgba(114, 241, 184, 0.35);
+      font-size: 12px; font-weight: 700; color: var(--accent);
+      background: var(--accent-bg); border: 1px solid var(--accent);
       padding: 2px 9px; border-radius: 6px;
     }}
     .card h3 {{ margin: 6px 0 6px; font-size: 18px; color: #ffffff; }}
@@ -675,7 +699,7 @@ index_html = f"""<!DOCTYPE html>
 
     <h2>Part 0 &middot; AI Foundations: Building Blocks of Neural Networks</h2>
     <div class="grid">
-      <a class="card" href="chapters/00_the_perceptron.html">
+      <a class="card dt-foundations" href="chapters/00_the_perceptron.html">
         <div class="card-head">
           <span class="ch">Foundations 1 &middot; 1 Artificial Neuron</span>
           <span class="pill">5 Gates &rarr; GPU Neuron &rarr; XOR Wall</span>
@@ -684,7 +708,7 @@ index_html = f"""<!DOCTYPE html>
         <p>Start from zero: weighted votes (AND, OR, NOT, NAND, NOR), watching a single straight line learn with <code>vklearn.Perceptron</code>, running the same neuron on your Vulkan GPU with <code>vktorch</code>, and hitting the famous XOR limit.</p>
       </a>
 
-      <a class="card" href="chapters/00b_multi_layer_perceptron.html">
+      <a class="card dt-foundations" href="chapters/00b_multi_layer_perceptron.html">
         <div class="card-head">
           <span class="ch">Foundations 2 &middot; Hidden Layers &amp; LLMs</span>
           <span class="pill">XOR 100% &middot; 3 Params &rarr; 8B Llama</span>
@@ -695,9 +719,14 @@ index_html = f"""<!DOCTYPE html>
     </div>
 
     <h2>Part I &middot; End-to-End Projects: Tabular, Image &amp; Vector Data</h2>
-    <p style="color:var(--muted);font-size:14px;margin:-6px 0 14px;">Every data type follows the same pattern: <strong>Feature Discovery &amp; Classical ML</strong> first, then <strong>Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
+    <p style="color:var(--muted);font-size:14px;margin:-6px 0 10px;">Every data type follows the same pattern: <strong>Feature Discovery &amp; Classical ML</strong> first, then <strong>Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
+    <div class="dt-legend">
+      <span class="dt-chip" style="--accent:#36f9f6;"><span class="dot"></span>Tabular Data (Ch. 1&ndash;2)</span>
+      <span class="dt-chip" style="--accent:#ff7edb;"><span class="dot"></span>Image Data (Ch. 3&ndash;4)</span>
+      <span class="dt-chip" style="--accent:#72f1b8;"><span class="dot"></span>Vector / Text &amp; NLP (Ch. 5&ndash;6)</span>
+    </div>
     <div class="grid">
-      <a class="card" href="chapters/01_housing_classical_ml.html">
+      <a class="card dt-tabular" href="chapters/01_housing_classical_ml.html">
         <div class="card-head">
           <span class="ch">Chapter 1 &middot; Tabular Data &middot; Regression</span>
           <span class="pill">$69.6k &rarr; $52.7k RMSE</span>
@@ -706,7 +735,7 @@ index_html = f"""<!DOCTYPE html>
         <p>Load 20,640 Census districts, spot the $500k cap on a GPU map, engineer 36 domain + Haversine + KMeans-RBF features, and race LinearRegression, Ridge, and GPU KNN.</p>
       </a>
 
-      <a class="card" href="chapters/02_housing_neural_network.html">
+      <a class="card dt-tabular" href="chapters/02_housing_neural_network.html">
         <div class="card-head">
           <span class="ch">Chapter 2 &middot; Tabular Data &middot; Deep Learning</span>
           <span class="pill">$48.2k RMSE &middot; R&sup2; 0.828</span>
@@ -715,7 +744,7 @@ index_html = f"""<!DOCTYPE html>
         <p>Train a <code>vktorch</code> Pre-Norm Residual MLP (fused SPIR-V LayerNorm, GELU, AdamW) on the exact same split &mdash; beating GPU KNN by -$4,510 RMSE with .npz checkpointing.</p>
       </a>
 
-      <a class="card" href="chapters/03_fashion_classical_ml.html">
+      <a class="card dt-image" href="chapters/03_fashion_classical_ml.html">
         <div class="card-head">
           <span class="ch">Chapter 3 &middot; Image Data &middot; Classical CV</span>
           <span class="pill">81.5% &rarr; 86.45% Acc</span>
@@ -724,7 +753,7 @@ index_html = f"""<!DOCTYPE html>
         <p>Visualize GPU &ldquo;Average Clothing&rdquo; prototypes, discover Eigen-Clothes with PCA, hand-craft Sobel/HOG edge features, and analyze the 10&times;10 confusion matrix.</p>
       </a>
 
-      <a class="card" href="chapters/04_fashion_cnn_deep_learning.html">
+      <a class="card dt-image" href="chapters/04_fashion_cnn_deep_learning.html">
         <div class="card-head">
           <span class="ch">Chapter 4 &middot; Image Data &middot; 2D CNN</span>
           <span class="pill">87.70% Acc &middot; 24.5s VRAM SPIR-V</span>
@@ -733,7 +762,7 @@ index_html = f"""<!DOCTYPE html>
         <p>Train a strided <code>Conv2d</code> CNN directly on raw 28&times;28 pixels in 24.5s on Steam Deck GPU (12.8&times; faster SPIR-V <code>im2col</code>), inspect 16 learned 3&times;3 filters, and beat every Classical CV model.</p>
       </a>
 
-      <a class="card" href="chapters/05_vector_search_classical_ml.html">
+      <a class="card dt-vector" href="chapters/05_vector_search_classical_ml.html">
         <div class="card-head">
           <span class="ch">Chapter 5 &middot; Vector / Text Data &middot; Classical NLP</span>
           <span class="pill">vkvec GPU Search &middot; 97.30% Acc</span>
@@ -742,7 +771,7 @@ index_html = f"""<!DOCTYPE html>
         <p>Walk through the 3-step NLP pipeline on 2,225 complete multi-paragraph BBC articles, chunk long articles with <code>vkvec.chunk_text</code>, run filtered GPU Cosine Search, map 5 topic islands with <code>vkvis.UMAP</code>, and hit the Synonym Wall.</p>
       </a>
 
-      <a class="card" href="chapters/06_vector_embeddings_neural_net.html">
+      <a class="card dt-vector" href="chapters/06_vector_embeddings_neural_net.html">
         <div class="card-head">
           <span class="ch">Chapter 6 &middot; Vector / Text Data &middot; Deep NLP &amp; Hybrid Search</span>
           <span class="pill">97.53% Acc &middot; 64-D Neural + BM25 RRF</span>
