@@ -8009,17 +8009,29 @@ a.anchor-link {
     <span class="n">prediction</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="k">return</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">score</span>
 
-<span class="c1"># Test 1: An 'AND' neuron (go for a walk ONLY if it is BOTH sunny AND warm)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"=== Hand-Picked 'AND' Neuron (w1=1.0, w2=1.0, b=-1.5) ==="</span><span class="p">)</span>
+<span class="c1"># 1. AND neuron (strict bias b=-1.5: needs BOTH sunny AND warm)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"=== AND Neuron (w1=+1, w2=+1, b=-1.5) ==="</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="ow">in</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]:</span>
     <span class="n">pred</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="n">perceptron</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">w1</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">w2</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">b</span><span class="o">=-</span><span class="mf">1.5</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  sunny=</span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2">, warm=</span><span class="si">{</span><span class="n">x2</span><span class="si">}</span><span class="s2">  -&gt;  score = </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">  -&gt;  go for walk? </span><span class="si">{</span><span class="n">pred</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  sunny=</span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2">, warm=</span><span class="si">{</span><span class="n">x2</span><span class="si">}</span><span class="s2">  -&gt;  score = </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">  -&gt;  out = </span><span class="si">{</span><span class="n">pred</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="c1"># Test 2: Change ONLY the bias to b=-0.5 -&gt; now it's an 'OR' neuron!</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== Same Neuron with Bias b=-0.5 ('OR' gate: sunny OR warm) ==="</span><span class="p">)</span>
+<span class="c1"># 2. OR neuron (relaxed bias b=-0.5: needs sunny OR warm)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== OR Neuron (w1=+1, w2=+1, b=-0.5) ==="</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="ow">in</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]:</span>
     <span class="n">pred</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="n">perceptron</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">w1</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">w2</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">b</span><span class="o">=-</span><span class="mf">0.5</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  sunny=</span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2">, warm=</span><span class="si">{</span><span class="n">x2</span><span class="si">}</span><span class="s2">  -&gt;  score = </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">  -&gt;  go for walk? </span><span class="si">{</span><span class="n">pred</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  sunny=</span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2">, warm=</span><span class="si">{</span><span class="n">x2</span><span class="si">}</span><span class="s2">  -&gt;  score = </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">  -&gt;  out = </span><span class="si">{</span><span class="n">pred</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="c1"># 3. NOT neuron (negative weight w1=-1 flips the answer: e.g. 'is it NOT raining?')</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== NOT Neuron (w1=-1, b=+0.5) ==="</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">x1</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+    <span class="n">pred</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="n">perceptron</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w1</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">w2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  raining=</span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2">         -&gt;  score = </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">  -&gt;  out = </span><span class="si">{</span><span class="n">pred</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="c1"># 4. NAND neuron (negative weights + positive bias: 'anything EXCEPT both 1')</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== NAND Neuron (w1=-1, w2=-1, b=+1.5) ==="</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="ow">in</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]:</span>
+    <span class="n">pred</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="n">perceptron</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">w1</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">w2</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  x1=</span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2">, x2=</span><span class="si">{</span><span class="n">x2</span><span class="si">}</span><span class="s2">        -&gt;  score = </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">  -&gt;  out = </span><span class="si">{</span><span class="n">pred</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8032,19 +8044,57 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>=== Hand-Picked 'AND' Neuron (w1=1.0, w2=1.0, b=-1.5) ===
-  sunny=0, warm=0  -&gt;  score = -1.5  -&gt;  go for walk? 0
-  sunny=0, warm=1  -&gt;  score = -0.5  -&gt;  go for walk? 0
-  sunny=1, warm=0  -&gt;  score = -0.5  -&gt;  go for walk? 0
-  sunny=1, warm=1  -&gt;  score = +0.5  -&gt;  go for walk? 1
+<pre>=== AND Neuron (w1=+1, w2=+1, b=-1.5) ===
+  sunny=0, warm=0  -&gt;  score = -1.5  -&gt;  out = 0
+  sunny=0, warm=1  -&gt;  score = -0.5  -&gt;  out = 0
+  sunny=1, warm=0  -&gt;  score = -0.5  -&gt;  out = 0
+  sunny=1, warm=1  -&gt;  score = +0.5  -&gt;  out = 1
 
-=== Same Neuron with Bias b=-0.5 ('OR' gate: sunny OR warm) ===
-  sunny=0, warm=0  -&gt;  score = -0.5  -&gt;  go for walk? 0
-  sunny=0, warm=1  -&gt;  score = +0.5  -&gt;  go for walk? 1
-  sunny=1, warm=0  -&gt;  score = +0.5  -&gt;  go for walk? 1
-  sunny=1, warm=1  -&gt;  score = +1.5  -&gt;  go for walk? 1
+=== OR Neuron (w1=+1, w2=+1, b=-0.5) ===
+  sunny=0, warm=0  -&gt;  score = -0.5  -&gt;  out = 0
+  sunny=0, warm=1  -&gt;  score = +0.5  -&gt;  out = 1
+  sunny=1, warm=0  -&gt;  score = +0.5  -&gt;  out = 1
+  sunny=1, warm=1  -&gt;  score = +1.5  -&gt;  out = 1
+
+=== NOT Neuron (w1=-1, b=+0.5) ===
+  raining=0         -&gt;  score = +0.5  -&gt;  out = 1
+  raining=1         -&gt;  score = -0.5  -&gt;  out = 0
+
+=== NAND Neuron (w1=-1, w2=-1, b=+1.5) ===
+  x1=0, x2=0        -&gt;  score = +1.5  -&gt;  out = 1
+  x1=0, x2=1        -&gt;  score = +0.5  -&gt;  out = 1
+  x1=1, x2=0        -&gt;  score = +0.5  -&gt;  out = 1
+  x1=1, x2=1        -&gt;  score = -0.5  -&gt;  out = 0
 </pre>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=perc-bias-explainer">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="What-Determines-If-a-Neuron-Is-AND,-OR,-NOT,-or-NAND?">What Determines If a Neuron Is <code>AND</code>, <code>OR</code>, <code>NOT</code>, or <code>NAND</code>?<a class="anchor-link" href="#What-Determines-If-a-Neuron-Is-AND,-OR,-NOT,-or-NAND?">¶</a></h3><p>Only <strong>two knobs</strong> control what a single neuron computes:</p>
+<ol>
+<li><strong>Bias <code>b</code> (Strictness / Threshold) — separates <code>AND</code> from <code>OR</code>:</strong><ul>
+<li>With <code>w1 = +1, w2 = +1</code>, the input vote <code>w1·x1 + w2·x2</code> can only be <code>0</code>, <code>1</code>, or <code>2</code>.</li>
+<li><strong>Strict (<code>b = -1.5</code> → <code>AND</code>):</strong> The vote must beat <code>1.5</code>, so <strong>both</strong> inputs must be <code>1</code> (<code>2 - 1.5 = +0.5</code>).</li>
+<li><strong>Relaxed (<code>b = -0.5</code> → <code>OR</code>):</strong> The vote only needs to beat <code>0.5</code>, so <strong>either</strong> input being <code>1</code> is enough (<code>1 - 0.5 = +0.5</code>).</li>
+</ul>
+</li>
+<li><strong>Sign of the Weights (<code>+</code> vs <code>-</code>) — unlocks <code>NOT</code> and <code>NAND</code>:</strong><ul>
+<li><strong>Positive weights</strong> mean <em>"more of this clue pushes the vote toward YES."</em></li>
+<li><strong>Negative weights</strong> mean <em>"this clue votes NO!"</em> (like <code>NOT</code> for rain, or <code>NAND</code> which outputs <code>0</code> only when both inputs are <code>1</code>).</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p><strong>Visual rule of thumb:</strong> <strong>Weights (<code>w1, w2</code>)</strong> tilt or flip the dividing line, while <strong>bias (<code>b</code>)</strong> slides the line forward or backward!
+<em>(Fun CS fact: Every digital computer chip can be built purely from <code>NAND</code> gates — which means wiring a few tiny perceptrons together can compute <strong>any</strong> function!)</em></p>
+</blockquote>
 </div>
 </div>
 </div>
