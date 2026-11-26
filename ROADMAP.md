@@ -7,18 +7,19 @@ This roadmap tracks what is complete and what's next for both the **interactive 
 ## Completed Milestones
 
 ### Interactive Book & Learning Platform
-- **Online SynthWave '84 Book (`docs/`):** Mobile-friendly HTML chapters with Python syntax highlighting, sticky Prev/Next navigation, **52-term searchable Glossary** ([`docs/glossary.html`](docs/glossary.html)), and **in-chapter tap-to-explain acronym popovers** (`200+` links across prose).
+- **Online SynthWave '84 Book (`docs/`):** Mobile-friendly HTML chapters with Python syntax highlighting, sticky Prev/Next navigation, **66-term searchable Glossary** ([`docs/glossary.html`](docs/glossary.html)), and **in-chapter tap-to-explain acronym popovers** (`250+` links across prose & inline code).
 - **Part 0 · AI Foundations (`examples/00_ai_foundations/`):**
   - *The Perceptron:* All 5 basic single-neuron logic gates (`AND`, `OR`, `NOT`, `NAND`, `NOR`), `vklearn.Perceptron`, Vulkan GPU smooth neuron, & the `XOR` wall.
   - *Multi-Layer Perceptrons (MLPs):* Solving `XOR`, why `GELU`/`ReLU` activations prevent linear collapse, 1 Neuron vs. Tiny MLP vs. Deep MLP on concentric circles, & the 3-to-8B LLM parameter ladder.
 - **Part I · End-to-End Projects (`examples/tldr_end2end/`):**
-  - *California Housing (Regression):* Classical ML (`$69.6k` → `$52.7k` GPU KNN) vs. `vktorch` Residual MLP (**`$48.2k` RMSE**, `R² = 0.828`).
-  - *Fashion-MNIST (Images):* Classical CV (`81.50%` → `86.45%` PCA + Edge/HOG) vs. `vktorch` 2D CNN (**`87.85%`**, `Shirt` `+11.5 pts`, 46s on Steam Deck APU).
+  - *Ch. 1–2 · Tabular Data (California Housing):* Classical ML (`$69.6k` → `$52.7k` GPU KNN) vs. `vktorch` Residual MLP (**`$48.2k` RMSE**, `R² = 0.828`).
+  - *Ch. 3–4 · Image Data (Fashion-MNIST):* Classical CV (`81.50%` → `86.45%` PCA + Edge/HOG) vs. `vktorch` 2D CNN (**`87.70%`**, `Shirt` `+10.0 pts`, **24.5s** on Steam Deck APU).
+  - *Ch. 5–6 · Vector / Text Data & NLP (AG News):* `vkvec` TF-IDF + GPU Vector DB (`86.44%`) vs. `vktorch` 64-D Neural Embeddings (**`87.12%`**, Synonym Wall broken `0.000 → +0.985`, plus **Hybrid BM25 + Neural RRF Search**).
 - **Parts II–VI Notebooks (`examples/`):** Vulkan GPU Puzzles (`@vnp.kernel`), GPU Foundations, Visual EDA on 11.84M rows, Feature Selection & 7-algorithm UMAP/Manifold Learning, Classical ML at scale, Backprop Lab, Autoencoders, & Mini-Llama (`RMSNorm` + `SwiGLU`).
 - **Hardware Inspector:** [`scripts/gpu_specs.py`](scripts/gpu_specs.py) (`pixi run gpu-specs`) for instant Vulkan device limits + 1-second FP32 GEMM & SPIR-V bandwidth check.
 
-### Bundled Pure-Vulkan Toolkit (14 Packages · 72/72 Tests Passing)
-- **Core Compute & Data:** `vknumpy` (`ggml-vulkan` + `ncnn` + `@vnp.kernel` Python-to-SPIR-V compiler), `vkpandas` (full GPU DataFrame, filtering, `groupby`, `merge`, Parquet/CSV), `vkscipy`, `vkspatial` (Morton 2D `GeoDataFrame`, `sjoin`, 6-level 3D Barnes-Hut Octree), `vkastro`.
+### Bundled Pure-Vulkan Toolkit (15 Packages · 79/79 Tests Passing)
+- **Core Compute, Data & Search:** `vknumpy` (`ggml-vulkan` + `ncnn` + `@vnp.kernel` Python-to-SPIR-V compiler), `vkpandas` (full GPU DataFrame, filtering, `groupby`, `merge`, Parquet/CSV), `vkscipy`, `vkspatial` (Morton 2D `GeoDataFrame`, `sjoin`, 6-level 3D Barnes-Hut Octree), **`vkvec`** (GPU `VectorIndex`, `BM25Index`, `HybridIndex` with Reciprocal Rank Fusion, `TfidfVectorizer`, `chunk_text`), `vkastro`.
 - **Visualization & Dashboards:** `vkshader` (2D/3D SPIR-V rasterizer + 0.91 ms HDR Bloom), `vkcolorcet`, `vkholoviews` (multi-layer `Points * Curve` overlays & layouts), `vkgeoviews`, `vkplot`, `vkpanel`, `vkvis` (UMAP/t-SNE/PaCMAP/TriMap/CNE).
 - **Machine Learning & Deep Learning:** `vklearn` (`LinearRegression`, `Ridge`, `LogisticRegression`, `Perceptron`, `PCA`, `KMeans`, `NearestNeighbors`, `KNeighborsClassifier`, `Pipeline`) and `vktorch` (reverse-mode autograd, `Conv2d`, `TransformerBlock`, `LlamaBlock`, `.npz` checkpointing, and **fused single-pass SPIR-V kernels** for `AdamW`, `SGD`, `GELU`, `SiLU`, `SwiGLU`, `RMSNorm`, `LayerNorm`, `Softmax`, and `CrossEntropy`).
 
@@ -35,6 +36,13 @@ This roadmap tracks what is complete and what's next for both the **interactive 
 ---
 
 ## Upcoming Vulkan Toolkit Roadmap
+
+### Databases & Data Engines (`vkvec`, `vkgraph`, `vktime`, `vksql`)
+- [x] **Full-Text Search (BM25) + Hybrid Search (`vkvec`):** Okapi `BM25Index` inverted index + `reciprocal_rank_fusion` (RRF) + `HybridIndex` combining exact keyword/code matching with Vulkan GPU dense vector search.
+- [ ] **Graph Database & GPU Graph Analytics (`vkgraph`):** Nodes + edges in GPU sparse/adjacency structures, Vulkan-accelerated PageRank, shortest path (BFS), community detection, Knowledge Graph / **GraphRAG** traversal, and **Graph Neural Networks (GNNs)** in `vktorch`.
+- [ ] **Time-Series Database & Forecasting (`vktime`):** Timestamped sequences (IoT sensors, weather, energy, audio, finance), GPU rolling windows, resampling, anomaly detection, FFT spectrograms, and Classical lag-ML vs. 1D-CNN / Temporal Neural Net chapters.
+- [ ] **SQL Query Layer (`vksql` on `vkpandas`):** DuckDB-style `SELECT ... WHERE ... JOIN ... GROUP BY` SQL execution directly on GPU DataFrames.
+- [ ] **Document / Key-Value (NoSQL) Guide:** Plain-English book sidebar comparing Relational, Columnar, Vector, Graph, Time-Series, and Document/KV stores so learners know which database fits each AI workload.
 
 ### `vktorch` Deep Learning
 - [x] **Modern LLM Building Blocks:** Single-pass SPIR-V Rotary Positional Embeddings (**RoPE**), VRAM **KV-Cache** (`nn.KVCache` + `LlamaBlock(use_rope=True)`), and **LoRA** low-rank fine-tuning adapters (`nn.LoRALinear` + `.merge_weights()`).

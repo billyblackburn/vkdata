@@ -71,3 +71,106 @@ def test_vector_index_cosine_l2_filter_and_persistence(tmp_path):
     l2_hits = l2_idx.search(np.array([[0.9, 0.1]], dtype=np.float32), k=2)[0]
     assert l2_hits[0]["id"] == "unit_x"
     assert l2_hits[0]["score"] < l2_hits[1]["score"]
+
+
+def test_bm25_index_exact_codes_filter_and_persistence(tmp_path):
+    docs = [
+        "Vulkan error ERR504 timeout inside SPIR-V compute queue",
+        "Steam Deck OLED firmware Q3 update improves fan curve",
+        "Basketball playoff overtime thriller won by home team",
+        "Stock market Q3 earnings report beats Wall Street forecast",
+    ]
+    meta = [{"topic": "Tech"}, {"topic": "Tech"}, {"topic": "Sports"}, {"topic": "Finance"}]
+
+    bm = vkvec.BM25Index().add(docs, ids=[f"d{i}" for i in range(4)], metadata=meta)
+    assert len(bm) == 4
+    assert bm.vocab_size > 10
+
+    # Exact alphanumeric code lookup (where dense embeddings often stumble)
+    hits = bm.search("ERR504 compute queue", k=2)[0]
+    assert hits[0]["id"] == "d0"
+    assert hits[0]["score"] > 0.0
+
+    # Metadata filter restricts 'Q3' matches to Finance only
+    q3_fin = bm.search("Q3", k=3, where={"topic": "Finance"})[0]
+    assert len(q3_fin) == 1
+    assert q3_fin[0]["id"] == "d3"
+
+    # Save & load roundtrip
+    p = tmp_path / "bm25.json"
+    bm.save(p)
+    bm2 = vkvec.BM25Index.load(p)
+    assert len(bm2) == 4
+    hits2 = bm2.search("ERR504 compute queue", k=2)[0]
+    assert [h["id"] for h in hits2] == [h["id"] for h in hits]
+    np.testing.assert_allclose([h["score"] for h in hits2], [h["score"] for h in hits], atol=1e-6)
+
+
+def test_reciprocal_rank_fusion():
+    list_vec = [
+        {"id": "semantic_only", "score": 0.95, "metadata": {"src": "v"}},
+        {"id": "both_winner", "score": 0.88, "metadata": {"src": "v"}},
+        {"id": "other", "score": 0.40, "metadata": {"src": "v"}},
+    ]
+    list_bm25 = [
+        {"id": "keyword_only", "score": 14.2, "metadata": {"src": "b"}},
+        {"id": "both_winner", "score": 11.0, "metadata": {"src": "b"}},
+    ]
+    fused = vkvec.reciprocal_rank_fusion([list_vec, list_bm25], k=60, top_n=3)
+    # 'both_winner' is #2 in BOTH lists -> highest combined RRF score!
+    assert fused[0]["id"] == "both_winner"
+    assert len(fused) == 3
+    assert fused[0]["score"] > fused[1]["score"]
+
+
+def test_hybrid_index_rrf_weighted_and_persistence(tmp_path):
+    docs = [
+        "GPU graphics card benchmark for RTX4090 shader throughput",
+        "Portable handheld gaming console runs Vulkan compute smoothly",
+        "Stock ticker NVDA surges after RTX4090 data center demand",
+        "Olympic swimming final sets new freestyle championship record",
+    ]
+    # Synthetic 3D embeddings: [tech, finance, sports]
+    embs = np.array(
+        [
+            [0.95, 0.05, 0.00],  # d0: Tech + has RTX4090
+            [0.99, 0.01, 0.00],  # d1: Pure Tech (slightly higher cosine, no RTX4090)
+            [0.35, 0.90, 0.00],  # d2: Finance + has RTX4090
+            [0.00, 0.00, 1.00],  # d3: Sports
+        ],
+        dtype=np.float32,
+    )
+    meta = [{"topic": "Tech"}, {"topic": "Tech"}, {"topic": "Finance"}, {"topic": "Sports"}]
+
+    hyb = vkvec.HybridIndex(metric="cosine").add(
+        embs, docs, ids=["d0", "d1", "d2", "d3"], metadata=meta
+    )
+    assert len(hyb) == 4 and hyb.dim == 3
+
+    # Query asks for Tech semantics + exact 'RTX4090' keyword:
+    # Pure vector picks d1 (#1), pure BM25 matches d0 & d2, Hybrid RRF puts d0 at #1!
+    q_vec = np.array([[1.0, 0.0, 0.0]], dtype=np.float32)
+    q_txt = "RTX4090 graphics"
+
+    vec_only = hyb.search_vector(q_vec, k=2)[0]
+    assert vec_only[0]["id"] == "d1"
+
+    hyb_rrf = hyb.search(q_vec, q_txt, k=3, mode="rrf", alpha=0.5)[0]
+    assert hyb_rrf[0]["id"] == "d0"
+
+    hyb_wt = hyb.search(q_vec, q_txt, k=3, mode="weighted", alpha=0.5)[0]
+    assert hyb_wt[0]["id"] == "d0"
+
+    # Metadata filter applies to both vector + BM25 consistently
+    fin_only = hyb.search(q_vec, q_txt, k=2, where={"topic": "Finance"})[0]
+    assert len(fin_only) == 1
+    assert fin_only[0]["id"] == "d2"
+
+    # Save & load roundtrip
+    save_p = tmp_path / "hybrid_idx.npz"
+    hyb.save(save_p)
+    hyb2 = vkvec.HybridIndex.load(save_p)
+    assert len(hyb2) == 4
+    hyb_rrf2 = hyb2.search(q_vec, q_txt, k=3, mode="rrf", alpha=0.5)[0]
+    assert [h["id"] for h in hyb_rrf2] == [h["id"] for h in hyb_rrf]
+

@@ -144,6 +144,12 @@ GLOSSARY = [
      "The branch of AI focused on helping computers read, search, classify, and generate human language — from TF-IDF keyword vectors to neural embeddings and LLMs."),
     ("Tokenization", "Splitting Text into Tokens", "Vector & Text",
      "Step 1 of every NLP pipeline: chopping raw text into clean pieces (words, subwords, or characters) and mapping each piece to an integer ID so a computer can do math on it."),
+    ("BM25", "Best Matching 25 (Okapi BM25)", "Vector & Text",
+     "The gold-standard full-text keyword search algorithm used by Elasticsearch and Lucene — scores exact word matches while balancing term frequency and document length."),
+    ("RRF", "Reciprocal Rank Fusion", "Vector & Text",
+     "A simple, scale-invariant formula (sum of 1 / (60 + rank)) that combines ranked results from keyword search (BM25) and neural vector search into one stronger Hybrid Search list."),
+    ("Hybrid Search", "BM25 Keyword + Neural Vector Search", "Vector & Text",
+     "Running exact full-text search (BM25) and semantic GPU vector search together and fusing them with RRF — the production standard for RAG so both rare names/codes and synonyms match."),
 ]
 
 def _slug(term: str) -> str:

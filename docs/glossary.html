@@ -71,7 +71,7 @@
 <body>
   <div class="nav">
     <button onclick="if (history.length > 1) history.back(); else location.href='index.html';">&larr; Back</button>
-    <span class="title">Acronym Glossary (63 Terms)</span>
+    <span class="title">Acronym Glossary (66 Terms)</span>
     <a href="index.html">Book Home</a>
   </div>
   <div class="wrap">
@@ -126,6 +126,14 @@
         </div>
         <div class="term-full">Binary Cross-Entropy</div>
         <p class="term-desc">The standard loss function for Yes/No (0 vs 1) classification that rewards confident correct probabilities and heavily penalizes confident wrong guesses.</p>
+      </div>
+      <div class="term-card" id="term-bm25" data-search="bm25 best matching 25 (okapi bm25) vector &amp; text the gold-standard full-text keyword search algorithm used by elasticsearch and lucene — scores exact word matches while balancing term frequency and document length.">
+        <div class="term-head">
+          <span class="term-abbr">BM25</span>
+          <span class="term-cat">Vector &amp; Text</span>
+        </div>
+        <div class="term-full">Best Matching 25 (Okapi BM25)</div>
+        <p class="term-desc">The gold-standard full-text keyword search algorithm used by Elasticsearch and Lucene — scores exact word matches while balancing term frequency and document length.</p>
       </div>
       <div class="term-card" id="term-bow" data-search="bow bag-of-words vector &amp; text the simplest text-to-vector method: count how many times each vocabulary word appears in a document, ignoring grammar and word order.">
         <div class="term-head">
@@ -262,6 +270,14 @@
         </div>
         <div class="term-full">Histogram of Oriented Gradients</div>
         <p class="term-desc">A classic computer vision feature descriptor that summarizes the direction and strength of edges inside small image grid cells.</p>
+      </div>
+      <div class="term-card" id="term-hybrid-search" data-search="hybrid search bm25 keyword + neural vector search vector &amp; text running exact full-text search (bm25) and semantic gpu vector search together and fusing them with rrf — the production standard for rag so both rare names/codes and synonyms match.">
+        <div class="term-head">
+          <span class="term-abbr">Hybrid Search</span>
+          <span class="term-cat">Vector &amp; Text</span>
+        </div>
+        <div class="term-full">BM25 Keyword + Neural Vector Search</div>
+        <p class="term-desc">Running exact full-text search (BM25) and semantic GPU vector search together and fusing them with RRF — the production standard for RAG so both rare names/codes and synonyms match.</p>
       </div>
       <div class="term-card" id="term-kmeans" data-search="kmeans k-means clustering classical ml an unsupervised algorithm that automatically groups points into k natural clusters (like discovering 12 california housing sub-markets from lat/lon!).">
         <div class="term-head">
@@ -478,6 +494,14 @@
         </div>
         <div class="term-full">Rotary Positional Embeddings</div>
         <p class="term-desc">Encodes each token&#x27;s position by rotating pairs of Query/Key features in 2D space — the standard position encoding used in Llama, Gemma, and Qwen.</p>
+      </div>
+      <div class="term-card" id="term-rrf" data-search="rrf reciprocal rank fusion vector &amp; text a simple, scale-invariant formula (sum of 1 / (60 + rank)) that combines ranked results from keyword search (bm25) and neural vector search into one stronger hybrid search list.">
+        <div class="term-head">
+          <span class="term-abbr">RRF</span>
+          <span class="term-cat">Vector &amp; Text</span>
+        </div>
+        <div class="term-full">Reciprocal Rank Fusion</div>
+        <p class="term-desc">A simple, scale-invariant formula (sum of 1 / (60 + rank)) that combines ranked results from keyword search (BM25) and neural vector search into one stronger Hybrid Search list.</p>
       </div>
       <div class="term-card" id="term-r" data-search="r² coefficient of determination (r-squared) metrics &amp; losses measures what fraction of the variation in the target your model explains. 1.00 = perfect predictions, 0.00 = no better than guessing the average.">
         <div class="term-head">
