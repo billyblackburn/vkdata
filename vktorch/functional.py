@@ -262,14 +262,15 @@ def conv2d(
     stride: int = 1,
     padding: int = 0,
 ) -> Tensor:
-    """2D Convolution via ``im2col`` + Vulkan GPU GEMM (supports full autograd)."""
+    """2D Convolution via 100% VRAM SPIR-V ``im2col``/``col2im`` + Vulkan GPU GEMM."""
+    from ._kernels import fused_col2im, fused_im2col
+
     n, c_in, h, w = x.shape
     c_out, c_in_w, kh, kw = weight.shape
     assert c_in == c_in_w, f"Expected {c_in_w} input channels, got {c_in}"
 
-    cols_np, oh, ow = _im2col(x.data.to_numpy(), kh, kw, stride, padding)
-    cols_gpu = vnp.array(cols_np, dtype=_np.float32)  # (N*oh*ow, C_in*kh*kw)
-    w_mat = weight.data.contiguous().reshape(c_out, c_in * kh * kw)  # (C_out, K)
+    cols_gpu, oh, ow = fused_im2col(x.data, kh, kw, stride, padding)  # (N*oh*ow, C_in*kh*kw) in VRAM!
+    w_mat = weight.data.contiguous().reshape(c_out, c_in * kh * kw)   # (C_out, K)
 
     out_2d = cols_gpu @ w_mat.T.contiguous()  # (N*oh*ow, C_out) on Vulkan GPU!
     if bias is not None:
@@ -290,44 +291,25 @@ def conv2d(
             dw = (g2d.T.contiguous() @ cols_gpu).reshape(c_out, c_in, kh, kw)
             weight._accum_grad(dw)
         if x.requires_grad:
-            dcols = (g2d @ w_mat).to_numpy()
-            dx_np = _col2im(dcols, (n, c_in, h, w), kh, kw, stride, padding, oh, ow)
-            x._accum_grad(vnp.array(dx_np, dtype=_np.float32))
+            dcols_gpu = g2d @ w_mat
+            dx_gpu = fused_col2im(dcols_gpu, (n, c_in, h, w), kh, kw, stride, padding, oh, ow)
+            x._accum_grad(dx_gpu)
 
     return Tensor(out_4d, requires_grad=req, dtype=None, _parents=tuple(parents) if req else (), _backward=_bw if req else None)
 
 
 def max_pool2d(x: Tensor, kernel_size: int = 2, stride: Optional[int] = None) -> Tensor:
-    """2D Max Pooling with exact argmax backward pass."""
+    """2D Max Pooling via 100% VRAM SPIR-V forward + gather-based exact argmax backward."""
+    from ._kernels import fused_max_pool2d_bwd, fused_max_pool2d_fwd
+
     k = int(kernel_size)
     st = int(stride) if stride is not None else k
-    x_np = x.data.to_numpy()
-    n, c, h, w = x_np.shape
-    oh = (h - k) // st + 1
-    ow = (w - k) // st + 1
-
-    s0, s1, s2, s3 = x_np.strides
-    patches = _np.lib.stride_tricks.as_strided(
-        x_np,
-        shape=(n, c, oh, ow, k, k),
-        strides=(s0, s1, s2 * st, s3 * st, s2, s3),
-    ).reshape(n, c, oh, ow, k * k)
-
-    argmax = _np.argmax(patches, axis=-1)
-    out_np = _np.max(patches, axis=-1).astype(_np.float32)
+    x_shape = x.shape
+    out_gpu, argmax_gpu, oh, ow = fused_max_pool2d_fwd(x.data, kernel_size=k, stride=st)
     req = is_grad_enabled() and x.requires_grad
 
     def _bw(g: vnp.ndarray) -> None:
-        g_np = g.to_numpy()
-        dx = _np.zeros_like(x_np)
-        oy_grid, ox_grid = _np.meshgrid(_np.arange(oh), _np.arange(ow), indexing="ij")
-        ky = argmax // k
-        kx = argmax % k
-        iy = oy_grid[None, None, :, :] * st + ky
-        ix = ox_grid[None, None, :, :] * st + kx
-        ni = _np.arange(n)[:, None, None, None]
-        ci = _np.arange(c)[None, :, None, None]
-        _np.add.at(dx, (ni, ci, iy, ix), g_np)
-        x._accum_grad(vnp.array(dx, dtype=_np.float32))
+        dx_gpu = fused_max_pool2d_bwd(g, argmax_gpu, x_shape, k, st, oh, ow)
+        x._accum_grad(dx_gpu)
 
-    return Tensor(out_np, requires_grad=req, dtype=_np.float32, _parents=(x,) if req else (), _backward=_bw if req else None)
+    return Tensor(out_gpu, requires_grad=req, dtype=None, _parents=(x,) if req else (), _backward=_bw if req else None)

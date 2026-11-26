@@ -970,3 +970,293 @@ def fused_cross_entropy(
         dispatch_spv_gpu(spv, [lc, tc, losses, dlogits], pc, (n_rows, 1, 1))
     loss_val = vnp.mean(losses)
     return loss_val, (dlogits if compute_grad else None)
+
+
+# =====================================================================
+# 7. Vision: Fused SPIR-V im2col, col2im, & MaxPool2d (zero CPU copies)
+# =====================================================================
+
+_GLSL_IM2COL = """#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer XBuf    { float x[]; };
+layout(set = 0, binding = 1) writeonly buffer ColBuf { float cols[]; };
+
+layout(push_constant) uniform PC {
+    int n;
+    int c;
+    int h;
+    int w;
+    int kh;
+    int kw;
+    int stride;
+    int padding;
+    int oh;
+    int ow;
+} pc;
+
+void main() {
+    int k_dim = pc.c * pc.kh * pc.kw;
+    int total = pc.n * pc.oh * pc.ow * k_dim;
+    int idx = int(gl_GlobalInvocationID.x);
+    if (idx >= total) return;
+
+    int row = idx / k_dim;
+    int col = idx - row * k_dim;
+
+    int ow_i = row % pc.ow;
+    int tmp = row / pc.ow;
+    int oh_i = tmp % pc.oh;
+    int n_i  = tmp / pc.oh;
+
+    int kw_i = col % pc.kw;
+    int tmp2 = col / pc.kw;
+    int kh_i = tmp2 % pc.kh;
+    int c_i  = tmp2 / pc.kh;
+
+    int ih = oh_i * pc.stride - pc.padding + kh_i;
+    int iw = ow_i * pc.stride - pc.padding + kw_i;
+
+    if (ih >= 0 && ih < pc.h && iw >= 0 && iw < pc.w) {
+        cols[idx] = x[((n_i * pc.c + c_i) * pc.h + ih) * pc.w + iw];
+    } else {
+        cols[idx] = 0.0;
+    }
+}
+"""
+
+_GLSL_COL2IM = """#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer DColBuf { float dcols[]; };
+layout(set = 0, binding = 1) writeonly buffer DXBuf  { float dx[]; };
+
+layout(push_constant) uniform PC {
+    int n;
+    int c;
+    int h;
+    int w;
+    int kh;
+    int kw;
+    int stride;
+    int padding;
+    int oh;
+    int ow;
+} pc;
+
+void main() {
+    int total = pc.n * pc.c * pc.h * pc.w;
+    int idx = int(gl_GlobalInvocationID.x);
+    if (idx >= total) return;
+
+    int iw = idx % pc.w;
+    int tmp = idx / pc.w;
+    int ih = tmp % pc.h;
+    tmp = tmp / pc.h;
+    int c_i = tmp % pc.c;
+    int n_i = tmp / pc.c;
+
+    int k_dim = pc.c * pc.kh * pc.kw;
+    float acc = 0.0;
+    for (int kh_i = 0; kh_i < pc.kh; ++kh_i) {
+        int h_off = ih + pc.padding - kh_i;
+        if (h_off < 0 || (h_off % pc.stride) != 0) continue;
+        int oh_i = h_off / pc.stride;
+        if (oh_i >= pc.oh) continue;
+
+        for (int kw_i = 0; kw_i < pc.kw; ++kw_i) {
+            int w_off = iw + pc.padding - kw_i;
+            if (w_off < 0 || (w_off % pc.stride) != 0) continue;
+            int ow_i = w_off / pc.stride;
+            if (ow_i >= pc.ow) continue;
+
+            int row = (n_i * pc.oh + oh_i) * pc.ow + ow_i;
+            int col = (c_i * pc.kh + kh_i) * pc.kw + kw_i;
+            acc += dcols[row * k_dim + col];
+        }
+    }
+    dx[idx] = acc;
+}
+"""
+
+_GLSL_MAXPOOL2D_FWD = """#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer XBuf      { float x[]; };
+layout(set = 0, binding = 1) writeonly buffer OutBuf   { float y[]; };
+layout(set = 0, binding = 2) writeonly buffer ArgBuf   { int argmax[]; };
+
+layout(push_constant) uniform PC {
+    int n;
+    int c;
+    int h;
+    int w;
+    int k;
+    int stride;
+    int oh;
+    int ow;
+} pc;
+
+void main() {
+    int total = pc.n * pc.c * pc.oh * pc.ow;
+    int idx = int(gl_GlobalInvocationID.x);
+    if (idx >= total) return;
+
+    int ow_i = idx % pc.ow;
+    int tmp  = idx / pc.ow;
+    int oh_i = tmp % pc.oh;
+    tmp      = tmp / pc.oh;
+    int c_i  = tmp % pc.c;
+    int n_i  = tmp / pc.c;
+
+    int plane = (n_i * pc.c + c_i) * pc.h * pc.w;
+    int h0 = oh_i * pc.stride;
+    int w0 = ow_i * pc.stride;
+
+    float best = -3.402823466e38;
+    int best_pos = h0 * pc.w + w0;
+    for (int kh = 0; kh < pc.k; ++kh) {
+        int ih = h0 + kh;
+        for (int kw = 0; kw < pc.k; ++kw) {
+            int iw = w0 + kw;
+            int pos = ih * pc.w + iw;
+            float v = x[plane + pos];
+            if (v > best) {
+                best = v;
+                best_pos = pos;
+            }
+        }
+    }
+    y[idx] = best;
+    argmax[idx] = best_pos;
+}
+"""
+
+_GLSL_MAXPOOL2D_BWD = """#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer GOutBuf { float g_out[]; };
+layout(set = 0, binding = 1) readonly buffer ArgBuf  { int argmax[]; };
+layout(set = 0, binding = 2) writeonly buffer DXBuf  { float dx[]; };
+
+layout(push_constant) uniform PC {
+    int n;
+    int c;
+    int h;
+    int w;
+    int k;
+    int stride;
+    int oh;
+    int ow;
+} pc;
+
+void main() {
+    int total = pc.n * pc.c * pc.h * pc.w;
+    int idx = int(gl_GlobalInvocationID.x);
+    if (idx >= total) return;
+
+    int iw  = idx % pc.w;
+    int tmp = idx / pc.w;
+    int ih  = tmp % pc.h;
+    tmp     = tmp / pc.h;
+    int c_i = tmp % pc.c;
+    int n_i = tmp / pc.c;
+
+    int pos = ih * pc.w + iw;
+    int out_plane = (n_i * pc.c + c_i) * pc.oh * pc.ow;
+
+    int oh_start = (ih < pc.k) ? 0 : ((ih - pc.k) / pc.stride + 1);
+    int oh_end   = min(pc.oh - 1, ih / pc.stride);
+    int ow_start = (iw < pc.k) ? 0 : ((iw - pc.k) / pc.stride + 1);
+    int ow_end   = min(pc.ow - 1, iw / pc.stride);
+
+    float acc = 0.0;
+    for (int oh_i = oh_start; oh_i <= oh_end; ++oh_i) {
+        for (int ow_i = ow_start; ow_i <= ow_end; ++ow_i) {
+            int oidx = out_plane + oh_i * pc.ow + ow_i;
+            if (argmax[oidx] == pos) {
+                acc += g_out[oidx];
+            }
+        }
+    }
+    dx[idx] = acc;
+}
+"""
+
+
+def fused_im2col(
+    x: vnp.ndarray, kh: int, kw: int, stride: int, padding: int
+) -> Tuple[vnp.ndarray, int, int]:
+    xc = x.contiguous()
+    n, c, h, w = xc.shape
+    oh = (h + 2 * padding - kh) // stride + 1
+    ow = (w + 2 * padding - kw) // stride + 1
+    k_dim = c * kh * kw
+    rows = n * oh * ow
+    cols = vnp.ndarray._empty_uninit((rows, k_dim), _np.float32)
+    total = rows * k_dim
+    if total > 0:
+        spv = _get_spv("im2col", _GLSL_IM2COL)
+        pc = struct.pack("<10i", n, c, h, w, kh, kw, stride, padding, oh, ow)
+        dispatch_spv_gpu(spv, [xc, cols], pc, ((total + 255) // 256, 1, 1))
+    return cols, oh, ow
+
+
+def fused_col2im(
+    dcols: vnp.ndarray,
+    x_shape: Tuple[int, int, int, int],
+    kh: int,
+    kw: int,
+    stride: int,
+    padding: int,
+    oh: int,
+    ow: int,
+) -> vnp.ndarray:
+    dc = dcols.contiguous()
+    n, c, h, w = x_shape
+    dx = vnp.ndarray._empty_uninit((n, c, h, w), _np.float32)
+    total = n * c * h * w
+    if total > 0:
+        spv = _get_spv("col2im", _GLSL_COL2IM)
+        pc = struct.pack("<10i", n, c, h, w, kh, kw, stride, padding, oh, ow)
+        dispatch_spv_gpu(spv, [dc, dx], pc, ((total + 255) // 256, 1, 1))
+    return dx
+
+
+def fused_max_pool2d_fwd(
+    x: vnp.ndarray, kernel_size: int = 2, stride: Optional[int] = None
+) -> Tuple[vnp.ndarray, vnp.ndarray, int, int]:
+    xc = x.contiguous()
+    n, c, h, w = xc.shape
+    k = int(kernel_size)
+    st = int(stride) if stride is not None else k
+    oh = (h - k) // st + 1
+    ow = (w - k) // st + 1
+    out = vnp.ndarray._empty_uninit((n, c, oh, ow), _np.float32)
+    argmax = vnp.ndarray._empty_uninit((n, c, oh, ow), _np.int32)
+    total = n * c * oh * ow
+    if total > 0:
+        spv = _get_spv("maxpool2d_fwd", _GLSL_MAXPOOL2D_FWD)
+        pc = struct.pack("<8i", n, c, h, w, k, st, oh, ow)
+        dispatch_spv_gpu(spv, [xc, out, argmax], pc, ((total + 255) // 256, 1, 1))
+    return out, argmax, oh, ow
+
+
+def fused_max_pool2d_bwd(
+    g_out: vnp.ndarray,
+    argmax: vnp.ndarray,
+    x_shape: Tuple[int, int, int, int],
+    kernel_size: int,
+    stride: int,
+    oh: int,
+    ow: int,
+) -> vnp.ndarray:
+    gc = g_out.contiguous()
+    n, c, h, w = x_shape
+    dx = vnp.ndarray._empty_uninit((n, c, h, w), _np.float32)
+    total = n * c * h * w
+    if total > 0:
+        spv = _get_spv("maxpool2d_bwd", _GLSL_MAXPOOL2D_BWD)
+        pc = struct.pack("<8i", n, c, h, w, int(kernel_size), int(stride), oh, ow)
+        dispatch_spv_gpu(spv, [gc, argmax, dx], pc, ((total + 255) // 256, 1, 1))
+    return dx

@@ -114,6 +114,7 @@ Here is the real measured speedup on a **Steam Deck APU** (`1024 × 256` tensor,
 
 | Operation | What It Does in an AI Model | Unfused (`vknumpy`) | Fused SPIR-V | Speedup |
 |---|---|---:|---:|---:|
+| **Conv2d (`im2col`/`col2im`)** | Rearranges 2D image patches for CNN convolutions in VRAM | 76.10 ms | **5.96 ms** | **12.8×** |
 | **LayerNorm** | Keeps activations balanced in GPT-style Transformers | 19.98 ms | **6.09 ms** | **3.28×** |
 | **RMSNorm** | Simpler, faster normalization used in Llama & Gemma | 15.34 ms | **5.87 ms** | **2.61×** |
 | **SwiGLU** | Gated activation (`silu(gate) * up`) in modern LLM FFNs | 9.75 ms | **4.75 ms** | **2.05×** |

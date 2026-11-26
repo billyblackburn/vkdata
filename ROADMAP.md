@@ -38,7 +38,7 @@ This roadmap tracks what is complete and what's next for both the **interactive 
 
 ### `vktorch` Deep Learning
 - [ ] **Modern LLM Building Blocks:** Rotary Positional Embeddings (**RoPE**), **KV-Cache** for fast autoregressive decoding, and **LoRA** low-rank fine-tuning adapters.
-- [ ] **Fused SPIR-V `Conv2d` (`im2col` / `col2im`) & `MaxPool2d`:** Move `im2col`/`col2im` and pooling scatter completely into VRAM shaders for 5×–10× faster CNN training.
+- [x] **Fused SPIR-V `Conv2d` (`im2col` / `col2im`) & `MaxPool2d`:** 100% VRAM shaders (`12.8×` faster `im2col`/`col2im`, cutting 15-epoch Fashion-MNIST CNN training from `46.4s` → `24.5s`).
 - [ ] **Mixed-Precision (`FP16`) Training & Gradient Accumulation** helpers for larger models on modest GPUs.
 
 ### `vknumpy` & Core Vulkan Backend

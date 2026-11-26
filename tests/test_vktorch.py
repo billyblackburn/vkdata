@@ -283,3 +283,39 @@ def test_fused_spirv_kernels_gradients_and_wide_rows():
         l.backward()
         opt_ll.step()
     assert l.item() < l0 * 0.15
+
+
+def test_spirv_conv2d_and_maxpool2d_gradients():
+    rng = np.random.default_rng(77)
+
+    # 1. Conv2d (stride=1 & stride=2, padding=1) finite-difference check for x, weight, bias
+    x_np = rng.standard_normal((2, 2, 5, 5)).astype(np.float32) * 0.6
+    w_np = rng.standard_normal((3, 2, 3, 3)).astype(np.float32) * 0.5
+    b_np = rng.standard_normal((3,)).astype(np.float32) * 0.2
+
+    for stride in (1, 2):
+        out_probe = F.conv2d(vt.Tensor(x_np), vt.Tensor(w_np), vt.Tensor(b_np), stride=stride, padding=1)
+        g_np = rng.standard_normal(out_probe.shape).astype(np.float32)
+
+        x_t = vt.Tensor(x_np.copy(), requires_grad=True)
+        w_t = vt.Tensor(w_np.copy(), requires_grad=True)
+        b_t = vt.Tensor(b_np.copy(), requires_grad=True)
+        (F.conv2d(x_t, w_t, b_t, stride=stride, padding=1) * vt.Tensor(g_np)).sum().backward()
+
+        ng_x = _num_grad(lambda a: (F.conv2d(vt.Tensor(a), vt.Tensor(w_np), vt.Tensor(b_np), stride=stride, padding=1) * vt.Tensor(g_np)).sum().item(), x_np.copy())
+        ng_w = _num_grad(lambda a: (F.conv2d(vt.Tensor(x_np), vt.Tensor(a), vt.Tensor(b_np), stride=stride, padding=1) * vt.Tensor(g_np)).sum().item(), w_np.copy())
+        ng_b = _num_grad(lambda a: (F.conv2d(vt.Tensor(x_np), vt.Tensor(w_np), vt.Tensor(a), stride=stride, padding=1) * vt.Tensor(g_np)).sum().item(), b_np.copy())
+        np.testing.assert_allclose(x_t.grad.to_numpy(), ng_x, atol=2e-2, rtol=2e-2)
+        np.testing.assert_allclose(w_t.grad.to_numpy(), ng_w, atol=2e-2, rtol=2e-2)
+        np.testing.assert_allclose(b_t.grad.to_numpy(), ng_b, atol=2e-2, rtol=2e-2)
+
+    # 2. MaxPool2d (both non-overlapping k=2,s=2 and overlapping k=3,s=1)
+    # Use distinct values so argmax is unambiguous for finite differences
+    xp = (rng.standard_normal((2, 2, 4, 4)).astype(np.float32) * 2.0 + np.arange(64, dtype=np.float32).reshape(2, 2, 4, 4) * 0.07)
+    for k, st in ((2, 2), (3, 1)):
+        op = F.max_pool2d(vt.Tensor(xp), kernel_size=k, stride=st)
+        gp = rng.standard_normal(op.shape).astype(np.float32)
+        xt = vt.Tensor(xp.copy(), requires_grad=True)
+        (F.max_pool2d(xt, kernel_size=k, stride=st) * vt.Tensor(gp)).sum().backward()
+        ng_p = _num_grad(lambda a: (F.max_pool2d(vt.Tensor(a), kernel_size=k, stride=st) * vt.Tensor(gp)).sum().item(), xp.copy(), eps=1e-3)
+        np.testing.assert_allclose(xt.grad.to_numpy(), ng_p, atol=2e-2, rtol=2e-2)
