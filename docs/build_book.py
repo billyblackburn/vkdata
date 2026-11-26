@@ -176,6 +176,8 @@ for idx, (_, fname, title) in enumerate(CHAPTERS):
         f'{next_link or "<a href=\"../index.html\">Back to Table of Contents &rarr;</a>"}'
         f'</div>'
     )
+    if "vkbook-nav" in html:
+        continue
     html = html.replace("</head>", SYNTHWAVE84_CSS + "\n</head>", 1)
     bi = html.find(">", html.find("<body")) + 1
     html = html[:bi] + "\n" + nav_html + "\n" + html[bi:]

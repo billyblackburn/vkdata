@@ -8032,6 +8032,11 @@ a.anchor-link {
 <span class="k">for</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="ow">in</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]:</span>
     <span class="n">pred</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="n">perceptron</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">w1</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">w2</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  x1=</span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2">, x2=</span><span class="si">{</span><span class="n">x2</span><span class="si">}</span><span class="s2">        -&gt;  score = </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">  -&gt;  out = </span><span class="si">{</span><span class="n">pred</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="c1"># 5. NOR neuron (negative weights + small positive bias: 'NEITHER x1 NOR x2')</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">=== NOR Neuron (w1=-1, w2=-1, b=+0.5) ==="</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="ow">in</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]:</span>
+    <span class="n">pred</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="n">perceptron</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">w1</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">w2</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  x1=</span><span class="si">{</span><span class="n">x1</span><span class="si">}</span><span class="s2">, x2=</span><span class="si">{</span><span class="n">x2</span><span class="si">}</span><span class="s2">        -&gt;  score = </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2">  -&gt;  out = </span><span class="si">{</span><span class="n">pred</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8065,6 +8070,12 @@ a.anchor-link {
   x1=0, x2=1        -&gt;  score = +0.5  -&gt;  out = 1
   x1=1, x2=0        -&gt;  score = +0.5  -&gt;  out = 1
   x1=1, x2=1        -&gt;  score = -0.5  -&gt;  out = 0
+
+=== NOR Neuron (w1=-1, w2=-1, b=+0.5) ===
+  x1=0, x2=0        -&gt;  score = +0.5  -&gt;  out = 1
+  x1=0, x2=1        -&gt;  score = -0.5  -&gt;  out = 0
+  x1=1, x2=0        -&gt;  score = -0.5  -&gt;  out = 0
+  x1=1, x2=1        -&gt;  score = -1.5  -&gt;  out = 0
 </pre>
 </div>
 </div>
@@ -8077,23 +8088,22 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="What-Determines-If-a-Neuron-Is-AND,-OR,-NOT,-or-NAND?">What Determines If a Neuron Is <code>AND</code>, <code>OR</code>, <code>NOT</code>, or <code>NAND</code>?<a class="anchor-link" href="#What-Determines-If-a-Neuron-Is-AND,-OR,-NOT,-or-NAND?">¶</a></h3><p>Only <strong>two knobs</strong> control what a single neuron computes:</p>
+<h3 id="What-Determines-Which-of-the-5-Basic-Neurons-You-Get-(AND,-OR,-NOT,-NAND,-NOR)?">What Determines Which of the 5 Basic Neurons You Get (<code>AND</code>, <code>OR</code>, <code>NOT</code>, <code>NAND</code>, <code>NOR</code>)?<a class="anchor-link" href="#What-Determines-Which-of-the-5-Basic-Neurons-You-Get-(AND,-OR,-NOT,-NAND,-NOR)?">¶</a></h3><p>Only <strong>two knobs</strong> control what a single neuron computes:</p>
 <ol>
-<li><strong>Bias <code>b</code> (Strictness / Threshold) — separates <code>AND</code> from <code>OR</code>:</strong><ul>
-<li>With <code>w1 = +1, w2 = +1</code>, the input vote <code>w1·x1 + w2·x2</code> can only be <code>0</code>, <code>1</code>, or <code>2</code>.</li>
-<li><strong>Strict (<code>b = -1.5</code> → <code>AND</code>):</strong> The vote must beat <code>1.5</code>, so <strong>both</strong> inputs must be <code>1</code> (<code>2 - 1.5 = +0.5</code>).</li>
-<li><strong>Relaxed (<code>b = -0.5</code> → <code>OR</code>):</strong> The vote only needs to beat <code>0.5</code>, so <strong>either</strong> input being <code>1</code> is enough (<code>1 - 0.5 = +0.5</code>).</li>
+<li><strong>Bias <code>b</code> (Strictness / Threshold):</strong><ul>
+<li>With positive weights (<code>w1 = +1, w2 = +1</code>), <strong><code>b = -1.5</code></strong> gives <strong><code>AND</code></strong> (strict — needs both <code>1</code>s) while <strong><code>b = -0.5</code></strong> gives <strong><code>OR</code></strong> (relaxed — needs either <code>1</code>).</li>
+<li>With negative weights (<code>w1 = -1, w2 = -1</code>), <strong><code>b = +1.5</code></strong> gives <strong><code>NAND</code></strong> (relaxed — <code>1</code> unless both are <code>1</code>) while <strong><code>b = +0.5</code></strong> gives <strong><code>NOR</code></strong> (strict — <code>1</code> ONLY when both are <code>0</code>).</li>
 </ul>
 </li>
-<li><strong>Sign of the Weights (<code>+</code> vs <code>-</code>) — unlocks <code>NOT</code> and <code>NAND</code>:</strong><ul>
-<li><strong>Positive weights</strong> mean <em>"more of this clue pushes the vote toward YES."</em></li>
-<li><strong>Negative weights</strong> mean <em>"this clue votes NO!"</em> (like <code>NOT</code> for rain, or <code>NAND</code> which outputs <code>0</code> only when both inputs are <code>1</code>).</li>
+<li><strong>Sign of the Weights (<code>+</code> vs <code>-</code>):</strong><ul>
+<li><strong>Positive weights</strong> mean <em>"more of this clue pushes the vote toward YES"</em> (<code>AND</code>, <code>OR</code>).</li>
+<li><strong>Negative weights</strong> mean <em>"this clue votes NO!"</em> (<code>NOT</code>, <code>NAND</code>, <code>NOR</code>).</li>
 </ul>
 </li>
 </ol>
 <blockquote>
 <p><strong>Visual rule of thumb:</strong> <strong>Weights (<code>w1, w2</code>)</strong> tilt or flip the dividing line, while <strong>bias (<code>b</code>)</strong> slides the line forward or backward!
-<em>(Fun CS fact: Every digital computer chip can be built purely from <code>NAND</code> gates — which means wiring a few tiny perceptrons together can compute <strong>any</strong> function!)</em></p>
+<em>(All 5 of these gates are <strong>linearly separable</strong> — a single straight line can solve them. Only <strong><code>XOR</code></strong> and <strong><code>XNOR</code></strong> break a single neuron, as you'll see in Step 3!)</em></p>
 </blockquote>
 </div>
 </div>
