@@ -71,7 +71,7 @@
 <body>
   <div class="nav">
     <button onclick="if (history.length > 1) history.back(); else location.href='index.html';">&larr; Back</button>
-    <span class="title">Acronym Glossary (52 Terms)</span>
+    <span class="title">Acronym Glossary (55 Terms)</span>
     <a href="index.html">Book Home</a>
   </div>
   <div class="wrap">
@@ -255,6 +255,14 @@
         <div class="term-full">K-Nearest Neighbors</div>
         <p class="term-desc">A simple non-linear algorithm that predicts an answer by finding the K most similar training examples and averaging or voting on their labels.</p>
       </div>
+      <div class="term-card" id="term-kv-cache" data-search="kv-cache key-value cache deep learning saves past attention keys and values in gpu vram during text generation so each new token only computes 1 step instead of reprocessing the whole prompt.">
+        <div class="term-head">
+          <span class="term-abbr">KV-Cache</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Key-Value Cache</div>
+        <p class="term-desc">Saves past attention Keys and Values in GPU VRAM during text generation so each new token only computes 1 step instead of reprocessing the whole prompt.</p>
+      </div>
       <div class="term-card" id="term-layernorm" data-search="layernorm layer normalization deep learning rescales each row of neuron outputs to mean 0 and variance 1 so deep networks train smoothly without exploding or vanishing numbers.">
         <div class="term-head">
           <span class="term-abbr">LayerNorm</span>
@@ -270,6 +278,14 @@
         </div>
         <div class="term-full">Large Language Model</div>
         <p class="term-desc">A giant Transformer neural network (like Llama or GPT) trained on massive text datasets to predict the next word/token.</p>
+      </div>
+      <div class="term-card" id="term-lora" data-search="lora low-rank adaptation training fine-tunes a frozen pretrained model by adding two tiny trainable matrices (a and b) alongside a linear layer — then merges them back with zero inference overhead.">
+        <div class="term-head">
+          <span class="term-abbr">LoRA</span>
+          <span class="term-cat">Training</span>
+        </div>
+        <div class="term-full">Low-Rank Adaptation</div>
+        <p class="term-desc">Fine-tunes a frozen pretrained model by adding two tiny trainable matrices (A and B) alongside a Linear layer — then merges them back with zero inference overhead.</p>
       </div>
       <div class="term-card" id="term-lut" data-search="lut lookup table data &amp; ml a fast 256-entry color table (used by vkcolorcet) that maps numbers to rgb colors in one instant lookup.">
         <div class="term-head">
@@ -414,6 +430,14 @@
         </div>
         <div class="term-full">Radeon Open Compute</div>
         <p class="term-desc">AMD&#x27;s GPU compute platform, which only supports select desktop/datacenter Radeon cards — unlike Vulkan, which works on almost any GPU.</p>
+      </div>
+      <div class="term-card" id="term-rope" data-search="rope rotary positional embeddings deep learning encodes each token&#x27;s position by rotating pairs of query/key features in 2d space — the standard position encoding used in llama, gemma, and qwen.">
+        <div class="term-head">
+          <span class="term-abbr">RoPE</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Rotary Positional Embeddings</div>
+        <p class="term-desc">Encodes each token&#x27;s position by rotating pairs of Query/Key features in 2D space — the standard position encoding used in Llama, Gemma, and Qwen.</p>
       </div>
       <div class="term-card" id="term-r" data-search="r² coefficient of determination (r-squared) metrics &amp; losses measures what fraction of the variation in the target your model explains. 1.00 = perfect predictions, 0.00 = no better than guessing the average.">
         <div class="term-head">

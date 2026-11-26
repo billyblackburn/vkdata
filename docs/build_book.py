@@ -120,6 +120,12 @@ GLOSSARY = [
      "Using the chain rule of calculus in reverse from the loss back to every weight so the optimizer knows which way to nudge each knob."),
     ("Overfitting", "Memorizing Training Data", "Training",
      "When a model learns noise in the training set instead of the true pattern, scoring great on training data but poorly on unseen test data."),
+    ("RoPE", "Rotary Positional Embeddings", "Deep Learning",
+     "Encodes each token's position by rotating pairs of Query/Key features in 2D space — the standard position encoding used in Llama, Gemma, and Qwen."),
+    ("KV-Cache", "Key-Value Cache", "Deep Learning",
+     "Saves past attention Keys and Values in GPU VRAM during text generation so each new token only computes 1 step instead of reprocessing the whole prompt."),
+    ("LoRA", "Low-Rank Adaptation", "Training",
+     "Fine-tunes a frozen pretrained model by adding two tiny trainable matrices (A and B) alongside a Linear layer — then merges them back with zero inference overhead."),
 ]
 
 def _slug(term: str) -> str:

@@ -37,7 +37,7 @@ This roadmap tracks what is complete and what's next for both the **interactive 
 ## Upcoming Vulkan Toolkit Roadmap
 
 ### `vktorch` Deep Learning
-- [ ] **Modern LLM Building Blocks:** Rotary Positional Embeddings (**RoPE**), **KV-Cache** for fast autoregressive decoding, and **LoRA** low-rank fine-tuning adapters.
+- [x] **Modern LLM Building Blocks:** Single-pass SPIR-V Rotary Positional Embeddings (**RoPE**), VRAM **KV-Cache** (`nn.KVCache` + `LlamaBlock(use_rope=True)`), and **LoRA** low-rank fine-tuning adapters (`nn.LoRALinear` + `.merge_weights()`).
 - [x] **Fused SPIR-V `Conv2d` (`im2col` / `col2im`) & `MaxPool2d`:** 100% VRAM shaders (`12.8×` faster `im2col`/`col2im`, cutting 15-epoch Fashion-MNIST CNN training from `46.4s` → `24.5s`).
 - [ ] **Mixed-Precision (`FP16`) Training & Gradient Accumulation** helpers for larger models on modest GPUs.
 

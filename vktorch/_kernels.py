@@ -1260,3 +1260,68 @@ def fused_max_pool2d_bwd(
         pc = struct.pack("<8i", n, c, h, w, int(kernel_size), int(stride), oh, ow)
         dispatch_spv_gpu(spv, [gc, argmax, dx], pc, ((total + 255) // 256, 1, 1))
     return dx
+
+
+# =====================================================================
+# 8. RoPE: Single-pass SPIR-V Rotary Positional Embeddings (fwd & bwd)
+# =====================================================================
+
+_GLSL_ROPE = """#version 450
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) readonly buffer InBuf   { float x[]; };
+layout(set = 0, binding = 1) writeonly buffer OutBuf { float y[]; };
+
+layout(push_constant) uniform PC {
+    int   bh;
+    int   t_len;
+    int   d;
+    int   start_pos;
+    float theta;
+    int   inverse;
+} pc;
+
+void main() {
+    int half_d = pc.d / 2;
+    int total_pairs = pc.bh * pc.t_len * half_d;
+    int pidx = int(gl_GlobalInvocationID.x);
+    if (pidx >= total_pairs) return;
+
+    int pair = pidx % half_d;
+    int tmp  = pidx / half_d;
+    int t    = tmp % pc.t_len;
+    int bh_i = tmp / pc.t_len;
+
+    float pos = float(pc.start_pos + t);
+    float freq = pow(pc.theta, -float(2 * pair) / float(pc.d));
+    float angle = pos * freq;
+    float c = cos(angle);
+    float s = sin(angle);
+    if (pc.inverse != 0) s = -s;
+
+    int base = (bh_i * pc.t_len + t) * pc.d + 2 * pair;
+    float x0 = x[base];
+    float x1 = x[base + 1];
+    y[base]     = x0 * c - x1 * s;
+    y[base + 1] = x0 * s + x1 * c;
+}
+"""
+
+
+def fused_rope(
+    x: vnp.ndarray, *, start_pos: int = 0, theta: float = 10000.0, inverse: bool = False
+) -> vnp.ndarray:
+    """Apply (or invert, for backward) Rotary Positional Embeddings on ``(..., T, D)`` in VRAM."""
+    xc = x.contiguous()
+    d = int(xc.shape[-1])
+    if d % 2 != 0:
+        raise ValueError(f"RoPE requires even head_dim, got {d}")
+    t_len = int(xc.shape[-2])
+    bh = int(xc.size) // (t_len * d) if (t_len * d) > 0 else 0
+    out = vnp.ndarray._empty_uninit(xc.shape, _np.float32)
+    total_pairs = bh * t_len * (d // 2)
+    if total_pairs > 0:
+        spv = _get_spv("rope", _GLSL_ROPE)
+        pc = struct.pack("<iiiifi", bh, t_len, d, int(start_pos), float(theta), 1 if inverse else 0)
+        dispatch_spv_gpu(spv, [xc, out], pc, ((total_pairs + 255) // 256, 1, 1))
+    return out

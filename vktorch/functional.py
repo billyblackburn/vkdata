@@ -202,6 +202,19 @@ def cross_entropy(logits: Tensor, targets) -> Tensor:
     return Tensor(loss_val, requires_grad=req, dtype=None, _parents=(logits,) if req else (), _backward=_bw if req else None)
 
 
+def apply_rotary_pos_emb(x: Tensor, *, start_pos: int = 0, theta: float = 10000.0) -> Tensor:
+    """Single-pass Vulkan SPIR-V Rotary Positional Embeddings (RoPE) on ``(B, H, T, D)``."""
+    from ._kernels import fused_rope
+
+    out_data = fused_rope(x.data, start_pos=start_pos, theta=theta, inverse=False)
+    req = is_grad_enabled() and x.requires_grad
+
+    def _bw(g: vnp.ndarray) -> None:
+        x._accum_grad(fused_rope(g, start_pos=start_pos, theta=theta, inverse=True))
+
+    return Tensor(out_data, requires_grad=req, dtype=None, _parents=(x,) if req else (), _backward=_bw if req else None)
+
+
 def scaled_dot_product_attention(
     q: Tensor,
     k: Tensor,
@@ -214,9 +227,12 @@ def scaled_dot_product_attention(
     scale = 1.0 / math.sqrt(float(d_k))
     scores = (q @ k.transpose(-2, -1)) * scale
     if is_causal:
-        t_len = scores.shape[-1]
-        mask_np = _np.triu(_np.full((t_len, t_len), -1e9, dtype=_np.float32), k=1)
-        scores = scores + Tensor(mask_np, requires_grad=False)
+        t_q = scores.shape[-2]
+        t_k = scores.shape[-1]
+        if t_q > 1:
+            # Diagonal offset (t_k - t_q + 1) supports both full prefill (t_q == t_k) and chunked KV-cache!
+            mask_np = _np.triu(_np.full((t_q, t_k), -1e9, dtype=_np.float32), k=(t_k - t_q + 1))
+            scores = scores + Tensor(mask_np, requires_grad=False)
     attn = scores.softmax(axis=-1)
     return attn @ v
 

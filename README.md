@@ -143,7 +143,7 @@ Every chapter in this book runs on the bundled `vkdata` toolkit — powered by `
 | **`vkspatial`** | `GeoPandas` / `cuSpatial` | Zero-copy SPIR-V 2D Morton `GeoDataFrame`, single-pass `sjoin`, GeoJSON I/O, Haversine, & **6-level 3D Barnes-Hut Octree (`BarnesHut3D`)** |
 | **`vkvis`** | `mlx-vis` / `UMAP` | Pure-Vulkan GPU manifold learning: `UMAP`, `TSNE`, `PaCMAP`, `LocalMAP`, `TriMap`, `DREAMS`, `CNE`, `NNDescent`, & 2D/3D rendering |
 | **`vklearn`** | `scikit-learn` / `cuML` | `StandardScaler`, `MinMaxScaler`, `LinearRegression`, `Ridge`, `LogisticRegression`, `PCA`, `KMeans`, `NearestNeighbors`, `KNeighborsClassifier`, `Pipeline` |
-| **`vktorch`** | `PyTorch` | Dynamic reverse-mode autograd (`Tensor`, `.backward()`, `no_grad()`), `nn` (`Linear`, `Conv2d`, `MaxPool2d`, `LayerNorm`, `RMSNorm`, `SwiGLU`, `Embedding`, `MultiheadAttention`, `TransformerBlock`, `LlamaBlock`), fused SPIR-V kernels, `optim` (`SGD`, `Adam`, `AdamW`, `CosineAnnealingLR`), `DataLoader`, & `.npz` checkpointing |
+| **`vktorch`** | `PyTorch` | Dynamic reverse-mode autograd (`Tensor`, `.backward()`, `no_grad()`), `nn` (`Linear`, `LoRALinear`, `Conv2d`, `MaxPool2d`, `LayerNorm`, `RMSNorm`, `SwiGLU`, `Embedding`, `MultiheadAttention`, `KVCache`, `TransformerBlock`, `LlamaBlock`), fused SPIR-V kernels (incl. `RoPE` & `im2col`/`col2im`), `optim` (`SGD`, `Adam`, `AdamW`, `CosineAnnealingLR`), `DataLoader`, & `.npz` checkpointing |
 | **`vkastro`** | `Astropy` | GPU `SkyCoord`, `aitoff_projection`, photometry, `FlatLambdaCDM` cosmology, & `read_fits` |
 
 ---

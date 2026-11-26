@@ -319,3 +319,67 @@ def test_spirv_conv2d_and_maxpool2d_gradients():
         (F.max_pool2d(xt, kernel_size=k, stride=st) * vt.Tensor(gp)).sum().backward()
         ng_p = _num_grad(lambda a: (F.max_pool2d(vt.Tensor(a), kernel_size=k, stride=st) * vt.Tensor(gp)).sum().item(), xp.copy(), eps=1e-3)
         np.testing.assert_allclose(xt.grad.to_numpy(), ng_p, atol=2e-2, rtol=2e-2)
+
+
+def test_rope_kv_cache_and_lora():
+    rng = np.random.default_rng(2026)
+
+    # 1. RoPE: finite-difference gradient check + non-zero start_pos equivalence
+    x_np = rng.standard_normal((2, 2, 4, 6)).astype(np.float32) * 0.7
+    g_np = rng.standard_normal((2, 2, 4, 6)).astype(np.float32)
+    x_t = vt.Tensor(x_np.copy(), requires_grad=True)
+    y_t = F.apply_rotary_pos_emb(x_t, start_pos=3, theta=10000.0)
+    (y_t * vt.Tensor(g_np)).sum().backward()
+    ng_rope = _num_grad(
+        lambda a: (F.apply_rotary_pos_emb(vt.Tensor(a), start_pos=3, theta=10000.0) * vt.Tensor(g_np)).sum().item(),
+        x_np.copy(),
+    )
+    np.testing.assert_allclose(x_t.grad.to_numpy(), ng_rope, atol=2e-2, rtol=2e-2)
+
+    # 2. KV-Cache + LlamaBlock(use_rope=True): full sequence == prefill + token-by-token decode!
+    block = nn.LlamaBlock(embed_dim=16, num_heads=4, hidden_dim=32, is_causal=True, use_rope=True, seed=11)
+    block.eval()
+    seq_np = rng.standard_normal((2, 7, 16)).astype(np.float32) * 0.5
+    with vt.no_grad():
+        full_out = block(vt.Tensor(seq_np)).numpy()
+
+        cache = nn.KVCache()
+        p0 = block(vt.Tensor(seq_np[:, :4, :]), kv_cache=cache).numpy()
+        p1 = block(vt.Tensor(seq_np[:, 4:5, :]), kv_cache=cache).numpy()
+        p2 = block(vt.Tensor(seq_np[:, 5:6, :]), kv_cache=cache).numpy()
+        p3 = block(vt.Tensor(seq_np[:, 6:7, :]), kv_cache=cache).numpy()
+        cached_out = np.concatenate([p0, p1, p2, p3], axis=1)
+
+    assert cache.seq_len == 7
+    np.testing.assert_allclose(cached_out, full_out, atol=1e-4, rtol=1e-4)
+
+    # 3. LoRALinear: exact step-0 equivalence, frozen base weights, training, & merge_weights()
+    base = nn.Linear(16, 8, seed=5)
+    w_orig = base.weight.numpy().copy()
+    lora = nn.LoRALinear(base, rank=4, alpha=8.0, seed=6)
+
+    xl = vt.Tensor(rng.standard_normal((12, 16)).astype(np.float32))
+    yl = vt.Tensor(rng.standard_normal((12, 8)).astype(np.float32))
+
+    # Step-0 equivalence (lora_B == 0)
+    with vt.no_grad():
+        np.testing.assert_allclose(lora(xl).numpy(), base(xl).numpy(), atol=1e-6)
+
+    # Fine-tune only LoRA parameters
+    trainable = [p for p in lora.parameters() if p.requires_grad]
+    assert len(trainable) == 2  # only lora_A and lora_B!
+    opt_l = optim.AdamW(trainable, lr=5e-2)
+    l0 = F.mse_loss(lora(xl), yl).item()
+    for _ in range(30):
+        opt_l.zero_grad()
+        loss = F.mse_loss(lora(xl), yl)
+        loss.backward()
+        opt_l.step()
+    assert loss.item() < l0 * 0.4
+    # Base weights remained frozen!
+    np.testing.assert_allclose(base.weight.numpy(), w_orig, atol=0.0)
+
+    # merge_weights() produces exact match with zero LoRA overhead
+    merged = lora.merge_weights()
+    with vt.no_grad():
+        np.testing.assert_allclose(merged(xl).numpy(), lora(xl).numpy(), atol=1e-5)

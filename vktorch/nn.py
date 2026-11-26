@@ -152,6 +152,76 @@ class Linear(Module):
         return out
 
 
+class LoRALinear(Module):
+    """Low-Rank Adaptation (LoRA) wrapper around a frozen ``Linear`` layer.
+
+    Computes ``base(x) + ((x @ A^T) @ B^T) * (alpha / rank)`` where ``B`` is
+    zero-initialized so step-0 output exactly matches the pretrained base layer.
+    """
+
+    def __init__(
+        self,
+        base: Linear,
+        rank: int = 4,
+        alpha: float = 8.0,
+        seed: Optional[int] = None,
+    ) -> None:
+        super().__init__()
+        self.base = base
+        self.base.weight.requires_grad = False
+        if self.base.bias is not None:
+            self.base.bias.requires_grad = False
+
+        self.rank = int(rank)
+        self.alpha = float(alpha)
+        self.scaling = self.alpha / float(self.rank)
+
+        rng = _np.random.default_rng(seed) if seed is not None else _np.random.default_rng()
+        a_init = rng.normal(0.0, 1.0 / math.sqrt(float(base.in_features)), size=(self.rank, base.in_features)).astype(_np.float32)
+        b_init = _np.zeros((base.out_features, self.rank), dtype=_np.float32)
+        self.lora_A = Parameter(a_init)
+        self.lora_B = Parameter(b_init)
+
+    def forward(self, x: Tensor) -> Tensor:
+        base_out = self.base(x)
+        lora_out = ((x @ self.lora_A.T) @ self.lora_B.T) * self.scaling
+        return base_out + lora_out
+
+    def merge_weights(self) -> Linear:
+        """Fold learned LoRA update ``(alpha/rank) * (B @ A)`` into a plain ``Linear`` layer."""
+        merged = Linear(self.base.in_features, self.base.out_features, bias=self.base.bias is not None)
+        delta = (self.lora_B.data @ self.lora_A.data) * self.scaling
+        merged.weight = Parameter((self.base.weight.data + delta).contiguous())
+        if self.base.bias is not None:
+            merged.bias = Parameter(self.base.bias.data.contiguous())
+        return merged
+
+
+class KVCache:
+    """VRAM Key/Value cache for fast O(1)-per-step autoregressive Transformer decoding."""
+
+    def __init__(self) -> None:
+        self.k: Optional[vnp.ndarray] = None
+        self.v: Optional[vnp.ndarray] = None
+
+    @property
+    def seq_len(self) -> int:
+        return 0 if self.k is None else int(self.k.shape[2])
+
+    def reset(self) -> None:
+        self.k = None
+        self.v = None
+
+    def update(self, new_k: Tensor, new_v: Tensor) -> Tuple[Tensor, Tensor]:
+        if self.k is None or self.v is None:
+            self.k = new_k.data.contiguous()
+            self.v = new_v.data.contiguous()
+        else:
+            self.k = vnp.concatenate([self.k, new_k.data.contiguous()], axis=2).contiguous()
+            self.v = vnp.concatenate([self.v, new_v.data.contiguous()], axis=2).contiguous()
+        return Tensor(self.k, requires_grad=False), Tensor(self.v, requires_grad=False)
+
+
 class Conv2d(Module):
     """2D Convolution layer via ``im2col`` + Vulkan GPU GEMM."""
 
@@ -277,18 +347,31 @@ class SwiGLU(Module):
 
 
 class LlamaBlock(Module):
-    """Modern Llama-style Transformer block: RMSNorm + Causal Attention + RMSNorm + SwiGLU."""
+    """Modern Llama-style Transformer block: RMSNorm + Causal Attention (optional RoPE + KV-Cache) + RMSNorm + SwiGLU."""
 
-    def __init__(self, embed_dim: int, num_heads: int, hidden_dim: Optional[int] = None, dropout: float = 0.0, is_causal: bool = True, seed: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        embed_dim: int,
+        num_heads: int,
+        hidden_dim: Optional[int] = None,
+        dropout: float = 0.0,
+        is_causal: bool = True,
+        use_rope: bool = False,
+        rope_theta: float = 10000.0,
+        seed: Optional[int] = None,
+    ) -> None:
         super().__init__()
         h_dim = int(hidden_dim) if hidden_dim is not None else int(embed_dim * 8 // 3)
         self.norm1 = RMSNorm(embed_dim)
-        self.attn = MultiheadAttention(embed_dim, num_heads, dropout=dropout, is_causal=is_causal, seed=seed)
+        self.attn = MultiheadAttention(
+            embed_dim, num_heads, dropout=dropout, is_causal=is_causal,
+            use_rope=use_rope, rope_theta=rope_theta, seed=seed,
+        )
         self.norm2 = RMSNorm(embed_dim)
         self.ffn = SwiGLU(embed_dim, h_dim, seed=None if seed is None else seed + 10)
 
-    def forward(self, x: Tensor) -> Tensor:
-        x = x + self.attn(self.norm1(x))
+    def forward(self, x: Tensor, *, kv_cache: Optional[KVCache] = None, start_pos: Optional[int] = None) -> Tensor:
+        x = x + self.attn(self.norm1(x), kv_cache=kv_cache, start_pos=start_pos)
         return x + self.ffn(self.norm2(x))
 
 
@@ -332,27 +415,55 @@ class Embedding(Module):
 
 
 class MultiheadAttention(Module):
-    """Multi-Head Self-Attention on Vulkan GPU (supports optional causal masking)."""
+    """Multi-Head Self-Attention on Vulkan GPU (supports causal masking, RoPE, & KV-Cache)."""
 
-    def __init__(self, embed_dim: int, num_heads: int, dropout: float = 0.0, is_causal: bool = False, seed: Optional[int] = None) -> None:
+    def __init__(
+        self,
+        embed_dim: int,
+        num_heads: int,
+        dropout: float = 0.0,
+        is_causal: bool = False,
+        use_rope: bool = False,
+        rope_theta: float = 10000.0,
+        seed: Optional[int] = None,
+    ) -> None:
         super().__init__()
         assert embed_dim % num_heads == 0, "embed_dim must be divisible by num_heads"
         self.embed_dim = int(embed_dim)
         self.num_heads = int(num_heads)
         self.head_dim = self.embed_dim // self.num_heads
         self.is_causal = bool(is_causal)
+        self.use_rope = bool(use_rope)
+        self.rope_theta = float(rope_theta)
         self.q_proj = Linear(embed_dim, embed_dim, seed=seed)
         self.k_proj = Linear(embed_dim, embed_dim, seed=None if seed is None else seed + 1)
         self.v_proj = Linear(embed_dim, embed_dim, seed=None if seed is None else seed + 2)
         self.out_proj = Linear(embed_dim, embed_dim, seed=None if seed is None else seed + 3)
         self.drop = Dropout(dropout)
 
-    def forward(self, x: Tensor, *, is_causal: Optional[bool] = None) -> Tensor:
+    def forward(
+        self,
+        x: Tensor,
+        *,
+        is_causal: Optional[bool] = None,
+        kv_cache: Optional[KVCache] = None,
+        start_pos: Optional[int] = None,
+    ) -> Tensor:
         B, T, C = x.shape
         H, D = self.num_heads, self.head_dim
+        pos = (kv_cache.seq_len if kv_cache is not None else 0) if start_pos is None else int(start_pos)
+
         q = self.q_proj(x).reshape(B, T, H, D).transpose(1, 2)  # (B, H, T, D)
         k = self.k_proj(x).reshape(B, T, H, D).transpose(1, 2)
         v = self.v_proj(x).reshape(B, T, H, D).transpose(1, 2)
+
+        if self.use_rope:
+            q = F.apply_rotary_pos_emb(q, start_pos=pos, theta=self.rope_theta)
+            k = F.apply_rotary_pos_emb(k, start_pos=pos, theta=self.rope_theta)
+
+        if kv_cache is not None:
+            k, v = kv_cache.update(k, v)
+
         causal = self.is_causal if is_causal is None else bool(is_causal)
         ctx = F.scaled_dot_product_attention(q, k, v, is_causal=causal)
         ctx = ctx.transpose(1, 2).reshape(B, T, C)
