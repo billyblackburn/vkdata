@@ -22,7 +22,7 @@ pixi run build
 # 3. Inspect your Vulkan GPU specs & run a 1-second compute/bandwidth check
 pixi run gpu-specs
 
-# 4. Verify everything works on your GPU (72 tests across all 14 included packages)
+# 4. Verify everything works on your GPU (76 tests across all 15 included packages)
 pixi run test
 
 # 5. Open the interactive book in JupyterLab!
@@ -56,8 +56,10 @@ pixi run lab
   Classify 10 clothing categories (`28 × 28` images): visualize "Average Clothing" prototypes, discover GPU **"Eigen-Clothes"** with `vklearn.PCA`, hand-craft Sobel/HOG edge features, and climb from `81.50%` (raw pixels) to **`86.45%`** — while inspecting the confusion matrix to see why `Shirt` stalls at `57.5%`.
 - **Chapter 4 *(Image Data)* — [Fashion-MNIST: Beating Classical CV with a 2D CNN (`vktorch`)](examples/tldr_end2end/04_fashion_cnn_deep_learning.ipynb)**
   Train a modern strided `Conv2d` CNN (`15` epochs in **`24.5s`** on Steam Deck GPU with `12.8×` faster 100%-VRAM SPIR-V `im2col`/`col2im`!) directly on raw `28 × 28` images — beating every Classical CV model at **`87.70%`** (`Shirt` `+10.0 pts`), plus learned 3×3 filter & feature-map visuals.
-- **Chapter 5 *(Vector / Text Data)* — [AG News: TF-IDF Vectors, GPU Vector Search & Classical ML](examples/tldr_end2end/05_vector_search_classical_ml.ipynb)**
-  Turn 7,600 real news articles into L2-normalized 2,000-D vectors, build a **5-line Vulkan GPU Vector Database** (`~2.6 ms` Cosine Similarity + `top_k`), visualize 4 topic islands with `vkvis.UMAP`, classify topics (`82.12%` BoW → **`86.44%`** TF-IDF + GPU Ridge), and hit the classic **Synonym Wall** (`0.000` similarity on `"car"` vs. `"automobile"`).
+- **Chapter 5 *(Vector / Text Data · Classical NLP)* — [AG News: TF-IDF Vectors, `vkvec` GPU Search & Classical NLP](examples/tldr_end2end/05_vector_search_classical_ml.ipynb)**
+  Walk through the 3-step NLP pipeline, turn 7,600 real news articles into L2-normalized 2,000-D vectors with `vkvec.TfidfVectorizer`, run filtered Vulkan GPU Vector Search (`vkvec.VectorIndex`), visualize 4 topic islands with `vkvis.UMAP`, classify topics (`82.12%` BoW → **`86.44%`** TF-IDF + GPU Ridge), and hit the classic **Synonym Wall** (`0.000` similarity on `"car"` vs. `"automobile"`).
+- **Chapter 6 *(Vector / Text Data · Deep NLP)* — [AG News: Learned Neural Embeddings & Breaking the Synonym Wall](examples/tldr_end2end/06_vector_embeddings_neural_net.ipynb)**
+  Train a `vktorch` Neural Text Encoder (`16` epochs in **`13.8s`** on Steam Deck GPU) to compress news articles into dense **64-D meaning vectors** (`31×` smaller than TF-IDF), index them in `vkvec.VectorIndex`, shatter the Synonym Wall (**`0.000` → `+0.940` / `+0.985`** on zero-word-overlap synonyms!), and beat every Classical NLP model (**`87.12%`** GPU KNN / `86.94%` Neural Classifier) with `.npz` + `.vkvec` persistence.
 
 ---
 

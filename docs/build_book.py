@@ -12,7 +12,8 @@ CHAPTERS = [
     ("examples/tldr_end2end/02_housing_neural_network.ipynb",      "02_housing_neural_network.html",    "Ch. 2 &middot; Housing Neural Net"),
     ("examples/tldr_end2end/03_fashion_classical_ml.ipynb",        "03_fashion_classical_ml.html",      "Ch. 3 &middot; Fashion Classical CV"),
     ("examples/tldr_end2end/04_fashion_cnn_deep_learning.ipynb",   "04_fashion_cnn_deep_learning.html", "Ch. 4 &middot; Fashion 2D CNN"),
-    ("examples/tldr_end2end/05_vector_search_classical_ml.ipynb",  "05_vector_search_classical_ml.html","Ch. 5 &middot; Vector Search &amp; Classical ML"),
+    ("examples/tldr_end2end/05_vector_search_classical_ml.ipynb",  "05_vector_search_classical_ml.html","Ch. 5 &middot; Vector Search &amp; Classical NLP"),
+    ("examples/tldr_end2end/06_vector_embeddings_neural_net.ipynb","06_vector_embeddings_neural_net.html","Ch. 6 &middot; Neural Embeddings &amp; Deep NLP"),
 ]
 
 # (Term, Full Name, Category, Plain-English Explanation)
@@ -139,6 +140,10 @@ GLOSSARY = [
      "A fast dimensionality-reduction algorithm that projects high-dimensional vectors (like 64-D or 2,000-D embeddings) into 2D/3D maps while keeping clusters intact."),
     ("BoW", "Bag-of-Words", "Vector & Text",
      "The simplest text-to-vector method: count how many times each vocabulary word appears in a document, ignoring grammar and word order."),
+    ("NLP", "Natural Language Processing", "Vector & Text",
+     "The branch of AI focused on helping computers read, search, classify, and generate human language — from TF-IDF keyword vectors to neural embeddings and LLMs."),
+    ("Tokenization", "Splitting Text into Tokens", "Vector & Text",
+     "Step 1 of every NLP pipeline: chopping raw text into clean pieces (words, subwords, or characters) and mapping each piece to an integer ID so a computer can do math on it."),
 ]
 
 def _slug(term: str) -> str:
@@ -724,11 +729,20 @@ index_html = f"""<!DOCTYPE html>
 
       <a class="card" href="chapters/05_vector_search_classical_ml.html">
         <div class="card-head">
-          <span class="ch">Chapter 5 &middot; Vector / Text Data &middot; Semantic Search</span>
-          <span class="pill">2.6 ms GPU Vector DB &middot; 86.44% Acc</span>
+          <span class="ch">Chapter 5 &middot; Vector / Text Data &middot; Classical NLP</span>
+          <span class="pill">vkvec GPU Vector DB &middot; 86.44% Acc</span>
         </div>
-        <h3>AG News: TF-IDF Vectors, GPU Vector Search &amp; Classical ML</h3>
-        <p>Turn 7,600 real news articles into L2-normalized 2,000-D vectors, build a 5-line Vulkan GPU Vector Database (Cosine Similarity + <code>top_k</code>), visualize topics with <code>vkvis.UMAP</code>, and hit the classic Synonym Wall.</p>
+        <h3>AG News: TF-IDF Vectors, <code>vkvec</code> GPU Search &amp; Classical NLP</h3>
+        <p>Learn the 3-step NLP pipeline, vectorize 7,600 real news articles with <code>vkvec.TfidfVectorizer</code>, run filtered GPU Cosine Search with <code>vkvec.VectorIndex</code>, visualize topics with <code>vkvis.UMAP</code>, and hit the classic Synonym Wall.</p>
+      </a>
+
+      <a class="card" href="chapters/06_vector_embeddings_neural_net.html">
+        <div class="card-head">
+          <span class="ch">Chapter 6 &middot; Vector / Text Data &middot; Deep NLP</span>
+          <span class="pill">87.12% Acc &middot; 64-D Neural Embeddings</span>
+        </div>
+        <h3>AG News: Learned Neural Embeddings &amp; Breaking the Synonym Wall</h3>
+        <p>Train a <code>vktorch</code> Neural Text Encoder in 13.8s on Steam Deck GPU to compress text into 64-D dense meaning vectors (31&times; smaller), index them in <code>vkvec.VectorIndex</code>, shatter the Synonym Wall (<code>0.000 &rarr; +0.985</code>), and beat Classical NLP.</p>
       </a>
     </div>
 
