@@ -34,6 +34,14 @@ pixi run lab
 
 ## Table of Contents
 
+### Part 0 · AI Foundations: Building Blocks of Neural Networks (`examples/00_ai_foundations/`)
+*Start from absolute zero: understand what a neuron, a hidden layer, an activation function, and "billions of parameters" actually mean.*
+
+- **Foundations 1 — [The Perceptron: How a Single Artificial Neuron Works](examples/00_ai_foundations/01_the_perceptron.ipynb)**
+  Weighted votes (`AND`, `OR`, `NOT`, `NAND`, `NOR`), watching a straight line learn with `vklearn.Perceptron`, running the same smooth neuron on Vulkan GPU (`vktorch.nn.Linear` + `Sigmoid`), and hitting the famous `XOR` limit.
+- **Foundations 2 — [Multi-Layer Perceptrons (MLPs): Bending Space, Solving XOR & LLM Parameters](examples/00_ai_foundations/02_multi_layer_perceptron.ipynb)**
+  Wire 3 perceptrons (`OR` + `NAND` → `AND`) to solve `XOR` by hand, prove why `GELU`/`ReLU` activations prevent linear collapse, watch 1 Neuron (`60%`) → Tiny MLP `2→4→1` (4-sided diamond, `100%`) → Deep MLP `2→32→32→1` (smooth circle, `100%`), and follow the parameter ladder from **3 knobs to 8 Billion in Llama 3**.
+
 ### Part I · End-to-End Projects: Classical ML vs. Deep Learning (`examples/tldr_end2end/`)
 *Follow along on messy, real-world datasets: discover features first, benchmark Classical ML, and then see if a Neural Network can beat it on the exact same train/test split.*
 
@@ -86,11 +94,9 @@ pixi run lab
 ---
 
 ### Part VI · Deep Learning, Backpropagation & Modern LLMs (`examples/05_deep_learning/`)
-*Learn how neurons, autograd, regularization, CNNs, Autoencoders, and Llama-style Transformers work under the hood with `vktorch`.*
+*Learn how autograd, regularization, CNNs, Autoencoders, and Llama-style Transformers work under the hood with `vktorch`.*
 
-- **Chapter 18a — [The Perceptron: How a Single Artificial Neuron Works](examples/05_deep_learning/00_the_perceptron.ipynb)** — Start from zero: weighted votes (`AND`, `OR`, `NOT`, `NAND`, `NOR`), watching a single straight decision line learn with `vklearn.Perceptron`, running the same neuron on Vulkan GPU (`vktorch.nn.Linear` + `Sigmoid`), and hitting the famous `XOR` limit.
-- **Chapter 18b — [Multi-Layer Perceptrons (MLPs): Bending Space & Solving XOR](examples/05_deep_learning/00b_multi_layer_perceptron.ipynb)** — Wire 3 perceptrons (`OR` + `NAND` → `AND`) to solve `XOR` by hand, prove why `GELU`/`ReLU` activations prevent linear collapse, and watch 1 Neuron (`60%`) vs. Tiny MLP `2→4→1` (4-sided polygon, `100%`) vs. Deep MLP `2→32→32→1` (smooth circle, `100%`) on concentric rings.
-- **Chapter 18c — [Backpropagation & Regularization Visual Lab](examples/05_deep_learning/backprop_and_regularization_lab.ipynb)** — Step-by-step chain-rule gradients & side-by-side overfitting vs. `Dropout` + `AdamW` weight decay.
+- **Chapter 18 — [Backpropagation & Regularization Visual Lab](examples/05_deep_learning/backprop_and_regularization_lab.ipynb)** — Step-by-step chain-rule gradients & side-by-side overfitting vs. `Dropout` + `AdamW` weight decay.
 - **Chapter 19 — [MLPs, 2D CNNs & a Causal Mini-GPT Transformer](examples/05_deep_learning/vktorch_deep_learning_demo.ipynb)** — Train a 3-Spiral MLP, a 2D `Conv2d` CNN, and a Mini-GPT live on your Vulkan GPU.
 - **Chapter 20 — [Denoising Autoencoders & Modern Mini-Llama (`RMSNorm` + `SwiGLU`)](examples/05_deep_learning/autoencoder_and_mini_llama.ipynb)** — Visualize an Autoencoder's latent space with `vkvis.UMAP` and train a Mini-Llama that generates coherent sentences in seconds.
 

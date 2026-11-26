@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>00b_multi_layer_perceptron</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>02_multi_layer_perceptron</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -8304,6 +8304,59 @@ Let's compare <strong>3 models</strong> on our Vulkan GPU so you can literally <
 <li><strong>Chapter 2 (<code>HousingResNet</code>):</strong> A deeper Residual MLP with <code>LayerNorm</code> + skip connections that beat Classical ML on California Housing (<code>$48.2k</code> RMSE).</li>
 <li><strong>Chapter 4 (<code>FashionCNN</code>):</strong> Uses an MLP classifier head on top of 2D convolutional filters (<code>87.85%</code> on Fashion-MNIST).</li>
 <li><strong>Chapter 20 (<code>Mini-Llama</code>):</strong> Every Transformer block contains a gated MLP (<code>SwiGLU</code>) that stores most of an LLM's factual knowledge!</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=mlp-llm-params">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<hr/>
+<h3 id="From-3-Parameters-to-8-Billion:-How-This-Connects-to-Large-Language-Models-(LLMs)">From 3 Parameters to 8 Billion: How This Connects to Large Language Models (LLMs)<a class="anchor-link" href="#From-3-Parameters-to-8-Billion:-How-This-Connects-to-Large-Language-Models-(LLMs)">¶</a></h3><p>Every single <strong>weight (<code>w</code>)</strong> and <strong>bias (<code>b</code>)</strong> knob a neural network tunes during training is <strong>1 parameter</strong> — and modern LLMs are built out of the <em>exact same</em> knobs, just scaled way up!</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Architecture</th>
+<th style="text-align:right">Parameters (Knobs)</th>
+<th>What It Can Sculpt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1 Perceptron</strong></td>
+<td><code>2 → 1</code> (<code>w1, w2, b</code>)</td>
+<td style="text-align:right"><strong>3</strong></td>
+<td>One straight line</td>
+</tr>
+<tr>
+<td><strong>Tiny MLP</strong></td>
+<td><code>2 → 4 → 1</code></td>
+<td style="text-align:right"><strong>17</strong></td>
+<td>A rough 4-sided diamond</td>
+</tr>
+<tr>
+<td><strong>Deep MLP</strong></td>
+<td><code>2 → 32 → 32 → 1</code></td>
+<td style="text-align:right"><strong>1,185</strong></td>
+<td>A silky-smooth circle</td>
+</tr>
+<tr>
+<td><strong>Llama 3 8B</strong></td>
+<td><code>4,096</code>-wide × <code>32</code> blocks</td>
+<td style="text-align:right"><strong>8,000,000,000</strong></td>
+<td>Grammar, facts, code &amp; reasoning</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Instead of 2 inputs (<code>x1, x2</code>), an LLM represents each word/token as a list of <strong>4,096 numbers</strong> and passes it through <strong>32 stacked Transformer blocks</strong>.</li>
+<li><strong>Roughly two-thirds of all parameters in an LLM live inside its MLP layers</strong> (<code>SwiGLU</code> feed-forward blocks — each expanding <code>4,096 → 14,336 → 4,096</code>, holding ~176 million weights per block!).</li>
+<li>Just like jumping from <strong>17 parameters</strong> (a boxy diamond) to <strong>1,185 parameters</strong> (a smooth circle) let our MLP sculpt finer shapes, scaling to <strong>billions of parameters</strong> gives an LLM enough <code>w · x + b</code> knobs to store language, facts, and reasoning!</li>
 </ul>
 </div>
 </div>

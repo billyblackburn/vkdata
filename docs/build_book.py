@@ -2,8 +2,8 @@
 from pathlib import Path
 
 CHAPTERS = [
-    ("examples/05_deep_learning/00_the_perceptron.ipynb",         "00_the_perceptron.html",            "Foundations &middot; The Perceptron"),
-    ("examples/05_deep_learning/00b_multi_layer_perceptron.ipynb","00b_multi_layer_perceptron.html",   "Foundations &middot; Multi-Layer Perceptrons"),
+    ("examples/00_ai_foundations/01_the_perceptron.ipynb",        "00_the_perceptron.html",            "Foundations &middot; The Perceptron"),
+    ("examples/00_ai_foundations/02_multi_layer_perceptron.ipynb","00b_multi_layer_perceptron.html",   "Foundations &middot; Multi-Layer Perceptrons"),
     ("examples/tldr_end2end/01_housing_classical_ml.ipynb",       "01_housing_classical_ml.html",      "Ch. 1 &middot; Housing Classical ML"),
     ("examples/tldr_end2end/02_housing_neural_network.ipynb",     "02_housing_neural_network.html",    "Ch. 2 &middot; Housing Neural Net"),
     ("examples/tldr_end2end/03_fashion_classical_ml.ipynb",       "03_fashion_classical_ml.html",      "Ch. 3 &middot; Fashion Classical CV"),
