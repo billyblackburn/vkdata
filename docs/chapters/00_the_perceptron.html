@@ -8114,6 +8114,21 @@ vklearn.LogisticRegression: w = [2.41 1.69], b = +0.40  -&gt;  Accuracy = 100.0%
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=perc-learned-callout">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="What-Did-the-Perceptron-Just-Learn?-(In-Plain-English)">What Did the Perceptron Just Learn? (In Plain English)<a class="anchor-link" href="#What-Did-the-Perceptron-Just-Learn?-(In-Plain-English)">¶</a></h3><ol>
+<li><strong>Where it started (<code>w = [-0.25, -0.45]</code>, 2% accuracy):</strong> Both weights were negative, so the neuron had the world completely backwards — voting <em>"Go for a walk"</em> on cold/blue points and <em>"Stay inside"</em> on warm/orange points.</li>
+<li><strong>Classic 1957 Perceptron (<code>w = [+0.14, +0.03], b = +0.05</code>, 100%):</strong> After 28 mistake corrections, both weights flipped <strong>positive</strong> (<em>higher <code>x1</code> and higher <code>x2</code> → vote Yes!</em>). Notice the dividing line is steep and stops the <em>instant</em> it reaches 0 mistakes — the classic perceptron is "lazy" and quits as soon as all training points are on the right side.</li>
+<li><strong>Smooth GPU Neuron (<code>w = [+2.38, +1.65], b = +0.14</code>, 100%):</strong> Both <code>vktorch</code> and <code>vklearn.LogisticRegression</code> learned almost the exact same balanced weights! Because the smooth <code>sigmoid</code> loss rewards <em>confident</em> predictions instead of stopping at 0 mistakes, it rotated the white line into a <strong>clean diagonal right down the center of the gap</strong> between both clusters.</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=perc-c06">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
