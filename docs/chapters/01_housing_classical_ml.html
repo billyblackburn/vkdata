@@ -8064,18 +8064,16 @@ a.anchor-link {
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Columns:"</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">()</span>
 
-<span class="c1"># Inspect missing values and basic ranges</span>
+<span class="c1"># Inspect missing values and basic ranges directly in vkpandas (100% GPU!)</span>
 <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
-    <span class="n">arr</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">):</span>
-        <span class="n">n_nan</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">valid</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">arr</span><span class="p">)]</span> <span class="k">if</span> <span class="n">n_nan</span> <span class="k">else</span> <span class="n">arr</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">col</span><span class="si">:</span><span class="s2">20s</span><span class="si">}</span><span class="s2"> | min=</span><span class="si">{</span><span class="n">valid</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s2">10.2f</span><span class="si">}</span><span class="s2">  median=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span><span class="si">:</span><span class="s2">10.2f</span><span class="si">}</span><span class="s2">  max=</span><span class="si">{</span><span class="n">valid</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">10.2f</span><span class="si">}</span><span class="s2">  NaNs=</span><span class="si">{</span><span class="n">n_nan</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">uniq</span><span class="p">,</span> <span class="n">cnts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">),</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">summary</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">u</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">)"</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">uniq</span><span class="p">,</span> <span class="n">cnts</span><span class="p">))</span>
+    <span class="n">n_nan</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">is_string</span><span class="p">:</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">col</span><span class="si">:</span><span class="s2">20s</span><span class="si">}</span><span class="s2"> | CATEGORICAL: </span><span class="si">{</span><span class="n">summary</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">clean</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span> <span class="k">if</span> <span class="n">n_nan</span> <span class="k">else</span> <span class="n">s</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">col</span><span class="si">:</span><span class="s2">20s</span><span class="si">}</span><span class="s2"> | min=</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">clean</span><span class="o">.</span><span class="n">min</span><span class="p">())</span><span class="si">:</span><span class="s2">10.2f</span><span class="si">}</span><span class="s2">  mean=</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">clean</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span><span class="si">:</span><span class="s2">10.2f</span><span class="si">}</span><span class="s2">  max=</span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">clean</span><span class="o">.</span><span class="n">max</span><span class="p">())</span><span class="si">:</span><span class="s2">10.2f</span><span class="si">}</span><span class="s2">  NaNs=</span><span class="si">{</span><span class="n">n_nan</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8087,28 +8085,38 @@ a.anchor-link {
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Loaded California Housing: 20,640 districts x 10 columns
-Columns: ['longitude', 'latitude', 'housing_median_age', 'total_rooms', 'total_bedrooms', 'population', 'households', 'median_income', 'median_house_value', 'ocean_proximity']
-
-  longitude            | min=   -124.35  median=   -118.49  max=   -114.31  NaNs=0
-  latitude             | min=     32.54  median=     34.26  max=     41.95  NaNs=0
-  housing_median_age   | min=      1.00  median=     29.00  max=     52.00  NaNs=0
-  total_rooms          | min=      2.00  median=   2127.00  max=  39320.00  NaNs=0
-  total_bedrooms       | min=      1.00  median=    435.00  max=   6445.00  NaNs=207
-  population           | min=      3.00  median=   1166.00  max=  35682.00  NaNs=0
-  households           | min=      1.00  median=    409.00  max=   6082.00  NaNs=0
-  median_income        | min=      0.50  median=      3.53  max=     15.00  NaNs=0
-  median_house_value   | min=  14999.00  median= 179700.00  max= 500001.00  NaNs=0
-  ocean_proximity      | CATEGORICAL: &lt;1H OCEAN(9136), INLAND(6551), ISLAND(5), NEAR BAY(2290), NEAR OCEAN(2658)
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
+<pre>ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 | fp16: 0 | bf16: 0 | fp4: 0 | warp size: 32 | shared memory: 65536 | int dot: 1 | matrix cores: none
+[0 AMD Custom GPU 0405 (RADV VANGOGH)]  queueC=1[4]  queueT=0[1]  prefer-slm=0  rebar=1  r-score=11
+[0 AMD Custom GPU 0405 (RADV VANGOGH)]  fp16-p/s/u/a=1/1/1/1  int8-p/s/u/a=1/1/1/1  bf16-p/s=1/0
+[0 AMD Custom GPU 0405 (RADV VANGOGH)]  subgroup=64(32~64)  ops=1/1/1/1/1/1/1/1/1/1
+[0 AMD Custom GPU 0405 (RADV VANGOGH)]  fp16-cm=0  int8-cm=0  bf16-cm=0  fp8-cm=0  fp6-cm=0  fp4-cm=0
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>ggml_vulkan: Found 1 Vulkan devices:
-ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 | fp16: 0 | bf16: 0 | fp4: 0 | warp size: 32 | shared memory: 65536 | int dot: 1 | matrix cores: none
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Loaded California Housing: 20,640 districts x 10 columns
+Columns: ['longitude', 'latitude', 'housing_median_age', 'total_rooms', 'total_bedrooms', 'population', 'households', 'median_income', 'median_house_value', 'ocean_proximity']
+
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>  longitude            | min=   -124.35  mean=   -119.57  max=   -114.31  NaNs=0
+  latitude             | min=     32.54  mean=     35.63  max=     41.95  NaNs=0
+  housing_median_age   | min=      1.00  mean=     28.64  max=     52.00  NaNs=0
+  total_rooms          | min=      2.00  mean=   2635.76  max=  39320.00  NaNs=0
+  total_bedrooms       | min=      1.00  mean=    537.87  max=   6445.00  NaNs=207
+  population           | min=      3.00  mean=   1425.48  max=  35682.00  NaNs=0
+  households           | min=      1.00  mean=    499.54  max=   6082.00  NaNs=0
+  median_income        | min=      0.50  mean=      3.87  max=     15.00  NaNs=0
+  median_house_value   | min=  14999.00  mean= 206855.78  max= 500001.00  NaNs=0
+  ocean_proximity      | CATEGORICAL: &lt;1H OCEAN(9136), INLAND(6551), NEAR OCEAN(2658), NEAR BAY(2290), ISLAND(5)
 </pre>
 </div>
 </div>
@@ -8287,7 +8295,7 @@ ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 |
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Train size: 16,512 | Test size: 4,128 | Imputed NaN bedrooms with train median = 434
-Baseline LinearRegression (8 raw features) in 30.6 ms:
+Baseline LinearRegression (8 raw features) in 22.9 ms:
   Test RMSE = $69,601  |  Test MAE = $50,917  |  Test R^2 = 0.6401
 </pre>
 </div>
@@ -8451,16 +8459,6 @@ Baseline LinearRegression (8 raw features) in 30.6 ms:
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>[0 AMD Custom GPU 0405 (RADV VANGOGH)]  queueC=1[4]  queueT=0[1]  prefer-slm=0  rebar=1  r-score=11
-[0 AMD Custom GPU 0405 (RADV VANGOGH)]  fp16-p/s/u/a=1/1/1/1  int8-p/s/u/a=1/1/1/1  bf16-p/s=1/0
-[0 AMD Custom GPU 0405 (RADV VANGOGH)]  subgroup=64(32~64)  ops=1/1/1/1/1/1/1/1/1/1
-[0 AMD Custom GPU 0405 (RADV VANGOGH)]  fp16-cm=0  int8-cm=0  bf16-cm=0  fp8-cm=0  fp6-cm=0  fp4-cm=0
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Engineered feature matrix: 16,512 rows x 36 features (up from 8 raw)
 
@@ -8601,10 +8599,10 @@ Top 12 features most correlated with House Value (GPU vkscipy.stats.corrcoef):
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Model                                  |  Test RMSE |   Test MAE | Test R^2 |     Time
 --------------------------------------------------------------------------------------
-1. Baseline LinearReg (8 raw feats)    | $   69,601 | $   50,917 |   0.6401 |   30.6 ms
-2. Engineered LinearReg (36 feats)     | $   61,389 | $   43,711 |   0.7200 |   25.7 ms
-3. Engineered Ridge (alpha=0.1)        | $   61,388 | $   43,713 |   0.7200 |   21.8 ms
-4. GPU Distance-Weighted KNN (k=15)    | $   52,690 | $   33,936 |   0.7938 |  382.7 ms
+1. Baseline LinearReg (8 raw feats)    | $   69,601 | $   50,917 |   0.6401 |   22.9 ms
+2. Engineered LinearReg (36 feats)     | $   61,389 | $   43,711 |   0.7200 |   23.3 ms
+3. Engineered Ridge (alpha=0.1)        | $   61,388 | $   43,713 |   0.7200 |   22.0 ms
+4. GPU Distance-Weighted KNN (k=15)    | $   52,690 | $   33,936 |   0.7938 |  599.7 ms
 
 Total error reduction from Feature Discovery + Non-linear GPU KNN: -$16,910 RMSE!
 
@@ -8731,8 +8729,8 @@ Bonus Classifier (Price &gt;= $180,400): Test Accuracy = 87.52% | Confusion Matr
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Custom Neighborhood Appraisals (1990 Census Dollars):
-  Silicon Valley (Palo Alto, high income, NEAR BAY)  -&gt; Ridge: $  477,137 | GPU KNN: $  490,304
-  Central Valley (Fresno, moderate income, INLAND)   -&gt; Ridge: $   87,090 | GPU KNN: $   77,062
+  Silicon Valley (Palo Alto, high income, NEAR BAY)  -&gt; Ridge: $  477,136 | GPU KNN: $  490,304
+  Central Valley (Fresno, moderate income, INLAND)   -&gt; Ridge: $   87,091 | GPU KNN: $   77,062
   LA Coast (Santa Monica, upper income, &lt;1H OCEAN)   -&gt; Ridge: $  406,817 | GPU KNN: $  429,078
 </pre>
 </div>
