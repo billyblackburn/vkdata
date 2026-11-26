@@ -156,3 +156,90 @@ class LogisticRegression:
 
     def score(self, X: Any, y: Any) -> float:
         return accuracy_score(y, self.predict(X))
+
+
+class Perceptron:
+    """Classic 1957 binary Perceptron linear classifier (scikit-learn style API on Vulkan GPU)."""
+
+    def __init__(
+        self,
+        lr: float = 0.01,
+        max_iter: int = 100,
+        fit_intercept: bool = True,
+        shuffle: bool = False,
+        random_state: Optional[int] = None,
+        init_coef: Optional[Any] = None,
+        init_intercept: float = 0.0,
+        record_history: bool = False,
+    ) -> None:
+        self.lr = float(lr)
+        self.max_iter = int(max_iter)
+        self.fit_intercept = bool(fit_intercept)
+        self.shuffle = bool(shuffle)
+        self.random_state = random_state
+        self.init_coef = init_coef
+        self.init_intercept = float(init_intercept)
+        self.record_history = bool(record_history)
+        self.coef_: Optional[vnp.ndarray] = None
+        self.intercept_: float = 0.0
+        self.n_iter_: int = 0
+        self.n_updates_: int = 0
+        self.history_: list = []
+
+    def fit(self, X: Any, y: Any) -> "Perceptron":
+        X_np = to_gpu_2d(X).to_numpy().astype(np.float32)
+        y_np = to_gpu_1d(y, np.int32).to_numpy().astype(np.int32)
+        n, d = X_np.shape
+
+        if self.init_coef is not None:
+            w = np.asarray(self.init_coef, dtype=np.float32).reshape(d).copy()
+        else:
+            w = np.zeros((d,), dtype=np.float32)
+        b = float(self.init_intercept) if self.fit_intercept else 0.0
+
+        rng = np.random.default_rng(self.random_state)
+        self.history_ = []
+        updates = 0
+
+        if self.record_history:
+            acc0 = float(np.mean(((X_np @ w + b) >= 0.0) == y_np))
+            self.history_.append((0, w.copy(), float(b), acc0))
+
+        for ep in range(1, self.max_iter + 1):
+            order = rng.permutation(n) if self.shuffle else range(n)
+            mistakes = 0
+            for idx in order:
+                xi = X_np[idx]
+                yi = int(y_np[idx])
+                pred = 1 if (float(np.dot(w, xi)) + b) >= 0.0 else 0
+                err = yi - pred
+                if err != 0:
+                    w += self.lr * err * xi
+                    if self.fit_intercept:
+                        b += self.lr * err
+                    updates += 1
+                    mistakes += 1
+                    if self.record_history:
+                        acc = float(np.mean(((X_np @ w + b) >= 0.0) == y_np))
+                        self.history_.append((updates, w.copy(), float(b), acc))
+            self.n_iter_ = ep
+            if mistakes == 0:
+                break
+
+        self.coef_ = vnp.array(w, dtype=np.float32)
+        self.intercept_ = float(b)
+        self.n_updates_ = updates
+        return self
+
+    def decision_function(self, X: Any) -> vnp.ndarray:
+        if self.coef_ is None:
+            raise RuntimeError("Perceptron must be fitted before decision_function()")
+        Xg = to_gpu_2d(X)
+        z = (Xg @ self.coef_.reshape(-1, 1)).ravel()
+        return z + self.intercept_ if self.fit_intercept else z
+
+    def predict(self, X: Any) -> vnp.ndarray:
+        return (self.decision_function(X) >= 0.0).astype(np.int32)
+
+    def score(self, X: Any, y: Any) -> float:
+        return accuracy_score(y, self.predict(X))

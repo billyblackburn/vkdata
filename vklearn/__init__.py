@@ -3,7 +3,7 @@
 from . import cluster, decomposition, linear_model, metrics, model_selection, neighbors, pipeline, preprocessing
 from .cluster import KMeans
 from .decomposition import PCA
-from .linear_model import LinearRegression, LogisticRegression, Ridge
+from .linear_model import LinearRegression, LogisticRegression, Perceptron, Ridge
 from .metrics import (
     accuracy_score,
     confusion_matrix,
@@ -25,6 +25,7 @@ __all__ = [
     "MinMaxScaler",
     "NearestNeighbors",
     "PCA",
+    "Perceptron",
     "Pipeline",
     "Ridge",
     "StandardScaler",

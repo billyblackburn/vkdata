@@ -79,3 +79,16 @@ def test_kmeans_and_knn():
     X_tr, X_te, y_tr, y_te = vkl.train_test_split(vnp.array(pts), vnp.array(true_lbl), test_size=0.2, random_state=1)
     knn = vkl.KNeighborsClassifier(n_neighbors=5).fit(X_tr, y_tr)
     assert knn.score(X_te, y_te) > 0.99
+
+
+def test_perceptron_binary_and_history():
+    rng = np.random.default_rng(7)
+    X0 = rng.normal([-1.5, -1.5], 0.5, size=(60, 2)).astype(np.float32)
+    X1 = rng.normal([1.5, 1.5], 0.5, size=(60, 2)).astype(np.float32)
+    X = np.vstack([X0, X1])
+    y = np.concatenate([np.zeros(60, dtype=np.int32), np.ones(60, dtype=np.int32)])
+
+    clf = vkl.Perceptron(lr=0.05, max_iter=20, shuffle=True, random_state=0, record_history=True).fit(X, y)
+    assert clf.score(X, y) == 1.0
+    assert clf.n_updates_ > 0
+    assert len(clf.history_) == clf.n_updates_ + 1
