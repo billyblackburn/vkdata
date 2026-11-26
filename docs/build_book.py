@@ -3,6 +3,7 @@ from pathlib import Path
 
 CHAPTERS = [
     ("examples/05_deep_learning/00_the_perceptron.ipynb",         "00_the_perceptron.html",            "Foundations &middot; The Perceptron"),
+    ("examples/05_deep_learning/00b_multi_layer_perceptron.ipynb","00b_multi_layer_perceptron.html",   "Foundations &middot; Multi-Layer Perceptrons"),
     ("examples/tldr_end2end/01_housing_classical_ml.ipynb",       "01_housing_classical_ml.html",      "Ch. 1 &middot; Housing Classical ML"),
     ("examples/tldr_end2end/02_housing_neural_network.ipynb",     "02_housing_neural_network.html",    "Ch. 2 &middot; Housing Neural Net"),
     ("examples/tldr_end2end/03_fashion_classical_ml.ipynb",       "03_fashion_classical_ml.html",      "Ch. 3 &middot; Fashion Classical CV"),
@@ -295,6 +296,15 @@ index_html = """<!DOCTYPE html>
         </div>
         <h3>The Perceptron: How a Single Artificial Neuron Works</h3>
         <p>Start from zero: weighted votes, watching a single straight line learn with <code>vklearn.Perceptron</code>, running the same neuron on your Vulkan GPU with <code>vktorch</code>, and hitting the famous XOR limit.</p>
+      </a>
+
+      <a class="card" href="chapters/00b_multi_layer_perceptron.html">
+        <div class="card-head">
+          <span class="ch">Foundations &middot; Hidden Layers &amp; Activations</span>
+          <span class="pill">XOR 100% &middot; 1 Neuron &rarr; Tiny MLP &rarr; Deep MLP</span>
+        </div>
+        <h3>Multi-Layer Perceptrons (MLPs): Bending Space &amp; Solving XOR</h3>
+        <p>Wire 3 perceptrons together to solve XOR by hand, see why <code>GELU</code>/<code>ReLU</code> activations are mandatory, and watch 4 neurons draw a diamond while 32&times;32 sculpts a smooth circle on Vulkan GPU.</p>
       </a>
     </div>
 
