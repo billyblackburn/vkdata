@@ -151,19 +151,19 @@
       <a class="card" href="chapters/05_vector_search_classical_ml.html">
         <div class="card-head">
           <span class="ch">Chapter 5 &middot; Vector / Text Data &middot; Classical NLP</span>
-          <span class="pill">vkvec GPU Vector DB &middot; 86.44% Acc</span>
+          <span class="pill">vkvec GPU Search &middot; 97.30% Acc</span>
         </div>
-        <h3>AG News: TF-IDF Vectors, <code>vkvec</code> GPU Search &amp; Classical NLP</h3>
-        <p>Learn the 3-step NLP pipeline, vectorize 7,600 real news articles with <code>vkvec.TfidfVectorizer</code>, run filtered GPU Cosine Search with <code>vkvec.VectorIndex</code>, visualize topics with <code>vkvis.UMAP</code>, and hit the classic Synonym Wall.</p>
+        <h3>Full-Length BBC News: TF-IDF Vectors, <code>vkvec</code> RAG Chunking &amp; Classical NLP</h3>
+        <p>Walk through the 3-step NLP pipeline on 2,225 complete multi-paragraph BBC articles, chunk long articles with <code>vkvec.chunk_text</code>, run filtered GPU Cosine Search, map 5 topic islands with <code>vkvis.UMAP</code>, and hit the Synonym Wall.</p>
       </a>
 
       <a class="card" href="chapters/06_vector_embeddings_neural_net.html">
         <div class="card-head">
-          <span class="ch">Chapter 6 &middot; Vector / Text Data &middot; Deep NLP</span>
-          <span class="pill">87.12% Acc &middot; 64-D Neural Embeddings</span>
+          <span class="ch">Chapter 6 &middot; Vector / Text Data &middot; Deep NLP &amp; Hybrid Search</span>
+          <span class="pill">97.53% Acc &middot; 64-D Neural + BM25 RRF</span>
         </div>
-        <h3>AG News: Learned Neural Embeddings &amp; Breaking the Synonym Wall</h3>
-        <p>Train a <code>vktorch</code> Neural Text Encoder in 13.8s on Steam Deck GPU to compress text into 64-D dense meaning vectors (31&times; smaller), index them in <code>vkvec.VectorIndex</code>, shatter the Synonym Wall (<code>0.000 &rarr; +0.985</code>), and beat Classical NLP.</p>
+        <h3>Full-Length BBC News: Learned Neural Embeddings &amp; <code>vkvec</code> Hybrid Search</h3>
+        <p>Train a <code>vktorch</code> Neural Text Encoder in 12.2s on Steam Deck GPU to compress full articles into 64-D vectors (31&times; smaller), shatter the Synonym Wall (<code>0.000 &rarr; +0.999</code>), and fuse BM25 + Neural Search with <code>vkvec.HybridIndex</code>.</p>
       </a>
     </div>
 

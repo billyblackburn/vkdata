@@ -14,7 +14,7 @@ This roadmap tracks what is complete and what's next for both the **interactive 
 - **Part I · End-to-End Projects (`examples/tldr_end2end/`):**
   - *Ch. 1–2 · Tabular Data (California Housing):* Classical ML (`$69.6k` → `$52.7k` GPU KNN) vs. `vktorch` Residual MLP (**`$48.2k` RMSE**, `R² = 0.828`).
   - *Ch. 3–4 · Image Data (Fashion-MNIST):* Classical CV (`81.50%` → `86.45%` PCA + Edge/HOG) vs. `vktorch` 2D CNN (**`87.70%`**, `Shirt` `+10.0 pts`, **24.5s** on Steam Deck APU).
-  - *Ch. 5–6 · Vector / Text Data & NLP (AG News):* `vkvec` TF-IDF + GPU Vector DB (`86.44%`) vs. `vktorch` 64-D Neural Embeddings (**`87.12%`**, Synonym Wall broken `0.000 → +0.985`, plus **Hybrid BM25 + Neural RRF Search**).
+  - *Ch. 5–6 · Vector / Text Data & NLP (Full-Length BBC News):* `vkvec` TF-IDF + RAG chunking + GPU Vector DB (`97.30%`) vs. `vktorch` 64-D Neural Embeddings (**`97.53%`**, Synonym Wall broken `0.000 → +0.999`, plus **Hybrid BM25 + Neural RRF Search**).
 - **Parts II–VI Notebooks (`examples/`):** Vulkan GPU Puzzles (`@vnp.kernel`), GPU Foundations, Visual EDA on 11.84M rows, Feature Selection & 7-algorithm UMAP/Manifold Learning, Classical ML at scale, Backprop Lab, Autoencoders, & Mini-Llama (`RMSNorm` + `SwiGLU`).
 - **Hardware Inspector:** [`scripts/gpu_specs.py`](scripts/gpu_specs.py) (`pixi run gpu-specs`) for instant Vulkan device limits + 1-second FP32 GEMM & SPIR-V bandwidth check.
 
