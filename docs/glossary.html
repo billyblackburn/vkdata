@@ -71,7 +71,7 @@
 <body>
   <div class="nav">
     <button onclick="if (history.length > 1) history.back(); else location.href='index.html';">&larr; Back</button>
-    <span class="title">Acronym Glossary (55 Terms)</span>
+    <span class="title">Acronym Glossary (61 Terms)</span>
     <a href="index.html">Book Home</a>
   </div>
   <div class="wrap">
@@ -127,6 +127,14 @@
         <div class="term-full">Binary Cross-Entropy</div>
         <p class="term-desc">The standard loss function for Yes/No (0 vs 1) classification that rewards confident correct probabilities and heavily penalizes confident wrong guesses.</p>
       </div>
+      <div class="term-card" id="term-bow" data-search="bow bag-of-words vector &amp; text the simplest text-to-vector method: count how many times each vocabulary word appears in a document, ignoring grammar and word order.">
+        <div class="term-head">
+          <span class="term-abbr">BoW</span>
+          <span class="term-cat">Vector &amp; Text</span>
+        </div>
+        <div class="term-full">Bag-of-Words</div>
+        <p class="term-desc">The simplest text-to-vector method: count how many times each vocabulary word appears in a document, ignoring grammar and word order.</p>
+      </div>
       <div class="term-card" id="term-cnn" data-search="cnn convolutional neural network deep learning a neural network designed for images that slides small learned 2d filters (like 3x3 patches) across pixels to detect edges, shapes, and textures.">
         <div class="term-head">
           <span class="term-abbr">CNN</span>
@@ -142,6 +150,14 @@
         </div>
         <div class="term-full">2D Convolution Layer</div>
         <p class="term-desc">Slides small learned 2D filters (like 3x3 patches) across an image to detect edges, shapes, and textures anywhere in the picture.</p>
+      </div>
+      <div class="term-card" id="term-cosine-similarity" data-search="cosine similarity angle-based vector similarity vector &amp; text measures how closely two vectors point in the same direction (1.0 = identical direction, 0.0 = unrelated). for unit-length vectors, it&#x27;s just one dot product!">
+        <div class="term-head">
+          <span class="term-abbr">Cosine Similarity</span>
+          <span class="term-cat">Vector &amp; Text</span>
+        </div>
+        <div class="term-full">Angle-Based Vector Similarity</div>
+        <p class="term-desc">Measures how closely two vectors point in the same direction (1.0 = identical direction, 0.0 = unrelated). For unit-length vectors, it&#x27;s just one dot product!</p>
       </div>
       <div class="term-card" id="term-csv" data-search="csv comma-separated values data &amp; ml a plain-text table format where each line is a row and columns are separated by commas.">
         <div class="term-head">
@@ -190,6 +206,14 @@
         </div>
         <div class="term-full">Exploratory Data Analysis</div>
         <p class="term-desc">Inspecting and visualizing your dataset (maps, histograms, missing values, caps/outliers) BEFORE training any model.</p>
+      </div>
+      <div class="term-card" id="term-embedding" data-search="embedding dense meaning vector vector &amp; text a learned list of numbers (e.g. 64 or 4,096 floats) representing a word, sentence, or image so that similar meanings live close together in vector space.">
+        <div class="term-head">
+          <span class="term-abbr">Embedding</span>
+          <span class="term-cat">Vector &amp; Text</span>
+        </div>
+        <div class="term-full">Dense Meaning Vector</div>
+        <p class="term-desc">A learned list of numbers (e.g. 64 or 4,096 floats) representing a word, sentence, or image so that similar meanings live close together in vector space.</p>
       </div>
       <div class="term-card" id="term-epoch" data-search="epoch training epoch training one full pass through the entire training dataset during model training.">
         <div class="term-head">
@@ -383,6 +407,14 @@
         <div class="term-full">Principal Component Analysis</div>
         <p class="term-desc">A classic dimensionality-reduction algorithm that compresses many correlated features (like 784 pixels) into a smaller set of top visual patterns.</p>
       </div>
+      <div class="term-card" id="term-rag" data-search="rag retrieval-augmented generation vector &amp; text searching a vector database for the most relevant documents first, then feeding those retrieved snippets into an llm so it answers with grounded facts.">
+        <div class="term-head">
+          <span class="term-abbr">RAG</span>
+          <span class="term-cat">Vector &amp; Text</span>
+        </div>
+        <div class="term-full">Retrieval-Augmented Generation</div>
+        <p class="term-desc">Searching a Vector Database for the most relevant documents first, then feeding those retrieved snippets into an LLM so it answers with grounded facts.</p>
+      </div>
       <div class="term-card" id="term-rbf" data-search="rbf radial basis function classical ml a smooth bell-curve similarity score exp(-dist^2 / 2*sigma^2) that equals 1 right next to a landmark/hub and fades smoothly to 0 far away.">
         <div class="term-head">
           <span class="term-abbr">RBF</span>
@@ -502,6 +534,22 @@
         </div>
         <div class="term-full">Multi-Dimensional GPU Array</div>
         <p class="term-desc">A grid of numbers (1D vector, 2D matrix, 4D image batch) stored in GPU VRAM that tracks gradients for automatic backpropagation.</p>
+      </div>
+      <div class="term-card" id="term-tf-idf" data-search="tf-idf term frequency - inverse document frequency vector &amp; text a classic formula that turns text into a vector by boosting distinctive topic words and down-weighting common filler words like &#x27;the&#x27; and &#x27;said&#x27;.">
+        <div class="term-head">
+          <span class="term-abbr">TF-IDF</span>
+          <span class="term-cat">Vector &amp; Text</span>
+        </div>
+        <div class="term-full">Term Frequency - Inverse Document Frequency</div>
+        <p class="term-desc">A classic formula that turns text into a vector by boosting distinctive topic words and down-weighting common filler words like &#x27;the&#x27; and &#x27;said&#x27;.</p>
+      </div>
+      <div class="term-card" id="term-umap" data-search="umap uniform manifold approximation and projection vector &amp; text a fast dimensionality-reduction algorithm that projects high-dimensional vectors (like 64-d or 2,000-d embeddings) into 2d/3d maps while keeping clusters intact.">
+        <div class="term-head">
+          <span class="term-abbr">UMAP</span>
+          <span class="term-cat">Vector &amp; Text</span>
+        </div>
+        <div class="term-full">Uniform Manifold Approximation and Projection</div>
+        <p class="term-desc">A fast dimensionality-reduction algorithm that projects high-dimensional vectors (like 64-D or 2,000-D embeddings) into 2D/3D maps while keeping clusters intact.</p>
       </div>
       <div class="term-card" id="term-vram" data-search="vram video ram (gpu memory) hardware &amp; vulkan the high-speed memory attached to your gpu where tensors, model weights, and shaders live while training.">
         <div class="term-head">

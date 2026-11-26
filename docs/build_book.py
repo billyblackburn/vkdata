@@ -12,6 +12,7 @@ CHAPTERS = [
     ("examples/tldr_end2end/02_housing_neural_network.ipynb",      "02_housing_neural_network.html",    "Ch. 2 &middot; Housing Neural Net"),
     ("examples/tldr_end2end/03_fashion_classical_ml.ipynb",        "03_fashion_classical_ml.html",      "Ch. 3 &middot; Fashion Classical CV"),
     ("examples/tldr_end2end/04_fashion_cnn_deep_learning.ipynb",   "04_fashion_cnn_deep_learning.html", "Ch. 4 &middot; Fashion 2D CNN"),
+    ("examples/tldr_end2end/05_vector_search_classical_ml.ipynb",  "05_vector_search_classical_ml.html","Ch. 5 &middot; Vector Search &amp; Classical ML"),
 ]
 
 # (Term, Full Name, Category, Plain-English Explanation)
@@ -126,6 +127,18 @@ GLOSSARY = [
      "Saves past attention Keys and Values in GPU VRAM during text generation so each new token only computes 1 step instead of reprocessing the whole prompt."),
     ("LoRA", "Low-Rank Adaptation", "Training",
      "Fine-tunes a frozen pretrained model by adding two tiny trainable matrices (A and B) alongside a Linear layer — then merges them back with zero inference overhead."),
+    ("TF-IDF", "Term Frequency - Inverse Document Frequency", "Vector & Text",
+     "A classic formula that turns text into a vector by boosting distinctive topic words and down-weighting common filler words like 'the' and 'said'."),
+    ("Embedding", "Dense Meaning Vector", "Vector & Text",
+     "A learned list of numbers (e.g. 64 or 4,096 floats) representing a word, sentence, or image so that similar meanings live close together in vector space."),
+    ("Cosine Similarity", "Angle-Based Vector Similarity", "Vector & Text",
+     "Measures how closely two vectors point in the same direction (1.0 = identical direction, 0.0 = unrelated). For unit-length vectors, it's just one dot product!"),
+    ("RAG", "Retrieval-Augmented Generation", "Vector & Text",
+     "Searching a Vector Database for the most relevant documents first, then feeding those retrieved snippets into an LLM so it answers with grounded facts."),
+    ("UMAP", "Uniform Manifold Approximation and Projection", "Vector & Text",
+     "A fast dimensionality-reduction algorithm that projects high-dimensional vectors (like 64-D or 2,000-D embeddings) into 2D/3D maps while keeping clusters intact."),
+    ("BoW", "Bag-of-Words", "Vector & Text",
+     "The simplest text-to-vector method: count how many times each vocabulary word appears in a document, ignoring grammar and word order."),
 ]
 
 def _slug(term: str) -> str:
@@ -670,11 +683,12 @@ index_html = f"""<!DOCTYPE html>
       </a>
     </div>
 
-    <h2>Part I &middot; End-to-End Projects: Classical ML vs. Deep Learning</h2>
+    <h2>Part I &middot; End-to-End Projects: Tabular, Image &amp; Vector Data</h2>
+    <p style="color:var(--muted);font-size:14px;margin:-6px 0 14px;">Every data type follows the same pattern: <strong>Feature Discovery &amp; Classical ML</strong> first, then <strong>Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
     <div class="grid">
       <a class="card" href="chapters/01_housing_classical_ml.html">
         <div class="card-head">
-          <span class="ch">Chapter 1 &middot; Regression</span>
+          <span class="ch">Chapter 1 &middot; Tabular Data &middot; Regression</span>
           <span class="pill">$69.6k &rarr; $52.7k RMSE</span>
         </div>
         <h3>California Housing: Feature Discovery &amp; Classical ML</h3>
@@ -683,7 +697,7 @@ index_html = f"""<!DOCTYPE html>
 
       <a class="card" href="chapters/02_housing_neural_network.html">
         <div class="card-head">
-          <span class="ch">Chapter 2 &middot; Deep Learning</span>
+          <span class="ch">Chapter 2 &middot; Tabular Data &middot; Deep Learning</span>
           <span class="pill">$48.2k RMSE &middot; R&sup2; 0.828</span>
         </div>
         <h3>California Housing: Beating Classical ML with a Deep Neural Network</h3>
@@ -692,7 +706,7 @@ index_html = f"""<!DOCTYPE html>
 
       <a class="card" href="chapters/03_fashion_classical_ml.html">
         <div class="card-head">
-          <span class="ch">Chapter 3 &middot; Classical CV</span>
+          <span class="ch">Chapter 3 &middot; Image Data &middot; Classical CV</span>
           <span class="pill">81.5% &rarr; 86.45% Acc</span>
         </div>
         <h3>Fashion-MNIST: Image Feature Discovery &amp; Classical Computer Vision</h3>
@@ -701,11 +715,20 @@ index_html = f"""<!DOCTYPE html>
 
       <a class="card" href="chapters/04_fashion_cnn_deep_learning.html">
         <div class="card-head">
-          <span class="ch">Chapter 4 &middot; 2D CNN</span>
-          <span class="pill">87.85% Acc &middot; Shirt +11.5 pts</span>
+          <span class="ch">Chapter 4 &middot; Image Data &middot; 2D CNN</span>
+          <span class="pill">87.70% Acc &middot; 24.5s VRAM SPIR-V</span>
         </div>
         <h3>Fashion-MNIST: Beating Classical CV with a 2D CNN (<code>vktorch</code>)</h3>
-        <p>Train a strided <code>Conv2d</code> CNN directly on raw 28&times;28 pixels in 46s on Steam Deck GPU, inspect the 16 learned 3&times;3 filters &amp; feature maps, and beat every Classical CV model.</p>
+        <p>Train a strided <code>Conv2d</code> CNN directly on raw 28&times;28 pixels in 24.5s on Steam Deck GPU (12.8&times; faster SPIR-V <code>im2col</code>), inspect 16 learned 3&times;3 filters, and beat every Classical CV model.</p>
+      </a>
+
+      <a class="card" href="chapters/05_vector_search_classical_ml.html">
+        <div class="card-head">
+          <span class="ch">Chapter 5 &middot; Vector / Text Data &middot; Semantic Search</span>
+          <span class="pill">2.6 ms GPU Vector DB &middot; 86.44% Acc</span>
+        </div>
+        <h3>AG News: TF-IDF Vectors, GPU Vector Search &amp; Classical ML</h3>
+        <p>Turn 7,600 real news articles into L2-normalized 2,000-D vectors, build a 5-line Vulkan GPU Vector Database (Cosine Similarity + <code>top_k</code>), visualize topics with <code>vkvis.UMAP</code>, and hit the classic Synonym Wall.</p>
       </a>
     </div>
 

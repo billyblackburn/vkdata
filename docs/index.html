@@ -80,7 +80,7 @@
   <div class="wrap">
     <div class="top-bar">
       <span class="badge">Interactive Follow-Along Book &middot; Pure Vulkan GPU</span>
-      <a class="gloss-pill" href="glossary.html">&#128214; Plain-English Acronym Glossary (55 Terms)</a>
+      <a class="gloss-pill" href="glossary.html">&#128214; Plain-English Acronym Glossary (61 Terms)</a>
     </div>
     <h1>Hands-On AI, Machine Learning &amp; GPU Computing &mdash; Without CUDA or ROCm</h1>
     <p class="sub">
@@ -109,11 +109,12 @@
       </a>
     </div>
 
-    <h2>Part I &middot; End-to-End Projects: Classical ML vs. Deep Learning</h2>
+    <h2>Part I &middot; End-to-End Projects: Tabular, Image &amp; Vector Data</h2>
+    <p style="color:var(--muted);font-size:14px;margin:-6px 0 14px;">Every data type follows the same pattern: <strong>Feature Discovery &amp; Classical ML</strong> first, then <strong>Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
     <div class="grid">
       <a class="card" href="chapters/01_housing_classical_ml.html">
         <div class="card-head">
-          <span class="ch">Chapter 1 &middot; Regression</span>
+          <span class="ch">Chapter 1 &middot; Tabular Data &middot; Regression</span>
           <span class="pill">$69.6k &rarr; $52.7k RMSE</span>
         </div>
         <h3>California Housing: Feature Discovery &amp; Classical ML</h3>
@@ -122,7 +123,7 @@
 
       <a class="card" href="chapters/02_housing_neural_network.html">
         <div class="card-head">
-          <span class="ch">Chapter 2 &middot; Deep Learning</span>
+          <span class="ch">Chapter 2 &middot; Tabular Data &middot; Deep Learning</span>
           <span class="pill">$48.2k RMSE &middot; R&sup2; 0.828</span>
         </div>
         <h3>California Housing: Beating Classical ML with a Deep Neural Network</h3>
@@ -131,7 +132,7 @@
 
       <a class="card" href="chapters/03_fashion_classical_ml.html">
         <div class="card-head">
-          <span class="ch">Chapter 3 &middot; Classical CV</span>
+          <span class="ch">Chapter 3 &middot; Image Data &middot; Classical CV</span>
           <span class="pill">81.5% &rarr; 86.45% Acc</span>
         </div>
         <h3>Fashion-MNIST: Image Feature Discovery &amp; Classical Computer Vision</h3>
@@ -140,11 +141,20 @@
 
       <a class="card" href="chapters/04_fashion_cnn_deep_learning.html">
         <div class="card-head">
-          <span class="ch">Chapter 4 &middot; 2D CNN</span>
-          <span class="pill">87.85% Acc &middot; Shirt +11.5 pts</span>
+          <span class="ch">Chapter 4 &middot; Image Data &middot; 2D CNN</span>
+          <span class="pill">87.70% Acc &middot; 24.5s VRAM SPIR-V</span>
         </div>
         <h3>Fashion-MNIST: Beating Classical CV with a 2D CNN (<code>vktorch</code>)</h3>
-        <p>Train a strided <code>Conv2d</code> CNN directly on raw 28&times;28 pixels in 46s on Steam Deck GPU, inspect the 16 learned 3&times;3 filters &amp; feature maps, and beat every Classical CV model.</p>
+        <p>Train a strided <code>Conv2d</code> CNN directly on raw 28&times;28 pixels in 24.5s on Steam Deck GPU (12.8&times; faster SPIR-V <code>im2col</code>), inspect 16 learned 3&times;3 filters, and beat every Classical CV model.</p>
+      </a>
+
+      <a class="card" href="chapters/05_vector_search_classical_ml.html">
+        <div class="card-head">
+          <span class="ch">Chapter 5 &middot; Vector / Text Data &middot; Semantic Search</span>
+          <span class="pill">2.6 ms GPU Vector DB &middot; 86.44% Acc</span>
+        </div>
+        <h3>AG News: TF-IDF Vectors, GPU Vector Search &amp; Classical ML</h3>
+        <p>Turn 7,600 real news articles into L2-normalized 2,000-D vectors, build a 5-line Vulkan GPU Vector Database (Cosine Similarity + <code>top_k</code>), visualize topics with <code>vkvis.UMAP</code>, and hit the classic Synonym Wall.</p>
       </a>
     </div>
 
