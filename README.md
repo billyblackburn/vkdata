@@ -19,10 +19,13 @@ pixi run setup
 # 2. Build the native Vulkan backends (libvknumpy, libvkshader, libvkspatial)
 pixi run build
 
-# 3. Verify everything works on your GPU (71 tests across all 14 included packages)
+# 3. Inspect your Vulkan GPU specs & run a 1-second compute/bandwidth check
+pixi run gpu-specs
+
+# 4. Verify everything works on your GPU (72 tests across all 14 included packages)
 pixi run test
 
-# 4. Open the interactive book in JupyterLab!
+# 5. Open the interactive book in JupyterLab!
 pixi run lab
 ```
 
