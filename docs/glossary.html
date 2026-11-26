@@ -71,7 +71,7 @@
 <body>
   <div class="nav">
     <button onclick="if (history.length > 1) history.back(); else location.href='index.html';">&larr; Back</button>
-    <span class="title">Acronym Glossary (39 Terms)</span>
+    <span class="title">Acronym Glossary (52 Terms)</span>
     <a href="index.html">Book Home</a>
   </div>
   <div class="wrap">
@@ -103,6 +103,22 @@
         <div class="term-full">Accelerated Processing Unit</div>
         <p class="term-desc">A single chip combining a CPU and GPU that share unified memory — like the AMD chip inside the Steam Deck.</p>
       </div>
+      <div class="term-card" id="term-autograd" data-search="autograd automatic differentiation deep learning the engine inside vktorch/pytorch that remembers every math operation in the forward pass and automatically computes exact gradients on .backward().">
+        <div class="term-head">
+          <span class="term-abbr">Autograd</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Automatic Differentiation</div>
+        <p class="term-desc">The engine inside vktorch/PyTorch that remembers every math operation in the forward pass and automatically computes exact gradients on .backward().</p>
+      </div>
+      <div class="term-card" id="term-backpropagation" data-search="backpropagation backward propagation of errors deep learning using the chain rule of calculus in reverse from the loss back to every weight so the optimizer knows which way to nudge each knob.">
+        <div class="term-head">
+          <span class="term-abbr">Backpropagation</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Backward Propagation of Errors</div>
+        <p class="term-desc">Using the chain rule of calculus in reverse from the loss back to every weight so the optimizer knows which way to nudge each knob.</p>
+      </div>
       <div class="term-card" id="term-bce" data-search="bce binary cross-entropy metrics &amp; losses the standard loss function for yes/no (0 vs 1) classification that rewards confident correct probabilities and heavily penalizes confident wrong guesses.">
         <div class="term-head">
           <span class="term-abbr">BCE</span>
@@ -118,6 +134,14 @@
         </div>
         <div class="term-full">Convolutional Neural Network</div>
         <p class="term-desc">A neural network designed for images that slides small learned 2D filters (like 3x3 patches) across pixels to detect edges, shapes, and textures.</p>
+      </div>
+      <div class="term-card" id="term-conv2d" data-search="conv2d 2d convolution layer deep learning slides small learned 2d filters (like 3x3 patches) across an image to detect edges, shapes, and textures anywhere in the picture.">
+        <div class="term-head">
+          <span class="term-abbr">Conv2d</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">2D Convolution Layer</div>
+        <p class="term-desc">Slides small learned 2D filters (like 3x3 patches) across an image to detect edges, shapes, and textures anywhere in the picture.</p>
       </div>
       <div class="term-card" id="term-csv" data-search="csv comma-separated values data &amp; ml a plain-text table format where each line is a row and columns are separated by commas.">
         <div class="term-head">
@@ -151,6 +175,14 @@
         <div class="term-full">Deep Learning</div>
         <p class="term-desc">A branch of Machine Learning that stacks multiple layers of artificial neurons (neural networks) to learn complex patterns.</p>
       </div>
+      <div class="term-card" id="term-dropout" data-search="dropout dropout regularization training randomly turns off a small fraction of neurons during training so the network can&#x27;t memorize single examples and generalizes better.">
+        <div class="term-head">
+          <span class="term-abbr">Dropout</span>
+          <span class="term-cat">Training</span>
+        </div>
+        <div class="term-full">Dropout Regularization</div>
+        <p class="term-desc">Randomly turns off a small fraction of neurons during training so the network can&#x27;t memorize single examples and generalizes better.</p>
+      </div>
       <div class="term-card" id="term-eda" data-search="eda exploratory data analysis data &amp; ml inspecting and visualizing your dataset (maps, histograms, missing values, caps/outliers) before training any model.">
         <div class="term-head">
           <span class="term-abbr">EDA</span>
@@ -158,6 +190,14 @@
         </div>
         <div class="term-full">Exploratory Data Analysis</div>
         <p class="term-desc">Inspecting and visualizing your dataset (maps, histograms, missing values, caps/outliers) BEFORE training any model.</p>
+      </div>
+      <div class="term-card" id="term-epoch" data-search="epoch training epoch training one full pass through the entire training dataset during model training.">
+        <div class="term-head">
+          <span class="term-abbr">Epoch</span>
+          <span class="term-cat">Training</span>
+        </div>
+        <div class="term-full">Training Epoch</div>
+        <p class="term-desc">One full pass through the entire training dataset during model training.</p>
       </div>
       <div class="term-card" id="term-ffn" data-search="ffn feed-forward network deep learning the mlp block inside every transformer layer that processes each token independently and stores most of an llm&#x27;s factual knowledge.">
         <div class="term-head">
@@ -199,6 +239,14 @@
         <div class="term-full">Histogram of Oriented Gradients</div>
         <p class="term-desc">A classic computer vision feature descriptor that summarizes the direction and strength of edges inside small image grid cells.</p>
       </div>
+      <div class="term-card" id="term-kmeans" data-search="kmeans k-means clustering classical ml an unsupervised algorithm that automatically groups points into k natural clusters (like discovering 12 california housing sub-markets from lat/lon!).">
+        <div class="term-head">
+          <span class="term-abbr">KMeans</span>
+          <span class="term-cat">Classical ML</span>
+        </div>
+        <div class="term-full">K-Means Clustering</div>
+        <p class="term-desc">An unsupervised algorithm that automatically groups points into K natural clusters (like discovering 12 California housing sub-markets from lat/lon!).</p>
+      </div>
       <div class="term-card" id="term-knn" data-search="knn k-nearest neighbors classical ml a simple non-linear algorithm that predicts an answer by finding the k most similar training examples and averaging or voting on their labels.">
         <div class="term-head">
           <span class="term-abbr">KNN</span>
@@ -238,6 +286,14 @@
         </div>
         <div class="term-full">Mean Absolute Error</div>
         <p class="term-desc">Average of |prediction - actual|. Your average mistake in real-world units, less sensitive to extreme outliers than RMSE.</p>
+      </div>
+      <div class="term-card" id="term-maxpool2d" data-search="maxpool2d 2d max pooling layer deep learning shrinks a 2d feature map by taking the strongest value in each small patch (e.g. 2x2), making a cnn less sensitive to tiny pixel shifts.">
+        <div class="term-head">
+          <span class="term-abbr">MaxPool2d</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">2D Max Pooling Layer</div>
+        <p class="term-desc">Shrinks a 2D feature map by taking the strongest value in each small patch (e.g. 2x2), making a CNN less sensitive to tiny pixel shifts.</p>
       </div>
       <div class="term-card" id="term-ml" data-search="ml machine learning general teaching a computer to learn rules from data examples instead of hand-coding every if-statement yourself.">
         <div class="term-head">
@@ -287,6 +343,14 @@
         <div class="term-full">Not-OR</div>
         <p class="term-desc">Outputs 1 ONLY when both inputs are 0 (&#x27;neither x1 NOR x2&#x27;).</p>
       </div>
+      <div class="term-card" id="term-overfitting" data-search="overfitting memorizing training data training when a model learns noise in the training set instead of the true pattern, scoring great on training data but poorly on unseen test data.">
+        <div class="term-head">
+          <span class="term-abbr">Overfitting</span>
+          <span class="term-cat">Training</span>
+        </div>
+        <div class="term-full">Memorizing Training Data</div>
+        <p class="term-desc">When a model learns noise in the training set instead of the true pattern, scoring great on training data but poorly on unseen test data.</p>
+      </div>
       <div class="term-card" id="term-ovr" data-search="ovr one-vs-rest classical ml a strategy that turns a binary (yes/no) classifier into a multi-class classifier by training one model per class (&#x27;is it a shirt? is it a sneaker? ...&#x27;).">
         <div class="term-head">
           <span class="term-abbr">OvR</span>
@@ -319,6 +383,14 @@
         <div class="term-full">Rectified Linear Unit</div>
         <p class="term-desc">The simplest popular activation function: max(0, x). Keeps positive numbers unchanged and turns negative numbers into 0.</p>
       </div>
+      <div class="term-card" id="term-ridge" data-search="ridge ridge regression (l2 regularization) classical ml linear regression with a gentle penalty (alpha) on huge weights so correlated features don&#x27;t make the model overfit.">
+        <div class="term-head">
+          <span class="term-abbr">Ridge</span>
+          <span class="term-cat">Classical ML</span>
+        </div>
+        <div class="term-full">Ridge Regression (L2 Regularization)</div>
+        <p class="term-desc">Linear regression with a gentle penalty (alpha) on huge weights so correlated features don&#x27;t make the model overfit.</p>
+      </div>
       <div class="term-card" id="term-rmse" data-search="rmse root mean squared error metrics &amp; losses square root of mse — puts your typical prediction error back into real-world units (like dollars for house prices!). lower is better.">
         <div class="term-head">
           <span class="term-abbr">RMSE</span>
@@ -343,6 +415,14 @@
         <div class="term-full">Radeon Open Compute</div>
         <p class="term-desc">AMD&#x27;s GPU compute platform, which only supports select desktop/datacenter Radeon cards — unlike Vulkan, which works on almost any GPU.</p>
       </div>
+      <div class="term-card" id="term-r" data-search="r² coefficient of determination (r-squared) metrics &amp; losses measures what fraction of the variation in the target your model explains. 1.00 = perfect predictions, 0.00 = no better than guessing the average.">
+        <div class="term-head">
+          <span class="term-abbr">R²</span>
+          <span class="term-cat">Metrics &amp; Losses</span>
+        </div>
+        <div class="term-full">Coefficient of Determination (R-Squared)</div>
+        <p class="term-desc">Measures what fraction of the variation in the target your model explains. 1.00 = perfect predictions, 0.00 = no better than guessing the average.</p>
+      </div>
       <div class="term-card" id="term-sgd" data-search="sgd stochastic gradient descent training the classic training algorithm that nudges model weights downhill (against the gradient) on small random batches of data.">
         <div class="term-head">
           <span class="term-abbr">SGD</span>
@@ -351,6 +431,14 @@
         <div class="term-full">Stochastic Gradient Descent</div>
         <p class="term-desc">The classic training algorithm that nudges model weights downhill (against the gradient) on small random batches of data.</p>
       </div>
+      <div class="term-card" id="term-sigmoid" data-search="sigmoid sigmoid activation function activations squashes any number from -infinity..+infinity into a smooth probability between 0.0 and 1.0 (an s-shaped curve).">
+        <div class="term-head">
+          <span class="term-abbr">Sigmoid</span>
+          <span class="term-cat">Activations</span>
+        </div>
+        <div class="term-full">Sigmoid Activation Function</div>
+        <p class="term-desc">Squashes any number from -infinity..+infinity into a smooth probability between 0.0 and 1.0 (an S-shaped curve).</p>
+      </div>
       <div class="term-card" id="term-silu" data-search="silu sigmoid linear unit (swish) activations a smooth activation function defined as x * sigmoid(x), widely used inside modern llama/gemma swiglu blocks.">
         <div class="term-head">
           <span class="term-abbr">SiLU</span>
@@ -358,6 +446,14 @@
         </div>
         <div class="term-full">Sigmoid Linear Unit (Swish)</div>
         <p class="term-desc">A smooth activation function defined as x * sigmoid(x), widely used inside modern Llama/Gemma SwiGLU blocks.</p>
+      </div>
+      <div class="term-card" id="term-softmax" data-search="softmax softmax function activations turns a list of raw class scores (logits) into positive probabilities that add up to 1.0 (100%).">
+        <div class="term-head">
+          <span class="term-abbr">Softmax</span>
+          <span class="term-cat">Activations</span>
+        </div>
+        <div class="term-full">Softmax Function</div>
+        <p class="term-desc">Turns a list of raw class scores (logits) into positive probabilities that add up to 1.0 (100%).</p>
       </div>
       <div class="term-card" id="term-spir-v" data-search="spir-v standard portable intermediate representation hardware &amp; vulkan the compact binary bytecode that vulkan gpus execute. our fused kernels compile glsl shaders into spir-v once and run natively in vram.">
         <div class="term-head">
@@ -374,6 +470,14 @@
         </div>
         <div class="term-full">Swish-Gated Linear Unit</div>
         <p class="term-desc">A modern gated MLP block (silu(gate) * up) used in Llama and Gemma Transformers that outperforms standard ReLU/GELU FFNs.</p>
+      </div>
+      <div class="term-card" id="term-tensor" data-search="tensor multi-dimensional gpu array deep learning a grid of numbers (1d vector, 2d matrix, 4d image batch) stored in gpu vram that tracks gradients for automatic backpropagation.">
+        <div class="term-head">
+          <span class="term-abbr">Tensor</span>
+          <span class="term-cat">Deep Learning</span>
+        </div>
+        <div class="term-full">Multi-Dimensional GPU Array</div>
+        <p class="term-desc">A grid of numbers (1D vector, 2D matrix, 4D image batch) stored in GPU VRAM that tracks gradients for automatic backpropagation.</p>
       </div>
       <div class="term-card" id="term-vram" data-search="vram video ram (gpu memory) hardware &amp; vulkan the high-speed memory attached to your gpu where tensors, model weights, and shaders live while training.">
         <div class="term-head">

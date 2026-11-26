@@ -7877,6 +7877,7 @@ a.anchor-link {
     text-underline-offset: 3px;
     cursor: help;
   }
+  .jp-RenderedMarkdown a.vk-code-term code { border-bottom: 1.5px dotted #36f9f6 !important; }
   .jp-RenderedMarkdown a.vk-term:hover {
     color: #36f9f6 !important;
     text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
@@ -8127,22 +8128,22 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="What-Determines-Which-of-the-5-Basic-Neurons-You-Get-(AND,-OR,-NOT,-NAND,-NOR)?">What Determines Which of the 5 Basic Neurons You Get (<code>AND</code>, <code>OR</code>, <code>NOT</code>, <code>NAND</code>, <code>NOR</code>)?<a class="anchor-link" href="#What-Determines-Which-of-the-5-Basic-Neurons-You-Get-(AND,-OR,-NOT,-NAND,-NOR)?">¶</a></h3><p>Only <strong>two knobs</strong> control what a single neuron computes:</p>
+<h3 id="What-Determines-Which-of-the-5-Basic-Neurons-You-Get-(AND,-OR,-NOT,-NAND,-NOR)?">What Determines Which of the 5 Basic Neurons You Get (<code>AND</code>, <code>OR</code>, <code>NOT</code>, <a class="vk-term vk-code-term" href="../glossary.html#term-nand" title="Not-AND: Outputs 0 ONLY when both inputs are 1 (and 1 otherwise). Every digital computer chip can be built purely from NAND gates!" data-term="NAND" data-full="Not-AND" data-desc="Outputs 0 ONLY when both inputs are 1 (and 1 otherwise). Every digital computer chip can be built purely from NAND gates!"><code>NAND</code></a>, <a class="vk-term vk-code-term" href="../glossary.html#term-nor" title="Not-OR: Outputs 1 ONLY when both inputs are 0 (&#x27;neither x1 NOR x2&#x27;)." data-term="NOR" data-full="Not-OR" data-desc="Outputs 1 ONLY when both inputs are 0 (&#x27;neither x1 NOR x2&#x27;)."><code>NOR</code></a>)?<a class="anchor-link" href="#What-Determines-Which-of-the-5-Basic-Neurons-You-Get-(AND,-OR,-NOT,-NAND,-NOR)?">¶</a></h3><p>Only <strong>two knobs</strong> control what a single neuron computes:</p>
 <ol>
 <li><strong>Bias <code>b</code> (Strictness / Threshold):</strong><ul>
 <li>With positive weights (<code>w1 = +1, w2 = +1</code>), <strong><code>b = -1.5</code></strong> gives <strong><code>AND</code></strong> (strict — needs both <code>1</code>s) while <strong><code>b = -0.5</code></strong> gives <strong><code>OR</code></strong> (relaxed — needs either <code>1</code>).</li>
-<li>With negative weights (<code>w1 = -1, w2 = -1</code>), <strong><code>b = +1.5</code></strong> gives <strong><code>NAND</code></strong> (relaxed — <code>1</code> unless both are <code>1</code>) while <strong><code>b = +0.5</code></strong> gives <strong><code>NOR</code></strong> (strict — <code>1</code> ONLY when both are <code>0</code>).</li>
+<li>With negative weights (<code>w1 = -1, w2 = -1</code>), <strong><code>b = +1.5</code></strong> gives <strong><a class="vk-term vk-code-term" href="../glossary.html#term-nand" title="Not-AND: Outputs 0 ONLY when both inputs are 1 (and 1 otherwise). Every digital computer chip can be built purely from NAND gates!" data-term="NAND" data-full="Not-AND" data-desc="Outputs 0 ONLY when both inputs are 1 (and 1 otherwise). Every digital computer chip can be built purely from NAND gates!"><code>NAND</code></a></strong> (relaxed — <code>1</code> unless both are <code>1</code>) while <strong><code>b = +0.5</code></strong> gives <strong><a class="vk-term vk-code-term" href="../glossary.html#term-nor" title="Not-OR: Outputs 1 ONLY when both inputs are 0 (&#x27;neither x1 NOR x2&#x27;)." data-term="NOR" data-full="Not-OR" data-desc="Outputs 1 ONLY when both inputs are 0 (&#x27;neither x1 NOR x2&#x27;)."><code>NOR</code></a></strong> (strict — <code>1</code> ONLY when both are <code>0</code>).</li>
 </ul>
 </li>
 <li><strong>Sign of the Weights (<code>+</code> vs <code>-</code>):</strong><ul>
 <li><strong>Positive weights</strong> mean <em>"more of this clue pushes the vote toward YES"</em> (<code>AND</code>, <code>OR</code>).</li>
-<li><strong>Negative weights</strong> mean <em>"this clue votes NO!"</em> (<code>NOT</code>, <code>NAND</code>, <code>NOR</code>).</li>
+<li><strong>Negative weights</strong> mean <em>"this clue votes NO!"</em> (<code>NOT</code>, <a class="vk-term vk-code-term" href="../glossary.html#term-nand" title="Not-AND: Outputs 0 ONLY when both inputs are 1 (and 1 otherwise). Every digital computer chip can be built purely from NAND gates!" data-term="NAND" data-full="Not-AND" data-desc="Outputs 0 ONLY when both inputs are 1 (and 1 otherwise). Every digital computer chip can be built purely from NAND gates!"><code>NAND</code></a>, <a class="vk-term vk-code-term" href="../glossary.html#term-nor" title="Not-OR: Outputs 1 ONLY when both inputs are 0 (&#x27;neither x1 NOR x2&#x27;)." data-term="NOR" data-full="Not-OR" data-desc="Outputs 1 ONLY when both inputs are 0 (&#x27;neither x1 NOR x2&#x27;)."><code>NOR</code></a>).</li>
 </ul>
 </li>
 </ol>
 <blockquote>
 <p><strong>Visual rule of thumb:</strong> <strong>Weights (<code>w1, w2</code>)</strong> tilt or flip the dividing line, while <strong>bias (<code>b</code>)</strong> slides the line forward or backward!
-<em>(All 5 of these gates are <strong>linearly separable</strong> — a single straight line can solve them. Only <strong><code>XOR</code></strong> and <strong><code>XNOR</code></strong> break a single neuron, as you'll see in Step 3!)</em></p>
+<em>(All 5 of these gates are <strong>linearly separable</strong> — a single straight line can solve them. Only <strong><a class="vk-term vk-code-term" href="../glossary.html#term-xor" title="Exclusive OR: A logic rule that outputs 1 when the two inputs are DIFFERENT ((0,1) or (1,0)) and 0 when they are the same. Famous because 1 straight line cannot solve it!" data-term="XOR" data-full="Exclusive OR" data-desc="A logic rule that outputs 1 when the two inputs are DIFFERENT ((0,1) or (1,0)) and 0 when they are the same. Famous because 1 straight line cannot solve it!"><code>XOR</code></a></strong> and <strong><code>XNOR</code></strong> break a single neuron, as you'll see in Step 3!)</em></p>
 </blockquote>
 </div>
 </div>
@@ -8373,7 +8374,7 @@ Look at the <strong><a class="vk-term" href="../glossary.html#term-xor" title="E
 <li><code>(0, 1) -&gt; 1</code> (only one!)</li>
 <li><code>(1, 0) -&gt; 1</code> (only one!)</li>
 </ul>
-<p>Let's let our single <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> neuron try its hardest on <code>XOR</code> — and watch what happens!</p>
+<p>Let's let our single <a class="vk-term" href="../glossary.html#term-gpu" title="Graphics Processing Unit: A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once." data-term="GPU" data-full="Graphics Processing Unit" data-desc="A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.">GPU</a> neuron try its hardest on <a class="vk-term vk-code-term" href="../glossary.html#term-xor" title="Exclusive OR: A logic rule that outputs 1 when the two inputs are DIFFERENT ((0,1) or (1,0)) and 0 when they are the same. Famous because 1 straight line cannot solve it!" data-term="XOR" data-full="Exclusive OR" data-desc="A logic rule that outputs 1 when the two inputs are DIFFERENT ((0,1) or (1,0)) and 0 when they are the same. Famous because 1 straight line cannot solve it!"><code>XOR</code></a> — and watch what happens!</p>
 </div>
 </div>
 </div>
@@ -8421,7 +8422,7 @@ Smooth GPU Neuron on XOR  -&gt; probs:       [0.5, 0.5, 0.5, 0.5]  (stuck at 50%
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h3 id="Key-Takeaway">Key Takeaway<a class="anchor-link" href="#Key-Takeaway">¶</a></h3><ul>
 <li><strong>One neuron = one straight line.</strong> It's fast, transparent, and solves simple problems (<code>AND</code>, <code>OR</code>, linear splits) perfectly.</li>
-<li><strong>On <code>XOR</code>, a single neuron is mathematically stuck at ~50%</strong> — because no single straight line can separate opposite corners!</li>
+<li><strong>On <a class="vk-term vk-code-term" href="../glossary.html#term-xor" title="Exclusive OR: A logic rule that outputs 1 when the two inputs are DIFFERENT ((0,1) or (1,0)) and 0 when they are the same. Famous because 1 straight line cannot solve it!" data-term="XOR" data-full="Exclusive OR" data-desc="A logic rule that outputs 1 when the two inputs are DIFFERENT ((0,1) or (1,0)) and 0 when they are the same. Famous because 1 straight line cannot solve it!"><code>XOR</code></a>, a single neuron is mathematically stuck at ~50%</strong> — because no single straight line can separate opposite corners!</li>
 <li><strong>Next step:</strong> Wire <strong>just 4 neurons together</strong> in a hidden layer (a <strong>Multi-Layer Perceptron / <a class="vk-term" href="../glossary.html#term-mlp" title="Multi-Layer Perceptron: The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries." data-term="MLP" data-full="Multi-Layer Perceptron" data-desc="The classic neural network: stacked layers of neurons with non-linear activation functions (like GELU or ReLU) in between so it can learn curved boundaries.">MLP</a></strong>) so they can combine multiple straight lines into curved boundaries — and that's the exact leap that unlocks all of Deep Learning!</li>
 </ul>
 </div>

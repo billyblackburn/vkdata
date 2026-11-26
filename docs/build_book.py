@@ -94,6 +94,32 @@ GLOSSARY = [
      "A C-like language for writing GPU compute shaders that compile to SPIR-V for Vulkan."),
     ("LUT", "Lookup Table", "Data & ML",
      "A fast 256-entry color table (used by vkcolorcet) that maps numbers to RGB colors in one instant lookup."),
+    ("R²", "Coefficient of Determination (R-Squared)", "Metrics & Losses",
+     "Measures what fraction of the variation in the target your model explains. 1.00 = perfect predictions, 0.00 = no better than guessing the average."),
+    ("Conv2d", "2D Convolution Layer", "Deep Learning",
+     "Slides small learned 2D filters (like 3x3 patches) across an image to detect edges, shapes, and textures anywhere in the picture."),
+    ("MaxPool2d", "2D Max Pooling Layer", "Deep Learning",
+     "Shrinks a 2D feature map by taking the strongest value in each small patch (e.g. 2x2), making a CNN less sensitive to tiny pixel shifts."),
+    ("KMeans", "K-Means Clustering", "Classical ML",
+     "An unsupervised algorithm that automatically groups points into K natural clusters (like discovering 12 California housing sub-markets from lat/lon!)."),
+    ("Ridge", "Ridge Regression (L2 Regularization)", "Classical ML",
+     "Linear regression with a gentle penalty (alpha) on huge weights so correlated features don't make the model overfit."),
+    ("Dropout", "Dropout Regularization", "Training",
+     "Randomly turns off a small fraction of neurons during training so the network can't memorize single examples and generalizes better."),
+    ("Sigmoid", "Sigmoid Activation Function", "Activations",
+     "Squashes any number from -infinity..+infinity into a smooth probability between 0.0 and 1.0 (an S-shaped curve)."),
+    ("Softmax", "Softmax Function", "Activations",
+     "Turns a list of raw class scores (logits) into positive probabilities that add up to 1.0 (100%)."),
+    ("Epoch", "Training Epoch", "Training",
+     "One full pass through the entire training dataset during model training."),
+    ("Tensor", "Multi-Dimensional GPU Array", "Deep Learning",
+     "A grid of numbers (1D vector, 2D matrix, 4D image batch) stored in GPU VRAM that tracks gradients for automatic backpropagation."),
+    ("Autograd", "Automatic Differentiation", "Deep Learning",
+     "The engine inside vktorch/PyTorch that remembers every math operation in the forward pass and automatically computes exact gradients on .backward()."),
+    ("Backpropagation", "Backward Propagation of Errors", "Deep Learning",
+     "Using the chain rule of calculus in reverse from the loss back to every weight so the optimizer knows which way to nudge each knob."),
+    ("Overfitting", "Memorizing Training Data", "Training",
+     "When a model learns noise in the training set instead of the true pattern, scoring great on training data but poorly on unseen test data."),
 ]
 
 def _slug(term: str) -> str:
@@ -137,7 +163,22 @@ def link_acronyms_in_markdown(html: str) -> str:
                     out.append(TERM_RE.sub(repl, part))
                 else:
                     out.append(part)
-        return "".join(out)
+        res = "".join(out)
+        # Also make standalone inline <code>TERM</code> (and <code>nn.TERM()</code>) in markdown prose tap-explainable!
+        def code_repl(cm: re.Match) -> str:
+            inner = cm.group(1)
+            clean = inner.strip().rstrip("()").split(".")[-1]
+            if clean in GLOSSARY_MAP:
+                slug, full, desc = GLOSSARY_MAP[clean]
+                tip = html_lib.escape(f"{full}: {desc}", quote=True)
+                return (f'<a class="vk-term vk-code-term" href="../glossary.html#{slug}" title="{tip}" '
+                        f'data-term="{html_lib.escape(clean, quote=True)}" '
+                        f'data-full="{html_lib.escape(full, quote=True)}" '
+                        f'data-desc="{html_lib.escape(desc, quote=True)}"><code>{inner}</code></a>')
+            return cm.group(0)
+        # Only replace <code>...</code> that isn't already inside an <a> or <pre>
+        res = re.sub(r'(?<!<pre>)<code>([^<]{1,40})</code>', code_repl, res)
+        return res
 
     # Match each RenderedMarkdown div up to its closing wrapper (nbconvert emits clean single-level divs inside)
     return re.sub(
@@ -217,6 +258,7 @@ SYNTHWAVE84_CSS = """
     text-underline-offset: 3px;
     cursor: help;
   }
+  .jp-RenderedMarkdown a.vk-code-term code { border-bottom: 1.5px dotted #36f9f6 !important; }
   .jp-RenderedMarkdown a.vk-term:hover {
     color: #36f9f6 !important;
     text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
