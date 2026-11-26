@@ -22,7 +22,7 @@ pixi run build
 # 3. Inspect your Vulkan GPU specs & run a 1-second compute/bandwidth check
 pixi run gpu-specs
 
-# 4. Verify everything works on your GPU (79 tests across all 15 included packages)
+# 4. Verify everything works on your GPU (82 tests across all 16 included packages)
 pixi run test
 
 # 5. Open the interactive book in JupyterLab!
@@ -129,7 +129,7 @@ Here is the real measured speedup on a **Steam Deck APU** (`1024 × 256` tensor,
 
 ---
 
-## Appendix A · The Included `vkdata` Toolkit (15 Pure-Vulkan Packages)
+## Appendix A · The Included `vkdata` Toolkit (16 Pure-Vulkan Packages)
 
 Every chapter in this book runs on the bundled `vkdata` toolkit — powered by `llama.cpp`'s `ggml-vulkan`, `Tencent/ncnn`, and custom SPIR-V compute shaders sharing a **single `VkDevice` and zero-copy `VkBuffer`s**.
 
@@ -149,6 +149,7 @@ Every chapter in this book runs on the bundled `vkdata` toolkit — powered by `
 | **`vklearn`** | `scikit-learn` / `cuML` | `StandardScaler`, `MinMaxScaler`, `LinearRegression`, `Ridge`, `LogisticRegression`, `PCA`, `KMeans`, `NearestNeighbors`, `KNeighborsClassifier`, `Pipeline` |
 | **`vktorch`** | `PyTorch` | Dynamic reverse-mode autograd (`Tensor`, `.backward()`, `no_grad()`), `nn` (`Linear`, `LoRALinear`, `Conv2d`, `MaxPool2d`, `LayerNorm`, `RMSNorm`, `SwiGLU`, `Embedding`, `MultiheadAttention`, `KVCache`, `TransformerBlock`, `LlamaBlock`), fused SPIR-V kernels (incl. `RoPE` & `im2col`/`col2im`), `optim` (`SGD`, `Adam`, `AdamW`, `CosineAnnealingLR`), `DataLoader`, & `.npz` checkpointing |
 | **`vkvec`** | `FAISS` / `Qdrant` | In-VRAM Vulkan GPU Vector Database (`VectorIndex` Cosine/L2/Dot + `where=` filtering), **Okapi `BM25Index`** full-text inverted index, **`HybridIndex` (Reciprocal Rank Fusion / RRF)**, GPU `TfidfVectorizer`, `cosine_similarity`, & RAG `chunk_text` |
+| **`vktime`** | `Timescale` / `statsmodels` | In-VRAM Vulkan GPU Time-Series toolkit: `TimeSeries` (resampling, detrending, `.save()`/`.load()`), GPU rolling stats & `ewma`, `make_lag_matrix`, `sliding_windows`, leak-free `temporal_split`, GPU `autocorrelation`, `periodogram`, `seasonal_decompose`, robust `detect_anomalies`, & astronomy `phase_fold` |
 | **`vkastro`** | `Astropy` | GPU `SkyCoord`, `aitoff_projection`, photometry, `FlatLambdaCDM` cosmology, & `read_fits` |
 
 ---

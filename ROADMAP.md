@@ -18,8 +18,8 @@ This roadmap tracks what is complete and what's next for both the **interactive 
 - **Parts II–VI Notebooks (`examples/`):** Vulkan GPU Puzzles (`@vnp.kernel`), GPU Foundations, Visual EDA on 11.84M rows, Feature Selection & 7-algorithm UMAP/Manifold Learning, Classical ML at scale, Backprop Lab, Autoencoders, & Mini-Llama (`RMSNorm` + `SwiGLU`).
 - **Hardware Inspector:** [`scripts/gpu_specs.py`](scripts/gpu_specs.py) (`pixi run gpu-specs`) for instant Vulkan device limits + 1-second FP32 GEMM & SPIR-V bandwidth check.
 
-### Bundled Pure-Vulkan Toolkit (15 Packages · 79/79 Tests Passing)
-- **Core Compute, Data & Search:** `vknumpy` (`ggml-vulkan` + `ncnn` + `@vnp.kernel` Python-to-SPIR-V compiler), `vkpandas` (full GPU DataFrame, filtering, `groupby`, `merge`, Parquet/CSV), `vkscipy`, `vkspatial` (Morton 2D `GeoDataFrame`, `sjoin`, 6-level 3D Barnes-Hut Octree), **`vkvec`** (GPU `VectorIndex`, `BM25Index`, `HybridIndex` with Reciprocal Rank Fusion, `TfidfVectorizer`, `chunk_text`), `vkastro`.
+### Bundled Pure-Vulkan Toolkit (16 Packages · 82/82 Tests Passing)
+- **Core Compute, Data & Search:** `vknumpy` (`ggml-vulkan` + `ncnn` + `@vnp.kernel` Python-to-SPIR-V compiler), `vkpandas` (full GPU DataFrame, filtering, `groupby`, `merge`, Parquet/CSV), `vkscipy`, `vkspatial` (Morton 2D `GeoDataFrame`, `sjoin`, 6-level 3D Barnes-Hut Octree), **`vkvec`** (GPU `VectorIndex`, `BM25Index`, `HybridIndex` with Reciprocal Rank Fusion, `TfidfVectorizer`, `chunk_text`), **`vktime`** (GPU `TimeSeries`, rolling windows, lag matrices, `temporal_split`, `autocorrelation`, `periodogram`, `detect_anomalies`, `phase_fold`), `vkastro`.
 - **Visualization & Dashboards:** `vkshader` (2D/3D SPIR-V rasterizer + 0.91 ms HDR Bloom), `vkcolorcet`, `vkholoviews` (multi-layer `Points * Curve` overlays & layouts), `vkgeoviews`, `vkplot`, `vkpanel`, `vkvis` (UMAP/t-SNE/PaCMAP/TriMap/CNE).
 - **Machine Learning & Deep Learning:** `vklearn` (`LinearRegression`, `Ridge`, `LogisticRegression`, `Perceptron`, `PCA`, `KMeans`, `NearestNeighbors`, `KNeighborsClassifier`, `Pipeline`) and `vktorch` (reverse-mode autograd, `Conv2d`, `TransformerBlock`, `LlamaBlock`, `.npz` checkpointing, and **fused single-pass SPIR-V kernels** for `AdamW`, `SGD`, `GELU`, `SiLU`, `SwiGLU`, `RMSNorm`, `LayerNorm`, `Softmax`, and `CrossEntropy`).
 
@@ -40,7 +40,7 @@ This roadmap tracks what is complete and what's next for both the **interactive 
 ### Databases & Data Engines (`vkvec`, `vkgraph`, `vktime`, `vksql`)
 - [x] **Full-Text Search (BM25) + Hybrid Search (`vkvec`):** Okapi `BM25Index` inverted index + `reciprocal_rank_fusion` (RRF) + `HybridIndex` combining exact keyword/code matching with Vulkan GPU dense vector search.
 - [ ] **Graph Database & GPU Graph Analytics (`vkgraph`):** Nodes + edges in GPU sparse/adjacency structures, Vulkan-accelerated PageRank, shortest path (BFS), community detection, Knowledge Graph / **GraphRAG** traversal, and **Graph Neural Networks (GNNs)** in `vktorch`.
-- [ ] **Time-Series Database & Forecasting (`vktime`):** Timestamped sequences (IoT sensors, weather, energy, audio, finance), GPU rolling windows, resampling, anomaly detection, FFT spectrograms, and Classical lag-ML vs. 1D-CNN / Temporal Neural Net chapters.
+- [x] **Time-Series Database & Signal Engine (`vktime`):** GPU `TimeSeries` (resampling, linear/rolling detrending, persistence), rolling windows, `make_lag_matrix`, `sliding_windows`, leak-free `temporal_split`, GPU `autocorrelation`, `periodogram`, `seasonal_decompose`, robust `detect_anomalies`, & `phase_fold` *(ready for Ch. 7 & 8!)*.
 - [ ] **SQL Query Layer (`vksql` on `vkpandas`):** DuckDB-style `SELECT ... WHERE ... JOIN ... GROUP BY` SQL execution directly on GPU DataFrames.
 - [ ] **Document / Key-Value (NoSQL) Guide:** Plain-English book sidebar comparing Relational, Columnar, Vector, Graph, Time-Series, and Document/KV stores so learners know which database fits each AI workload.
 
