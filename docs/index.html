@@ -58,6 +58,22 @@
       width: 8px; height: 8px; border-radius: 50%; background: var(--accent, var(--cyan));
       box-shadow: 0 0 8px var(--accent, var(--cyan));
     }
+    .rw-wrap {
+      overflow-x: auto; margin: 0 0 18px;
+      background: #1b1728; border: 1px solid var(--border); border-radius: 12px;
+    }
+    .rw-table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+    }
+    .rw-table th {
+      text-align: left; padding: 9px 12px; color: var(--cyan);
+      border-bottom: 1px solid rgba(255, 126, 219, 0.35); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .rw-table td {
+      padding: 8px 12px; border-bottom: 1px solid rgba(73, 84, 149, 0.28); color: var(--muted); vertical-align: top;
+    }
+    .rw-table tr:last-child td { border-bottom: none; }
+    .rw-type { font-weight: 800; white-space: nowrap; }
     .card {
       --accent: var(--pink);
       --accent-bg: rgba(255, 126, 219, 0.10);
@@ -143,6 +159,20 @@
       <span class="dt-chip" style="--accent:#72f1b8;"><span class="dot"></span>Vector / Text &amp; NLP (Ch. 5&ndash;6)</span>
       <span class="dt-chip" style="--accent:#ff9e64;"><span class="dot"></span>Time-Series &amp; Astronomy (Ch. 7&ndash;8)</span>
       <span class="dt-chip" style="--accent:#c792ea;"><span class="dot"></span>Graph &amp; Network Data (Ch. 9&ndash;10)</span>
+    </div>
+    <div class="rw-wrap">
+      <table class="rw-table">
+        <thead>
+          <tr><th>Data Type</th><th>Popular Real-World Algorithms</th><th>Who Uses It</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="rw-type" style="color:#36f9f6;">Tabular</td><td>Ridge, XGBoost / LightGBM, KNN, Residual MLPs</td><td>Zillow, Airbnb, Stripe, Visa, Amazon</td></tr>
+          <tr><td class="rw-type" style="color:#ff7edb;">Image (CV)</td><td>PCA + HOG, 2D CNNs (ResNet, YOLO), Vision Transformers (ViT)</td><td>Tesla, Waymo, Apple Face ID, Pinterest, Google Lens</td></tr>
+          <tr><td class="rw-type" style="color:#72f1b8;">Vector / Text</td><td>TF-IDF, BM25, Neural Embeddings + Hybrid RRF, Transformers (Llama/BERT)</td><td>Google, Perplexity, Spotify, Notion, OpenAI / Anthropic</td></tr>
+          <tr><td class="rw-type" style="color:#ff9e64;">Time-Series</td><td>FFT / Periodogram, ARIMA, Lag-Ridge, 1D Temporal Nets, PatchTST</td><td>NASA, NOAA, Uber, Apple Watch, Electric Grids</td></tr>
+          <tr><td class="rw-type" style="color:#c792ea;">Graph / Network</td><td>PageRank, BFS, Label Propagation, GraphRAG, GCN / GraphSAGE / GAT</td><td>Google Search, LinkedIn, Pinterest PinSage, PayPal, Uber Eats</td></tr>
+        </tbody>
+      </table>
     </div>
     <div class="grid">
       <a class="card dt-tabular" href="chapters/01_housing_classical_ml.html">
