@@ -16,8 +16,12 @@ _DEFAULT_COLORS = ["#36f9f6", "#ff7edb", "#ff9e64", "#72f1b8", "#fede5d", "#b6b1
 
 
 def _to_np(x: Any) -> np.ndarray:
+    if hasattr(x, "_columns") and hasattr(x, "columns"):
+        return np.column_stack([x[c].to_numpy() for c in x.columns]).astype(np.float32)
     if hasattr(x, "to_numpy"):
         return np.asarray(x.to_numpy(), dtype=np.float32)
+    if hasattr(x, "numpy") and callable(x.numpy):
+        return np.asarray(x.numpy(), dtype=np.float32)
     return np.asarray(x, dtype=np.float32)
 
 

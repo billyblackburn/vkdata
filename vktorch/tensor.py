@@ -34,6 +34,12 @@ def _to_vnp(data, dtype=_np.float32) -> vnp.ndarray:
         return arr if (dtype is None or arr.dtype == dtype) else arr.astype(dtype)
     if isinstance(data, vnp.ndarray):
         return data if (dtype is None or data.dtype == dtype) else data.astype(dtype)
+    if hasattr(data, "_columns") and hasattr(data, "columns"):
+        arr = vnp.column_stack([data[c]._data for c in data.columns])
+        return arr if (dtype is None or arr.dtype == dtype) else arr.astype(dtype)
+    if hasattr(data, "_data") and isinstance(data._data, vnp.ndarray):
+        arr = data._data
+        return arr if (dtype is None or arr.dtype == dtype) else arr.astype(dtype)
     np_arr = _np.asarray(data, dtype=dtype if dtype is not None else _np.float32)
     return vnp.array(np_arr, dtype=np_arr.dtype)
 

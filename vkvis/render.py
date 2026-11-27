@@ -83,7 +83,14 @@ def render_embedding(
     dist: float = 2.1,
 ) -> Image.Image:
     """Render a 2D or 3D embedding using ``vkshader`` + ``vkcolorcet`` with optional legend."""
-    Y_np = _np.asarray(Y, dtype=_np.float32)
+    if hasattr(Y, "_columns") and hasattr(Y, "columns"):
+        Y_np = _np.column_stack([Y[c].to_numpy() for c in Y.columns]).astype(_np.float32)
+    elif hasattr(Y, "to_numpy"):
+        Y_np = _np.asarray(Y.to_numpy(), dtype=_np.float32)
+    elif hasattr(Y, "numpy") and callable(Y.numpy):
+        Y_np = _np.asarray(Y.numpy(), dtype=_np.float32)
+    else:
+        Y_np = _np.asarray(Y, dtype=_np.float32)
     if Y_np.ndim != 2 or Y_np.shape[1] not in (2, 3):
         raise ValueError(f"Expected 2D or 3D embedding (N, 2|3), got {Y_np.shape}")
     if clip_percentile is not None and 0.0 < float(clip_percentile) < 50.0:
@@ -100,7 +107,12 @@ def render_embedding(
     codes = None
     vals = None
     if labels is not None:
-        lab_np = _np.asarray(labels)
+        if hasattr(labels, "to_numpy"):
+            lab_np = _np.asarray(labels.to_numpy())
+        elif hasattr(labels, "numpy") and callable(labels.numpy):
+            lab_np = _np.asarray(labels.numpy())
+        else:
+            lab_np = _np.asarray(labels)
         is_cat = _np.issubdtype(lab_np.dtype, _np.integer) or lab_np.dtype.kind in ("U", "S", "O")
         if is_cat:
             _, codes = _np.unique(lab_np, return_inverse=True)
