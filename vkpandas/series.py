@@ -256,6 +256,19 @@ class Series:
     def min(self, skipna: bool = True) -> float:
         return float((vnp.nanmin(self._data) if skipna else vnp.min(self._data)).item())
 
+    def median(self, skipna: bool = True) -> float:
+        arr = self._data.to_numpy()
+        return float(_np.nanmedian(arr) if skipna else _np.median(arr))
+
+    def clip(self, lower: Optional[float] = None, upper: Optional[float] = None) -> "Series":
+        """Clamp Series values to [lower, upper] on Vulkan GPU."""
+        out = self._data
+        if lower is not None:
+            out = vnp.maximum(out, float(lower))
+        if upper is not None:
+            out = vnp.minimum(out, float(upper))
+        return Series._from_vk(out, name=self.name)
+
     def count(self) -> int:
         if self.is_string:
             return len(self)

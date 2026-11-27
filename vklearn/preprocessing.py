@@ -100,7 +100,7 @@ class SimpleImputer:
         self.statistics_ = np.where(np.isnan(stats), self.fill_value, stats).astype(np.float32)
         return self
 
-    def transform(self, X: Any) -> vnp.ndarray:
+    def transform(self, X: Any) -> Any:
         if self.statistics_ is None:
             raise RuntimeError("SimpleImputer must be fitted before calling transform()")
         was_1d = getattr(X, "ndim", 2) == 1
@@ -109,6 +109,10 @@ class SimpleImputer:
         if nan_mask.any():
             rows, cols = np.nonzero(nan_mask)
             arr[rows, cols] = self.statistics_[cols]
+        if hasattr(X, "columns") and hasattr(X, "_columns"):
+            import vkpandas as vpd
+
+            return vpd.DataFrame({c: vnp.array(arr[:, i], dtype=np.float32) for i, c in enumerate(X.columns)})
         return vnp.array(arr.ravel() if was_1d else arr, dtype=np.float32)
 
     def fit_transform(self, X: Any, y: Any = None) -> vnp.ndarray:
