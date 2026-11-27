@@ -1,5 +1,6 @@
 """vkpandas: Vulkan GPU DataFrame library built on top of vknumpy."""
 
+from . import accel
 from .dataframe import DataFrame, GroupBy
 from .io import concat, read_csv, read_parquet
 from .series import Rolling, Series
@@ -9,6 +10,7 @@ __all__ = [
     "GroupBy",
     "Rolling",
     "Series",
+    "accel",
     "concat",
     "read_csv",
     "read_parquet",

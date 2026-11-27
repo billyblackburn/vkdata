@@ -25,7 +25,18 @@ newaxis = None
 # Core ndarray & submodules
 from .ndarray import ndarray
 from . import linalg
-from .device import device_info, device_name, is_vulkan_available, memory_info
+from .device import (
+    device_info,
+    device_name,
+    empty_cache,
+    is_vulkan_available,
+    max_memory_allocated,
+    memory_allocated,
+    memory_info,
+    memory_summary,
+    profile_memory,
+    reset_peak_memory_stats,
+)
 
 # Creation & random
 from .creation import (

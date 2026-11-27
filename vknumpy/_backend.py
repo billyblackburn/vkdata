@@ -5,6 +5,7 @@ from __future__ import annotations
 import atexit
 import ctypes
 import os
+import threading
 from pathlib import Path
 from typing import Optional
 import numpy as _np
@@ -569,6 +570,72 @@ def check_rc(rc: int, op_name: str) -> None:
         raise RuntimeError(f"{op_name} failed (rc={rc}): {err}")
 
 
+class _MemTracker:
+    """Thread-safe Vulkan VRAM allocation & transfer tracker."""
+
+    __slots__ = (
+        "_lock",
+        "allocated_bytes",
+        "peak_bytes",
+        "live_buffers",
+        "total_allocs",
+        "total_frees",
+        "upload_bytes",
+        "download_bytes",
+    )
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self.allocated_bytes = 0
+        self.peak_bytes = 0
+        self.live_buffers = 0
+        self.total_allocs = 0
+        self.total_frees = 0
+        self.upload_bytes = 0
+        self.download_bytes = 0
+
+    def on_alloc(self, nbytes: int) -> None:
+        with self._lock:
+            self.allocated_bytes += nbytes
+            if self.allocated_bytes > self.peak_bytes:
+                self.peak_bytes = self.allocated_bytes
+            self.live_buffers += 1
+            self.total_allocs += 1
+
+    def on_free(self, nbytes: int) -> None:
+        with self._lock:
+            self.allocated_bytes = max(0, self.allocated_bytes - nbytes)
+            self.live_buffers = max(0, self.live_buffers - 1)
+            self.total_frees += 1
+
+    def on_upload(self, nbytes: int) -> None:
+        with self._lock:
+            self.upload_bytes += nbytes
+
+    def on_download(self, nbytes: int) -> None:
+        with self._lock:
+            self.download_bytes += nbytes
+
+    def reset_peak(self) -> None:
+        with self._lock:
+            self.peak_bytes = self.allocated_bytes
+
+    def snapshot(self) -> dict[str, int]:
+        with self._lock:
+            return {
+                "allocated": self.allocated_bytes,
+                "peak": self.peak_bytes,
+                "live_buffers": self.live_buffers,
+                "total_allocs": self.total_allocs,
+                "total_frees": self.total_frees,
+                "upload_bytes": self.upload_bytes,
+                "download_bytes": self.download_bytes,
+            }
+
+
+_mem_tracker = _MemTracker()
+
+
 class DeviceBuffer:
     """Owns a ggml-vulkan device allocation and frees it on GC."""
 
@@ -581,6 +648,7 @@ class DeviceBuffer:
         if not self.ptr:
             err = self._lib.vkn_last_error().decode("utf-8", errors="replace")
             raise MemoryError(f"Failed to allocate {nbytes} bytes on Vulkan device: {err}")
+        _mem_tracker.on_alloc(self.nbytes)
 
     def upload(self, arr: _np.ndarray, offset: int = 0) -> None:
         c_arr = _np.ascontiguousarray(arr)
@@ -590,6 +658,7 @@ class DeviceBuffer:
             self.ptr, offset, c_arr.ctypes.data_as(ctypes.c_void_p), c_arr.nbytes
         )
         check_rc(rc, "vkn_buf_upload")
+        _mem_tracker.on_upload(c_arr.nbytes)
 
     def download(self, shape: tuple[int, ...], dtype: _np.dtype, offset: int = 0) -> _np.ndarray:
         out = _np.empty(shape, dtype=dtype)
@@ -599,6 +668,7 @@ class DeviceBuffer:
             self.ptr, offset, out.ctypes.data_as(ctypes.c_void_p), out.nbytes
         )
         check_rc(rc, "vkn_buf_download")
+        _mem_tracker.on_download(out.nbytes)
         return out
 
     def copy_to(self, dst: "DeviceBuffer", nbytes: int, src_off: int = 0, dst_off: int = 0) -> None:
@@ -611,8 +681,13 @@ class DeviceBuffer:
         ptr = getattr(self, "ptr", None)
         if ptr and _handle._initialized:
             self.ptr = None
+            nbytes = getattr(self, "nbytes", 0)
             try:
                 self._lib.vkn_buf_free(ptr)
+            except Exception:
+                pass
+            try:
+                _mem_tracker.on_free(nbytes)
             except Exception:
                 pass
 

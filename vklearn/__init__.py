@@ -1,6 +1,6 @@
 """vklearn: scikit-learn / cuML-style Vulkan GPU machine learning on vknumpy & vkpandas."""
 
-from . import cluster, datasets, decomposition, linear_model, metrics, model_selection, neighbors, pipeline, preprocessing
+from . import accel, cluster, datasets, decomposition, linear_model, metrics, model_selection, neighbors, pipeline, preprocessing
 from .cluster import KMeans
 from .datasets import FASHION_MNIST_CLASSES, load_california_housing, load_fashion_mnist
 from .decomposition import PCA
@@ -33,6 +33,7 @@ __all__ = [
     "Ridge",
     "SimpleImputer",
     "StandardScaler",
+    "accel",
     "accuracy_score",
     "cluster",
     "confusion_matrix",
