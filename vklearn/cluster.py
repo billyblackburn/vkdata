@@ -141,3 +141,75 @@ class KMeans:
         self.fit(X, y)
         assert self.labels_ is not None
         return self.labels_
+
+
+class DBSCAN:
+    """Density-Based Spatial Clustering (DBSCAN) with Vulkan GPU GEMM pairwise distances."""
+
+    def __init__(
+        self,
+        eps: float = 0.5,
+        min_samples: int = 5,
+        chunk_size: int = 2048,
+    ) -> None:
+        self.eps = float(eps)
+        self.min_samples = int(min_samples)
+        self.chunk_size = int(chunk_size)
+        self.labels_: Optional[vnp.ndarray] = None
+        self.core_sample_indices_: Optional[vnp.ndarray] = None
+
+    def fit(self, X: Any, y: Any = None) -> "DBSCAN":
+        Xg = to_gpu_2d(X)
+        n = Xg.shape[0]
+        eps2 = self.eps * self.eps
+
+        Xc = Xg - vnp.mean(Xg, axis=0)
+        x_norm2 = vnp.sum(Xc * Xc, axis=1)
+        x_norm2_row = x_norm2.reshape(1, -1)
+        xt = Xc.T
+
+        neighbors: list[np.ndarray] = []
+        core_list: list[int] = []
+
+        for start in range(0, n, self.chunk_size):
+            end = min(n, start + self.chunk_size)
+            Xb = Xc[start:end]
+            b_norm2 = x_norm2[start:end].reshape(-1, 1)
+            d2 = vnp.maximum(b_norm2 + x_norm2_row - 2.0 * (Xb @ xt), 0.0).to_numpy()
+            for local_i in range(end - start):
+                nbrs = np.flatnonzero(d2[local_i] <= eps2)
+                neighbors.append(nbrs)
+                if len(nbrs) >= self.min_samples:
+                    core_list.append(start + local_i)
+
+        is_core = np.zeros(n, dtype=bool)
+        if core_list:
+            is_core[core_list] = True
+
+        labels = np.full(n, -1, dtype=np.int32)
+        cluster_id = 0
+        for i in range(n):
+            if labels[i] != -1 or not is_core[i]:
+                continue
+            queue = [i]
+            labels[i] = cluster_id
+            head = 0
+            while head < len(queue):
+                cur = queue[head]
+                head += 1
+                for nb in neighbors[cur]:
+                    nb_i = int(nb)
+                    if labels[nb_i] == -1:
+                        labels[nb_i] = cluster_id
+                        if is_core[nb_i]:
+                            queue.append(nb_i)
+            cluster_id += 1
+
+        self.labels_ = vnp.array(labels, dtype=np.int32)
+        self.core_sample_indices_ = vnp.array(np.asarray(core_list, dtype=np.int32), dtype=np.int32)
+        return self
+
+    def fit_predict(self, X: Any, y: Any = None) -> vnp.ndarray:
+        self.fit(X, y)
+        assert self.labels_ is not None
+        return self.labels_

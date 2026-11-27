@@ -7,7 +7,7 @@ import numpy as np
 import vknumpy as vnp
 
 from ._utils import to_gpu_1d, to_gpu_2d
-from .metrics import accuracy_score
+from .metrics import accuracy_score, r2_score
 
 
 class NearestNeighbors:
@@ -91,3 +91,41 @@ class KNeighborsClassifier(NearestNeighbors):
 
     def score(self, X: Any, y: Any) -> float:
         return accuracy_score(y, self.predict(X))
+
+
+class KNeighborsRegressor(NearestNeighbors):
+    """GPU k-Nearest Neighbors Regressor using ggml-vulkan GEMM distances."""
+
+    def __init__(
+        self,
+        n_neighbors: int = 5,
+        weights: str = "uniform",
+        chunk_size: int = 2048,
+    ) -> None:
+        super().__init__(n_neighbors=n_neighbors, chunk_size=chunk_size)
+        if weights not in ("uniform", "distance"):
+            raise ValueError(f"weights must be 'uniform' or 'distance', got {weights!r}")
+        self.weights = weights
+        self._y_fit: Optional[np.ndarray] = None
+
+    def fit(self, X: Any, y: Any) -> "KNeighborsRegressor":
+        super().fit(X)
+        self._y_fit = to_gpu_1d(y).to_numpy().astype(np.float32)
+        return self
+
+    def predict(self, X: Any) -> vnp.ndarray:
+        if self._y_fit is None:
+            raise RuntimeError("KNeighborsRegressor must be fitted before predict()")
+        dists, idx = self.kneighbors(X, return_distance=True)
+        idx_np = idx.to_numpy()
+        neigh_y = self._y_fit[idx_np]  # (m, k)
+        if self.weights == "uniform":
+            preds = np.mean(neigh_y, axis=1).astype(np.float32)
+        else:
+            d_np = dists.to_numpy().astype(np.float64)
+            w = 1.0 / np.maximum(d_np, 1e-8)
+            preds = (np.sum(w * neigh_y, axis=1) / np.sum(w, axis=1)).astype(np.float32)
+        return vnp.array(preds, dtype=np.float32)
+
+    def score(self, X: Any, y: Any) -> float:
+        return r2_score(y, self.predict(X))

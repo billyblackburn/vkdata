@@ -73,6 +73,7 @@ def _get_submodule_map() -> dict[str, Any]:
         "sklearn.neighbors": _vkl.neighbors,
         "sklearn.decomposition": _vkl.decomposition,
         "sklearn.cluster": _vkl.cluster,
+        "sklearn.ensemble": _vkl.ensemble,
         "sklearn.preprocessing": _vkl.preprocessing,
         "sklearn.metrics": _vkl.metrics,
         "sklearn.model_selection": _vkl.model_selection,
