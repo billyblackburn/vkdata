@@ -302,3 +302,150 @@ def image_grid(
         if titles is not None and i < len(titles):
             dr.text((x0, y0 + ch + 3), str(titles[i])[:14], fill="#ded7ee")
     return canvas
+
+
+def decision_boundaries(
+    panels: Sequence[Tuple[str, Any]],
+    X: Any,
+    y: Any,
+    *,
+    bounds: Tuple[float, float] = (-2.3, 2.3),
+    cmap: str = "coolwarm",
+    panel_size: int = 240,
+) -> Image.Image:
+    """Render side-by-side 2D probability/decision-boundary maps with scatter points overlaid."""
+    X_np = _to_np(X)
+    y_np = _to_np(y).reshape(-1)
+    lo, hi = float(bounds[0]), float(bounds[1])
+    span = max(hi - lo, 1e-6)
+    lut = vkc.get_rgb_lut(cmap)
+    pw = ph = int(panel_size)
+    cards = []
+    for title, probs in panels:
+        p2d = _to_np(probs).reshape(ph, pw)
+        idx = np.clip(p2d * 255.0, 0, 255).astype(np.int32)
+        rgb = lut[idx].copy()
+        im = Image.fromarray(rgb, mode="RGB")
+        dr = ImageDraw.Draw(im)
+        for xi, yi in zip(X_np, y_np):
+            px = int((float(xi[0]) - lo) / span * (pw - 1))
+            py = int((hi - float(xi[1])) / span * (ph - 1))
+            col = (255, 195, 85) if int(round(float(yi))) == 1 else (75, 195, 255)
+            dr.ellipse((px - 3, py - 3, px + 3, py + 3), fill=col, outline=(24, 20, 36))
+        cards.append((im, title))
+    strip = Image.new("RGB", (len(cards) * (pw + 12) + 12, ph + 44), (27, 23, 40))
+    dr_s = ImageDraw.Draw(strip)
+    for i, (im, ttl) in enumerate(cards):
+        x0 = 12 + i * (pw + 12)
+        strip.paste(im, (x0, 34))
+        dr_s.text((x0 + 6, 10), str(ttl), fill=(244, 238, 228))
+    return strip
+
+
+def class_gallery(
+    images: Any,
+    labels: Any,
+    class_names: Sequence[str],
+    *,
+    n_samples: int = 8,
+    show_mean: bool = True,
+    scale: int = 2,
+    title: str = "Samples per Class vs. GPU Mean Prototype (far right)",
+) -> Image.Image:
+    """Render a rows-by-class image gallery with an optional cyan-tinted mean prototype column."""
+    imgs = _to_np(images)
+    ys = _to_np(labels).reshape(-1).astype(np.int32)
+    h0, w0 = imgs.shape[1], imgs.shape[2]
+    tile_h, tile_w = int(h0 * scale), int(w0 * scale)
+    pad = 4
+    left_lbl = 96
+    n_cols = n_samples + (1 if show_mean else 0)
+    W = left_lbl + n_cols * (tile_w + pad) + 18
+    H = 42 + len(class_names) * (tile_h + pad) + 8
+    canvas = Image.new("RGB", (W, H), (16, 18, 24))
+    dr = ImageDraw.Draw(canvas)
+    dr.text((14, 12), title, fill=(240, 244, 250))
+
+    for c, cname in enumerate(class_names):
+        y0 = 42 + c * (tile_h + pad)
+        dr.text((12, y0 + tile_h // 3), f"{c}: {cname}", fill=(215, 222, 235))
+        c_imgs = imgs[ys == c]
+        for j in range(min(n_samples, len(c_imgs))):
+            u8 = np.clip(c_imgs[j] * 255.0, 0, 255).astype(np.uint8)
+            im = Image.fromarray(u8).resize((tile_w, tile_h), Image.Resampling.NEAREST).convert("RGB")
+            canvas.paste(im, (left_lbl + j * (tile_w + pad), y0))
+        if show_mean and len(c_imgs) > 0:
+            mean_img = c_imgs.mean(axis=0)
+            m_u8 = (np.clip(mean_img / max(float(mean_img.max()), 1e-6), 0, 1) * 255.0).astype(np.uint8)
+            rgb = np.stack([(m_u8 * 0.35).astype(np.uint8), m_u8, m_u8], axis=-1)
+            im_m = Image.fromarray(rgb, mode="RGB").resize((tile_w, tile_h), Image.Resampling.NEAREST)
+            canvas.paste(im_m, (left_lbl + n_samples * (tile_w + pad) + 8, y0))
+    return canvas
+
+
+def filter_grid(
+    weights: Any,
+    *,
+    ncols: int = 8,
+    tile: int = 48,
+    pad: int = 6,
+    title: str = "Learned Signed Weights (orange = positive, blue = negative)",
+) -> Image.Image:
+    """Render a grid of signed 2D filters or PCA eigen-images (orange positive, blue negative)."""
+    arr = _to_np(weights)
+    n = len(arr)
+    nrows = (n + ncols - 1) // ncols
+    canvas = Image.new("RGB", (ncols * (tile + pad) + 20, nrows * (tile + pad) + 46), (16, 18, 24))
+    dr = ImageDraw.Draw(canvas)
+    dr.text((12, 12), title, fill=(240, 244, 250))
+    for k in range(n):
+        r, col = divmod(k, ncols)
+        w = arr[k]
+        w = w / (float(np.max(np.abs(w))) + 1e-6)
+        pos, neg = np.clip(w, 0, 1), np.clip(-w, 0, 1)
+        rgb = np.stack(
+            [
+                (pos * 250 + neg * 40).astype(np.uint8),
+                (pos * 155 + neg * 140).astype(np.uint8),
+                (pos * 45 + neg * 250).astype(np.uint8),
+            ],
+            axis=-1,
+        )
+        t_im = Image.fromarray(rgb, mode="RGB").resize((tile, tile), Image.Resampling.NEAREST)
+        canvas.paste(t_im, (10 + col * (tile + pad), 40 + r * (tile + pad)))
+    return canvas
+
+
+def feature_maps(
+    originals: Sequence[Any],
+    maps: Any,
+    row_labels: Sequence[str],
+    *,
+    n_maps: int = 8,
+    tile: int = 56,
+    title: str = "What the CNN 'Sees': Original Image (left) -> Learned Feature Maps (right)",
+) -> Image.Image:
+    """Render original images alongside their first ``n_maps`` CNN activation maps."""
+    origs = [_to_np(o) for o in originals]
+    fmaps = _to_np(maps)
+    n_rows = len(origs)
+    W = 100 + (n_maps + 1) * (tile + 4) + 12
+    H = 40 + n_rows * (tile + 8) + 8
+    canvas = Image.new("RGB", (W, H), (16, 18, 24))
+    dr = ImageDraw.Draw(canvas)
+    dr.text((12, 10), title, fill=(240, 244, 250))
+    for r in range(n_rows):
+        y0 = 40 + r * (tile + 8)
+        dr.text((12, y0 + tile // 3), str(row_labels[r]), fill=(220, 228, 240))
+        u8 = np.clip(origs[r] * 255.0, 0, 255).astype(np.uint8)
+        orig = Image.fromarray(u8).resize((tile, tile), Image.Resampling.NEAREST).convert("RGB")
+        canvas.paste(orig, (96, y0))
+        for k in range(min(n_maps, fmaps.shape[1])):
+            fm = fmaps[r, k]
+            fm_u8 = (np.clip(fm / (float(fm.max()) + 1e-6), 0, 1) * 255.0).astype(np.uint8)
+            rgb = np.stack([(fm_u8 * 0.25).astype(np.uint8), fm_u8, (fm_u8 * 0.85).astype(np.uint8)], axis=-1)
+            canvas.paste(
+                Image.fromarray(rgb, mode="RGB").resize((tile, tile), Image.Resampling.NEAREST),
+                (96 + (k + 1) * (tile + 4) + 6, y0),
+            )
+    return canvas

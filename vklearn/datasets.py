@@ -120,4 +120,27 @@ def load_fashion_mnist(
     )
 
 
-__all__ = ["FASHION_MNIST_CLASSES", "load_fashion_mnist"]
+__all__ = ["FASHION_MNIST_CLASSES", "load_california_housing", "load_fashion_mnist"]
+
+
+_HOUSING_URL = (
+    "https://raw.githubusercontent.com/ageron/handson-ml2/master/datasets/housing/housing.csv"
+)
+
+
+def load_california_housing(data_dir: str | Path | None = None):
+    """Download/cache the California Housing dataset (20,640 districts) as a GPU DataFrame."""
+    import vkpandas as vpd
+
+    if data_dir is None:
+        repo_cache = (
+            Path(__file__).resolve().parent.parent / "examples" / "tldr_end2end" / "data"
+        )
+        cache_dir = repo_cache if repo_cache.exists() else Path("data")
+    else:
+        cache_dir = Path(data_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    csv_path = cache_dir / "california_housing.csv"
+    if not csv_path.exists():
+        urllib.request.urlretrieve(_HOUSING_URL, csv_path)
+    return vpd.read_csv(str(csv_path))

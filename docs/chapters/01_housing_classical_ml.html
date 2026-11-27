@@ -8036,7 +8036,7 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span><span class="o">,</span><span class="w"> </span><span class="nn">urllib.request</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="c1"># Make sure repo root is importable regardless of where Jupyter was launched</span>
@@ -8054,17 +8054,8 @@ a.anchor-link {
 <span class="kn">import</span><span class="w"> </span><span class="nn">vkcolorcet</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vkc</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">vklearn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">vkl</span>
 
-<span class="c1"># 1. Download &amp; cache California Housing CSV once (1.4 MB, 20,640 districts)</span>
-<span class="n">data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">_root</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"examples"</span> <span class="o">/</span> <span class="s2">"tldr_end2end"</span> <span class="o">/</span> <span class="s2">"data"</span>
-<span class="n">data_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">csv_path</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">/</span> <span class="s2">"california_housing.csv"</span>
-<span class="k">if</span> <span class="ow">not</span> <span class="n">csv_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-    <span class="n">url</span> <span class="o">=</span> <span class="s2">"https://raw.githubusercontent.com/ageron/handson-ml2/master/datasets/housing/housing.csv"</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Downloading </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> ..."</span><span class="p">)</span>
-    <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">)</span>
-
-<span class="c1"># 2. Load into a Vulkan GPU DataFrame</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">vpd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">csv_path</span><span class="p">))</span>
+<span class="c1"># 1. Load &amp; cache California Housing directly into a Vulkan GPU DataFrame (1 line!)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">vkl</span><span class="o">.</span><span class="n">load_california_housing</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loaded California Housing: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> districts x </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2"> columns"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Columns:"</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">()</span>
@@ -8256,7 +8247,7 @@ ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 |
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Train: 16,512 | Test: 4,128 | Imputed NaN bedrooms with train median = 434
-Baseline LinearRegression (8 raw features, 100% GPU Pipeline) in 99.5 ms:
+Baseline LinearRegression (8 raw features, 100% GPU Pipeline) in 49.6 ms:
   Test RMSE = $69,601  |  Test MAE = $50,917  |  Test R^2 = 0.6401
 </pre>
 </div>
@@ -8496,7 +8487,7 @@ Top 12 features most correlated with House Value (GPU vkscipy.stats.corrcoef):
 <span class="n">pred_cls</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_te_eng</span><span class="p">)</span>
 <span class="n">acc</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">vkl</span><span class="o">.</span><span class="n">accuracy_score</span><span class="p">(</span><span class="n">y_cls_te</span><span class="p">,</span> <span class="n">pred_cls</span><span class="p">))</span>
 <span class="n">cm</span> <span class="o">=</span> <span class="n">vkl</span><span class="o">.</span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">y_cls_te</span><span class="p">,</span> <span class="n">pred_cls</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Bonus Classifier (Price &gt;= $</span><span class="si">{</span><span class="n">med_price</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">): Test Accuracy = </span><span class="si">{</span><span class="n">acc</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2"> | Confusion Matrix: </span><span class="si">{</span><span class="n">cm</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Bonus Classifier (Price &gt;= $</span><span class="si">{</span><span class="n">med_price</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">): Test Accuracy = </span><span class="si">{</span><span class="n">acc</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2"> | Confusion Matrix: </span><span class="si">{</span><span class="n">cm</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8511,13 +8502,19 @@ Top 12 features most correlated with House Value (GPU vkscipy.stats.corrcoef):
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Model                                  |  Test RMSE |   Test MAE | Test R^2 |     Time
 --------------------------------------------------------------------------------------
-1. Baseline LinearReg (8 raw feats)    | $   69,601 | $   50,917 |   0.6401 |   99.5 ms
-2. Engineered LinearReg (36 feats)     | $   61,389 | $   43,711 |   0.7200 |   74.7 ms
-3. Engineered Ridge (alpha=0.1)        | $   61,388 | $   43,713 |   0.7200 |   77.9 ms
-4. GPU Distance-Weighted KNN (k=15)    | $   52,690 | $   33,936 |   0.7938 |  615.3 ms
+1. Baseline LinearReg (8 raw feats)    | $   69,601 | $   50,917 |   0.6401 |   49.6 ms
+2. Engineered LinearReg (36 feats)     | $   61,389 | $   43,711 |   0.7200 |  120.0 ms
+3. Engineered Ridge (alpha=0.1)        | $   61,388 | $   43,713 |   0.7200 |  107.7 ms
+4. GPU Distance-Weighted KNN (k=15)    | $   52,690 | $   33,936 |   0.7938 |  581.5 ms
 
 Total error reduction from Feature Discovery + Non-linear GPU KNN: -$16,910 RMSE!
-
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>
 Bonus Classifier (Price &gt;= $180,400): Test Accuracy = 87.52% | Confusion Matrix: [[1831, 278], [237, 1782]]
 </pre>
 </div>
@@ -8624,9 +8621,9 @@ Bonus Classifier (Price &gt;= $180,400): Test Accuracy = 87.52% | Confusion Matr
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Custom Neighborhood Appraisals (1990 Census Dollars):
-  Silicon Valley (Palo Alto, high income, NEAR BAY)  -&gt; Ridge: $  477,136 | GPU KNN: $  490,304
-  Central Valley (Fresno, moderate income, INLAND)   -&gt; Ridge: $   87,090 | GPU KNN: $   77,062
-  LA Coast (Santa Monica, upper income, &lt;1H OCEAN)   -&gt; Ridge: $  406,819 | GPU KNN: $  429,078
+  Silicon Valley (Palo Alto, high income, NEAR BAY)  -&gt; Ridge: $  477,134 | GPU KNN: $  490,304
+  Central Valley (Fresno, moderate income, INLAND)   -&gt; Ridge: $   87,089 | GPU KNN: $   77,062
+  LA Coast (Santa Monica, upper income, &lt;1H OCEAN)   -&gt; Ridge: $  406,816 | GPU KNN: $  429,078
 </pre>
 </div>
 </div>

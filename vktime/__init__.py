@@ -1,5 +1,6 @@
 """vktime: Pure-Vulkan GPU Time-Series Database, Rolling Windows, Spectral Analysis & Forecasting."""
 
+from .datasets import load_sunspots
 from .features import (
     ewma,
     fourier_features,
@@ -26,6 +27,7 @@ __all__ = [
     "detect_anomalies",
     "ewma",
     "fourier_features",
+    "load_sunspots",
     "make_lag_matrix",
     "periodogram",
     "phase_fold",

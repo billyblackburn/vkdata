@@ -5,7 +5,11 @@ from __future__ import annotations
 from .accessor import vkPlot
 from .charts import (
     barh_chart,
+    class_gallery,
     confusion_matrix,
+    decision_boundaries,
+    feature_maps,
+    filter_grid,
     image_grid,
     line_chart,
     pred_vs_actual,
@@ -38,7 +42,11 @@ register()
 
 __all__ = [
     "barh_chart",
+    "class_gallery",
     "confusion_matrix",
+    "decision_boundaries",
+    "feature_maps",
+    "filter_grid",
     "image_grid",
     "line_chart",
     "pred_vs_actual",

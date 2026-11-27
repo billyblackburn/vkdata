@@ -2,7 +2,7 @@
 
 from . import cluster, datasets, decomposition, linear_model, metrics, model_selection, neighbors, pipeline, preprocessing
 from .cluster import KMeans
-from .datasets import FASHION_MNIST_CLASSES, load_fashion_mnist
+from .datasets import FASHION_MNIST_CLASSES, load_california_housing, load_fashion_mnist
 from .decomposition import PCA
 from .linear_model import LinearRegression, LogisticRegression, Perceptron, Ridge
 from .metrics import (
@@ -39,6 +39,7 @@ __all__ = [
     "datasets",
     "decomposition",
     "linear_model",
+    "load_california_housing",
     "load_fashion_mnist",
     "mean_absolute_error",
     "mean_squared_error",

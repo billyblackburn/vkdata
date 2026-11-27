@@ -8044,7 +8044,7 @@ a.anchor-link {
 <div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span><span class="o">,</span><span class="w"> </span><span class="nn">urllib.request</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span>
 
@@ -8060,20 +8060,11 @@ a.anchor-link {
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Vulkan GPU ready: </span><span class="si">{</span><span class="n">vnp</span><span class="o">.</span><span class="n">device_info</span><span class="p">()[</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="c1"># Download &amp; load real SILSO Monthly Sunspots (1749 - present) directly into a GPU vkpandas DataFrame!</span>
-<span class="n">DATA_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"data"</span><span class="p">)</span>
-<span class="n">DATA_DIR</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">CSV_PATH</span> <span class="o">=</span> <span class="n">DATA_DIR</span> <span class="o">/</span> <span class="s2">"sunspots_monthly.csv"</span>
-<span class="k">if</span> <span class="ow">not</span> <span class="n">CSV_PATH</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="n">CSV_PATH</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span> <span class="o">&lt;</span> <span class="mi">5000</span><span class="p">:</span>
-    <span class="n">req</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s2">"https://www.sidc.be/SILSO/INFO/snmtotcsv.php"</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"User-Agent"</span><span class="p">:</span> <span class="s2">"vkdata-book/1.0"</span><span class="p">})</span>
-    <span class="k">with</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
-        <span class="n">CSV_PATH</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-
-<span class="n">df</span> <span class="o">=</span> <span class="n">vpd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">CSV_PATH</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">";"</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">"year"</span><span class="p">,</span> <span class="s2">"month"</span><span class="p">,</span> <span class="s2">"frac_year"</span><span class="p">,</span> <span class="s2">"sunspots"</span><span class="p">,</span> <span class="s2">"std"</span><span class="p">,</span> <span class="s2">"obs"</span><span class="p">,</span> <span class="s2">"definitive"</span><span class="p">])</span>
+<span class="c1"># Load 277 years of real SILSO Monthly Sunspots (1749 - present) in 1 line!</span>
+<span class="n">df</span><span class="p">,</span> <span class="n">ts</span> <span class="o">=</span> <span class="n">vktime</span><span class="o">.</span><span class="n">load_sunspots</span><span class="p">()</span>
 <span class="n">display</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
 <span class="n">display</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">describe</span><span class="p">())</span>
 <span class="n">years</span><span class="p">,</span> <span class="n">vals</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">"frac_year"</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s2">"sunspots"</span><span class="p">]</span>
-<span class="n">ts</span> <span class="o">=</span> <span class="n">vktime</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span><span class="n">years</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"monthly_sunspots"</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s2">"1M"</span><span class="p">)</span>
 <span class="n">roll_12</span> <span class="o">=</span> <span class="n">vktime</span><span class="o">.</span><span class="n">rolling_mean</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
 
 <span class="n">peak_yr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">years</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">vnp</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">_data</span><span class="p">))])</span>
@@ -8090,16 +8081,16 @@ a.anchor-link {
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Vulkan GPU ready: AMD Custom GPU 0405 (RADV VANGOGH)
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
+<pre>ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 | fp16: 0 | bf16: 0 | fp4: 0 | warp size: 32 | shared memory: 65536 | int dot: 1 | matrix cores: none
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
-<pre>ggml_vulkan: Found 1 Vulkan devices:
-ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 | fp16: 0 | bf16: 0 | fp4: 0 | warp size: 32 | shared memory: 65536 | int dot: 1 | matrix cores: none
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Vulkan GPU ready: AMD Custom GPU 0405 (RADV VANGOGH)
 </pre>
 </div>
 </div>
