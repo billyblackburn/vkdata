@@ -90,9 +90,7 @@ class SimpleImputer:
         self.statistics_: Optional[np.ndarray] = None
 
     def fit(self, X: Any, y: Any = None) -> "SimpleImputer":
-        arr = X.to_numpy().astype(np.float32, copy=False) if hasattr(X, "to_numpy") else np.asarray(X, dtype=np.float32)
-        if arr.ndim == 1:
-            arr = arr[:, None]
+        arr = to_gpu_2d(X).to_numpy()
         if self.strategy == "median":
             stats = np.nanmedian(arr, axis=0)
         elif self.strategy == "mean":
@@ -105,10 +103,8 @@ class SimpleImputer:
     def transform(self, X: Any) -> vnp.ndarray:
         if self.statistics_ is None:
             raise RuntimeError("SimpleImputer must be fitted before calling transform()")
-        arr = X.to_numpy().astype(np.float32, copy=True) if hasattr(X, "to_numpy") else np.array(X, dtype=np.float32, copy=True)
-        was_1d = arr.ndim == 1
-        if was_1d:
-            arr = arr[:, None]
+        was_1d = getattr(X, "ndim", 2) == 1
+        arr = to_gpu_2d(X).to_numpy().copy()
         nan_mask = np.isnan(arr)
         if nan_mask.any():
             rows, cols = np.nonzero(nan_mask)
