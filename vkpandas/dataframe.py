@@ -3,10 +3,23 @@
 from __future__ import annotations
 
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
+import html as _html
 import numpy as _np
 import vknumpy as vnp
 
 from .series import Series
+
+
+class _SummaryTable(str):
+    """String-compatible summary table that renders as a spreadsheet in Jupyter via ``_repr_html_``."""
+
+    def __new__(cls, text: str, html_table: str) -> "_SummaryTable":
+        obj = super().__new__(cls, text)
+        obj._html = html_table
+        return obj
+
+    def _repr_html_(self) -> str:
+        return self._html
 
 
 class GroupBy:
@@ -282,13 +295,16 @@ class DataFrame:
 
         return DataFrame(out_cols)
 
-    def describe(self, *, max_categories: int = 8) -> str:
-        """Return a readable GPU-computed summary of ranges, NaNs, and categorical counts."""
+    def describe(self, *, max_categories: int = 8) -> "_SummaryTable":
+        """Return a GPU-computed summary table (prints cleanly in terminals & renders as a spreadsheet in Jupyter)."""
         n_rows, n_cols = self.shape
         col_w = max((len(c) for c in self._columns), default=8)
         lines = [f"vkpandas.DataFrame ({n_rows:,} rows x {n_cols} columns)"]
+        html_rows: List[str] = []
+
         for name, s in self._columns.items():
             n_nan = int(s.isna().sum())
+            esc_name = _html.escape(str(name))
             if s.is_string:
                 vc = s.value_counts()
                 items = list(vc.items())
@@ -296,14 +312,87 @@ class DataFrame:
                 if len(items) > max_categories:
                     shown += f", ... (+{len(items) - max_categories} more)"
                 lines.append(f"  {name:{col_w}s} | CATEGORICAL ({len(items)} unique): {shown}")
+                html_rows.append(
+                    f"<tr><th style='text-align:left;padding:6px 10px;'>{esc_name}</th>"
+                    f"<td style='padding:6px 10px;'>string ({len(items)} unique)</td>"
+                    f"<td colspan='4' style='padding:6px 10px;text-align:left;'>{_html.escape(shown[:140])}</td>"
+                    f"<td style='padding:6px 10px;text-align:right;'>{n_nan:,}</td></tr>"
+                )
             else:
                 clean = s.dropna() if n_nan else s
                 if len(clean) == 0:
                     lines.append(f"  {name:{col_w}s} | ALL NaN (NaNs={n_nan})")
-                else:
-                    lines.append(
-                        f"  {name:{col_w}s} | min={float(clean.min()):10.2f}  "
-                        f"mean={float(clean.mean()):10.2f}  std={float(clean.std()):9.2f}  "
-                        f"max={float(clean.max()):10.2f}  NaNs={n_nan}"
+                    html_rows.append(
+                        f"<tr><th style='text-align:left;padding:6px 10px;'>{esc_name}</th>"
+                        f"<td style='padding:6px 10px;'>{s.dtype}</td>"
+                        f"<td colspan='4' style='padding:6px 10px;text-align:center;'>ALL NaN</td>"
+                        f"<td style='padding:6px 10px;text-align:right;'>{n_nan:,}</td></tr>"
                     )
-        return "\n".join(lines)
+                else:
+                    mn, mu, sd, mx = float(clean.min()), float(clean.mean()), float(clean.std()), float(clean.max())
+                    lines.append(
+                        f"  {name:{col_w}s} | min={mn:10.2f}  mean={mu:10.2f}  std={sd:9.2f}  max={mx:10.2f}  NaNs={n_nan}"
+                    )
+                    html_rows.append(
+                        f"<tr><th style='text-align:left;padding:6px 10px;'>{esc_name}</th>"
+                        f"<td style='padding:6px 10px;'>{s.dtype}</td>"
+                        f"<td style='padding:6px 10px;text-align:right;'>{mn:,.2f}</td>"
+                        f"<td style='padding:6px 10px;text-align:right;'>{mu:,.2f}</td>"
+                        f"<td style='padding:6px 10px;text-align:right;'>{sd:,.2f}</td>"
+                        f"<td style='padding:6px 10px;text-align:right;'>{mx:,.2f}</td>"
+                        f"<td style='padding:6px 10px;text-align:right;'>{n_nan:,}</td></tr>"
+                    )
+
+        table_html = (
+            f"<div style='overflow-x:auto;'>"
+            f"<div style='font-size:12px;opacity:0.8;margin-bottom:4px;'>"
+            f"<strong>vkpandas.DataFrame</strong> &middot; {n_rows:,} rows &times; {n_cols} columns (Vulkan GPU)</div>"
+            f"<table style='border-collapse:collapse;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;'>"
+            f"<thead><tr style='border-bottom:2px solid #ff7edb;'>"
+            f"<th style='text-align:left;padding:6px 10px;'>Column</th>"
+            f"<th style='text-align:left;padding:6px 10px;'>Type</th>"
+            f"<th style='text-align:right;padding:6px 10px;'>Min</th>"
+            f"<th style='text-align:right;padding:6px 10px;'>Mean</th>"
+            f"<th style='text-align:right;padding:6px 10px;'>Std</th>"
+            f"<th style='text-align:right;padding:6px 10px;'>Max</th>"
+            f"<th style='text-align:right;padding:6px 10px;'>NaNs</th>"
+            f"</tr></thead><tbody>{''.join(html_rows)}</tbody></table></div>"
+        )
+        return _SummaryTable("\n".join(lines), table_html)
+
+    def _repr_html_(self, max_rows: int = 12) -> str:
+        """Render the GPU DataFrame as a pandas-style spreadsheet table in Jupyter."""
+        n_rows, n_cols = self.shape
+        show_n = min(n_rows, int(max_rows))
+        cols = list(self._columns.keys())
+        col_vals = {c: self._columns[c].head(show_n).to_numpy() for c in cols}
+
+        head_cells = "<th style='padding:5px 9px;text-align:right;opacity:0.7;'>#</th>" + "".join(
+            f"<th style='padding:5px 10px;text-align:right;'>{_html.escape(str(c))}</th>" for c in cols
+        )
+        body_rows: List[str] = []
+        for i in range(show_n):
+            tds = [f"<th style='padding:4px 9px;text-align:right;opacity:0.7;'>{i}</th>"]
+            for c in cols:
+                v = col_vals[c][i]
+                if isinstance(v, (float, _np.floating)):
+                    cell = "NaN" if _np.isnan(v) else f"{float(v):,.3f}".rstrip("0").rstrip(".")
+                    tds.append(f"<td style='padding:4px 10px;text-align:right;'>{cell}</td>")
+                elif isinstance(v, (int, _np.integer)):
+                    tds.append(f"<td style='padding:4px 10px;text-align:right;'>{int(v):,}</td>")
+                else:
+                    s_val = str(v)
+                    if len(s_val) > 48:
+                        s_val = s_val[:45] + "..."
+                    tds.append(f"<td style='padding:4px 10px;text-align:left;'>{_html.escape(s_val)}</td>")
+            body_rows.append(f"<tr>{''.join(tds)}</tr>")
+
+        trunc = f" (showing first {show_n} of {n_rows:,} rows)" if n_rows > show_n else ""
+        return (
+            f"<div style='overflow-x:auto;'>"
+            f"<table style='border-collapse:collapse;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;'>"
+            f"<thead><tr style='border-bottom:2px solid #36f9f6;'>{head_cells}</tr></thead>"
+            f"<tbody>{''.join(body_rows)}</tbody></table>"
+            f"<div style='font-size:12px;opacity:0.75;margin-top:4px;'>"
+            f"{n_rows:,} rows &times; {n_cols} columns{trunc} &middot; Vulkan GPU</div></div>"
+        )
