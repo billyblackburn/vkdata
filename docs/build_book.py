@@ -6,18 +6,20 @@ import re
 from pathlib import Path
 
 CHAPTERS = [
-    ("examples/00_foundations/00a_the_perceptron.ipynb",                 "00_the_perceptron.html",            "Foundations &middot; The Perceptron"),
-    ("examples/00_foundations/00b_multi_layer_perceptron.ipynb",         "00b_multi_layer_perceptron.html",   "Foundations &middot; Multi-Layer Perceptrons"),
-    ("examples/01_tabular/01_housing_classical_ml.ipynb",                "01_housing_classical_ml.html",      "Ch. 1 &middot; Housing Classical ML"),
-    ("examples/01_tabular/02_housing_neural_network.ipynb",              "02_housing_neural_network.html",    "Ch. 2 &middot; Housing Neural Net"),
-    ("examples/02_images/03_fashion_classical_ml.ipynb",                 "03_fashion_classical_ml.html",      "Ch. 3 &middot; Fashion Classical CV"),
-    ("examples/02_images/04_fashion_cnn_deep_learning.ipynb",            "04_fashion_cnn_deep_learning.html", "Ch. 4 &middot; Fashion 2D CNN"),
-    ("examples/03_vectors_and_text/05_vector_search_classical_ml.ipynb", "05_vector_search_classical_ml.html","Ch. 5 &middot; Vector Search &amp; Classical NLP"),
-    ("examples/03_vectors_and_text/06_vector_embeddings_neural_net.ipynb","06_vector_embeddings_neural_net.html","Ch. 6 &middot; Neural Embeddings &amp; Deep NLP"),
-    ("examples/04_time_series/07_solar_timeseries_classical_ml.ipynb",   "07_solar_timeseries_classical_ml.html","Ch. 7 &middot; Solar Time-Series &amp; Classical ML"),
-    ("examples/04_time_series/08_solar_timeseries_neural_net.ipynb",     "08_solar_timeseries_neural_net.html", "Ch. 8 &middot; Solar Forecaster Neural Net"),
-    ("examples/05_graphs/09_graph_classical_ml.ipynb",                   "09_graph_classical_ml.html",          "Ch. 9 &middot; Graph Data &amp; Classical ML"),
-    ("examples/05_graphs/10_graph_neural_network_gcn.ipynb",             "10_graph_neural_network_gcn.html",    "Ch. 10 &middot; Graph Neural Network (GCN)"),
+    ("examples/00_foundations/00a_the_perceptron.ipynb",                 "00_the_perceptron.html",            "Foundations &middot; Part A: The Perceptron"),
+    ("examples/00_foundations/00b_multi_layer_perceptron.ipynb",         "00b_multi_layer_perceptron.html",   "Foundations &middot; Part B: Multi-Layer Perceptrons"),
+    ("examples/01_tabular/01_housing_classical_ml.ipynb",                "01_housing_classical_ml.html",      "Tabular &middot; Part 1: Classical ML"),
+    ("examples/01_tabular/02_housing_neural_network.ipynb",              "02_housing_neural_network.html",    "Tabular &middot; Part 2: Deep Learning"),
+    ("examples/02_images/03_fashion_classical_ml.ipynb",                 "03_fashion_classical_ml.html",      "Images &middot; Part 1: Classical CV"),
+    ("examples/02_images/04_fashion_cnn_deep_learning.ipynb",            "04_fashion_cnn_deep_learning.html", "Images &middot; Part 2: 2D CNN"),
+    ("examples/03_vectors_and_text/05_vector_search_classical_ml.ipynb", "05_vector_search_classical_ml.html","Vectors &amp; Text &middot; Part 1: Classical NLP"),
+    ("examples/03_vectors_and_text/06_vector_embeddings_neural_net.ipynb","06_vector_embeddings_neural_net.html","Vectors &amp; Text &middot; Part 2: Neural Embeddings"),
+    ("examples/04_time_series/07_solar_timeseries_classical_ml.ipynb",   "07_solar_timeseries_classical_ml.html","Time-Series &middot; Part 1: Classical Forecasting"),
+    ("examples/04_time_series/08_solar_timeseries_neural_net.ipynb",     "08_solar_timeseries_neural_net.html", "Time-Series &middot; Part 2: Deep Forecasting"),
+    ("examples/05_graphs/09_graph_classical_ml.ipynb",                   "09_graph_classical_ml.html",          "Graphs &middot; Part 1: Classical Graph ML"),
+    ("examples/05_graphs/10_graph_neural_network_gcn.ipynb",             "10_graph_neural_network_gcn.html",    "Graphs &middot; Part 2: Graph Neural Net (GCN)"),
+    ("examples/06_geospatial/01_earthquakes_classical_ml.ipynb",         "11_geospatial_classical_ml.html",     "Geospatial &middot; Part 1: Classical Geo-ML"),
+    ("examples/06_geospatial/02_earthquakes_geo_neural_net.ipynb",       "12_geospatial_neural_net.html",       "Geospatial &middot; Part 2: Deep Geo-AI"),
 ]
 
 # (Term, Full Name, Category, Plain-English Explanation)
@@ -719,6 +721,7 @@ index_html = f"""<!DOCTYPE html>
     .card.dt-vector      {{ --accent: #72f1b8; --accent-bg: rgba(114, 241, 184, 0.11); --accent-glow: rgba(114, 241, 184, 0.26); }}
     .card.dt-timeseries  {{ --accent: #ff9e64; --accent-bg: rgba(255, 158, 100, 0.12); --accent-glow: rgba(255, 158, 100, 0.26); }}
     .card.dt-graph       {{ --accent: #c792ea; --accent-bg: rgba(199, 146, 234, 0.12); --accent-glow: rgba(199, 146, 234, 0.28); }}
+    .card.dt-geo         {{ --accent: #ff5e7e; --accent-bg: rgba(255, 94, 126, 0.12);  --accent-glow: rgba(255, 94, 126, 0.28); }}
     .card:hover {{
       border-color: var(--accent); transform: translateY(-2px);
       box-shadow: 0 0 22px var(--accent-glow);
@@ -758,11 +761,11 @@ index_html = f"""<!DOCTYPE html>
       <em>Tip: Tap or hover any <span style="border-bottom:1px dotted #36f9f6;color:#f4eee4;">dotted acronym</span> in a chapter to jump straight to its plain-English definition!</em>
     </p>
 
-    <h2>Part 0 &middot; AI Foundations: Building Blocks of Neural Networks</h2>
+    <h2>AI Foundations &middot; Building Blocks of Neural Networks</h2>
     <div class="grid">
       <a class="card dt-foundations" href="chapters/00_the_perceptron.html">
         <div class="card-head">
-          <span class="ch">Foundations 1 &middot; 1 Artificial Neuron</span>
+          <span class="ch">Foundations &middot; Part A &middot; 1 Artificial Neuron</span>
           <span class="pill">5 Gates &rarr; GPU Neuron &rarr; XOR Wall</span>
         </div>
         <h3>The Perceptron: How a Single Artificial Neuron Works</h3>
@@ -771,7 +774,7 @@ index_html = f"""<!DOCTYPE html>
 
       <a class="card dt-foundations" href="chapters/00b_multi_layer_perceptron.html">
         <div class="card-head">
-          <span class="ch">Foundations 2 &middot; Hidden Layers &amp; LLMs</span>
+          <span class="ch">Foundations &middot; Part B &middot; Hidden Layers &amp; LLMs</span>
           <span class="pill">XOR 100% &middot; 3 Params &rarr; 8B Llama</span>
         </div>
         <h3>Multi-Layer Perceptrons (MLPs): Bending Space, Solving XOR &amp; LLM Parameters</h3>
@@ -779,14 +782,15 @@ index_html = f"""<!DOCTYPE html>
       </a>
     </div>
 
-    <h2>Part I &middot; End-to-End Projects: Tabular, Image, Vector, Time-Series &amp; Graph Data</h2>
-    <p style="color:var(--muted);font-size:14px;margin:-6px 0 10px;">Every data type follows the same pattern: <strong>Feature Discovery &amp; Classical ML</strong> first, then <strong>Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
+    <h2>AI by Data Type &middot; Classical ML &rarr; Deep Learning on Your Vulkan GPU</h2>
+    <p style="color:var(--muted);font-size:14px;margin:-6px 0 10px;">Jump into any real-world data type below &mdash; every section pairs <strong>Part 1: Feature Discovery &amp; Classical ML</strong> with <strong>Part 2: Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
     <div class="dt-legend">
-      <span class="dt-chip" style="--accent:#36f9f6;"><span class="dot"></span>Tabular Data (Ch. 1&ndash;2)</span>
-      <span class="dt-chip" style="--accent:#ff7edb;"><span class="dot"></span>Image Data (Ch. 3&ndash;4)</span>
-      <span class="dt-chip" style="--accent:#72f1b8;"><span class="dot"></span>Vector / Text &amp; NLP (Ch. 5&ndash;6)</span>
-      <span class="dt-chip" style="--accent:#ff9e64;"><span class="dot"></span>Time-Series &amp; Astronomy (Ch. 7&ndash;8)</span>
-      <span class="dt-chip" style="--accent:#c792ea;"><span class="dot"></span>Graph &amp; Network Data (Ch. 9&ndash;10)</span>
+      <span class="dt-chip" style="--accent:#36f9f6;"><span class="dot"></span>Tabular Data</span>
+      <span class="dt-chip" style="--accent:#ff7edb;"><span class="dot"></span>Image Data</span>
+      <span class="dt-chip" style="--accent:#72f1b8;"><span class="dot"></span>Vector &amp; Text (NLP)</span>
+      <span class="dt-chip" style="--accent:#ff9e64;"><span class="dot"></span>Time-Series</span>
+      <span class="dt-chip" style="--accent:#c792ea;"><span class="dot"></span>Graph &amp; Network</span>
+      <span class="dt-chip" style="--accent:#ff5e7e;"><span class="dot"></span>Geospatial &amp; Location</span>
     </div>
     <div class="rw-wrap">
       <table class="rw-table">
@@ -794,36 +798,37 @@ index_html = f"""<!DOCTYPE html>
           <tr><th>Data Type</th><th>Popular Real-World Algorithms</th><th>Who Uses It</th></tr>
         </thead>
         <tbody>
-          <tr><td class="rw-type" style="color:#36f9f6;">Tabular</td><td>Ridge, XGBoost / LightGBM, KNN, Residual MLPs</td><td>Zillow, Airbnb, Stripe, Visa, Amazon</td></tr>
+          <tr><td class="rw-type" style="color:#36f9f6;">Tabular</td><td>Ridge, Random Forest, Gradient Boosting (XGBoost), KNN, Residual MLPs</td><td>Zillow, Airbnb, Stripe, Visa, Amazon</td></tr>
           <tr><td class="rw-type" style="color:#ff7edb;">Image (CV)</td><td>PCA + HOG, 2D CNNs (ResNet, YOLO), Vision Transformers (ViT)</td><td>Tesla, Waymo, Apple Face ID, Pinterest, Google Lens</td></tr>
-          <tr><td class="rw-type" style="color:#72f1b8;">Vector / Text</td><td>TF-IDF, BM25, Neural Embeddings + Hybrid RRF, Transformers (Llama/BERT)</td><td>Google, Perplexity, Spotify, Notion, OpenAI / Anthropic</td></tr>
+          <tr><td class="rw-type" style="color:#72f1b8;">Vector / Text</td><td>TF-IDF, BM25, Neural Embeddings + Hybrid RRF, IVF ANN, Transformers</td><td>Google, Perplexity, Spotify, Notion, OpenAI / Anthropic</td></tr>
           <tr><td class="rw-type" style="color:#ff9e64;">Time-Series</td><td>FFT / Periodogram, ARIMA, Lag-Ridge, 1D Temporal Nets, PatchTST</td><td>NASA, NOAA, Uber, Apple Watch, Electric Grids</td></tr>
           <tr><td class="rw-type" style="color:#c792ea;">Graph / Network</td><td>PageRank, BFS, Label Propagation, GraphRAG, GCN / GraphSAGE / GAT</td><td>Google Search, LinkedIn, Pinterest PinSage, PayPal, Uber Eats</td></tr>
+          <tr><td class="rw-type" style="color:#ff5e7e;">Geospatial</td><td>Haversine, Morton Z-Order / H3, DBSCAN, GBDT, Fourier Geo-Nets (SatCLIP)</td><td>Uber, Google Maps, DoorDash, USGS, NOAA</td></tr>
         </tbody>
       </table>
     </div>
     <div class="grid">
       <a class="card dt-tabular" href="chapters/01_housing_classical_ml.html">
         <div class="card-head">
-          <span class="ch">Chapter 1 &middot; Tabular Data &middot; Regression</span>
+          <span class="ch">Tabular Data &middot; Part 1 &middot; Classical ML</span>
           <span class="pill">$69.6k &rarr; $52.7k RMSE</span>
         </div>
-        <h3>California Housing: Feature Discovery &amp; Classical ML</h3>
-        <p>Load 20,640 Census districts, spot the $500k cap on a GPU map, engineer 36 domain + Haversine + KMeans-RBF features, and race LinearRegression, Ridge, and GPU KNN.</p>
+        <h3>California Housing: Feature Discovery, Tree Ensembles &amp; GPU KNN</h3>
+        <p>Load 20,640 Census districts, engineer 36 domain + Haversine + KMeans-RBF features, and race LinearRegression, Ridge, <code>RandomForestRegressor</code>, <code>GradientBoostingRegressor</code>, and GPU <code>KNeighborsRegressor</code> + 3-fold CV.</p>
       </a>
 
       <a class="card dt-tabular" href="chapters/02_housing_neural_network.html">
         <div class="card-head">
-          <span class="ch">Chapter 2 &middot; Tabular Data &middot; Deep Learning</span>
-          <span class="pill">$48.2k RMSE &middot; R&sup2; 0.828</span>
+          <span class="ch">Tabular Data &middot; Part 2 &middot; Deep Learning</span>
+          <span class="pill">$47.9k RMSE &middot; R&sup2; 0.830</span>
         </div>
-        <h3>California Housing: Beating Classical ML with a Deep Neural Network</h3>
-        <p>Train a <code>vktorch</code> Pre-Norm Residual MLP (fused SPIR-V LayerNorm, GELU, AdamW) on the exact same split &mdash; beating GPU KNN by -$4,510 RMSE with .npz checkpointing.</p>
+        <h3>California Housing: Beating Classical ML with a Deep Residual Net</h3>
+        <p>Train a <code>vktorch</code> Pre-Norm Residual MLP (fused SPIR-V LayerNorm, GELU, AdamW) on the exact same split &mdash; beating every tree &amp; KNN model with live <code>vnp.memory_summary()</code> VRAM profiling and .npz checkpointing.</p>
       </a>
 
       <a class="card dt-image" href="chapters/03_fashion_classical_ml.html">
         <div class="card-head">
-          <span class="ch">Chapter 3 &middot; Image Data &middot; Classical CV</span>
+          <span class="ch">Image Data &middot; Part 1 &middot; Classical CV</span>
           <span class="pill">81.5% &rarr; 86.45% Acc</span>
         </div>
         <h3>Fashion-MNIST: Image Feature Discovery &amp; Classical Computer Vision</h3>
@@ -832,7 +837,7 @@ index_html = f"""<!DOCTYPE html>
 
       <a class="card dt-image" href="chapters/04_fashion_cnn_deep_learning.html">
         <div class="card-head">
-          <span class="ch">Chapter 4 &middot; Image Data &middot; 2D CNN</span>
+          <span class="ch">Image Data &middot; Part 2 &middot; Deep Learning (2D CNN)</span>
           <span class="pill">87.70% Acc &middot; 24.5s VRAM SPIR-V</span>
         </div>
         <h3>Fashion-MNIST: Beating Classical CV with a 2D CNN (<code>vktorch</code>)</h3>
@@ -841,7 +846,7 @@ index_html = f"""<!DOCTYPE html>
 
       <a class="card dt-vector" href="chapters/05_vector_search_classical_ml.html">
         <div class="card-head">
-          <span class="ch">Chapter 5 &middot; Vector / Text Data &middot; Classical NLP</span>
+          <span class="ch">Vector &amp; Text Data &middot; Part 1 &middot; Classical NLP</span>
           <span class="pill">vkvec GPU Search &middot; 97.30% Acc</span>
         </div>
         <h3>Full-Length BBC News: TF-IDF Vectors, <code>vkvec</code> RAG Chunking &amp; Classical NLP</h3>
@@ -850,16 +855,16 @@ index_html = f"""<!DOCTYPE html>
 
       <a class="card dt-vector" href="chapters/06_vector_embeddings_neural_net.html">
         <div class="card-head">
-          <span class="ch">Chapter 6 &middot; Vector / Text Data &middot; Deep NLP &amp; Hybrid Search</span>
-          <span class="pill">97.53% Acc &middot; 64-D Neural + BM25 RRF</span>
+          <span class="ch">Vector &amp; Text Data &middot; Part 2 &middot; Deep NLP &amp; ANN</span>
+          <span class="pill">97.53% &middot; Hybrid RRF + IVFIndex 100%</span>
         </div>
-        <h3>Full-Length BBC News: Learned Neural Embeddings &amp; <code>vkvec</code> Hybrid Search</h3>
-        <p>Train a <code>vktorch</code> Neural Text Encoder in 12.2s on Steam Deck GPU to compress full articles into 64-D vectors (31&times; smaller), shatter the Synonym Wall (<code>0.000 &rarr; +0.999</code>), and fuse BM25 + Neural Search with <code>vkvec.HybridIndex</code>.</p>
+        <h3>Full-Length BBC News: Learned Neural Embeddings, <code>HybridIndex</code> &amp; <code>IVFIndex</code></h3>
+        <p>Train a <code>vktorch</code> Neural Text Encoder in 12s to compress articles into 64-D vectors (31&times; smaller), shatter the Synonym Wall, fuse BM25 + Neural Search with <code>HybridIndex</code>, and scale with GPU Voronoi <code>vkvec.IVFIndex</code>.</p>
       </a>
 
       <a class="card dt-timeseries" href="chapters/07_solar_timeseries_classical_ml.html">
         <div class="card-head">
-          <span class="ch">Chapter 7 &middot; Time-Series Data &middot; Astronomy &amp; Classical ML</span>
+          <span class="ch">Time-Series Data &middot; Part 1 &middot; Classical Forecasting</span>
           <span class="pill">11.1-Yr Cycle Found &middot; 35.39 RMSE</span>
         </div>
         <h3>277 Years of Solar Sunspots: Spectral Discovery &amp; Classical Forecasting (<code>vktime</code>)</h3>
@@ -868,7 +873,7 @@ index_html = f"""<!DOCTYPE html>
 
       <a class="card dt-timeseries" href="chapters/08_solar_timeseries_neural_net.html">
         <div class="card-head">
-          <span class="ch">Chapter 8 &middot; Time-Series Data &middot; Deep Temporal Neural Net</span>
+          <span class="ch">Time-Series Data &middot; Part 2 &middot; Deep Forecasting</span>
           <span class="pill">34.56 RMSE &middot; R&sup2; 0.752 &middot; 14.1s GPU</span>
         </div>
         <h3>Solar Cycle Forecasting: Beating Classical ML with <code>SolarForecasterNet</code> (<code>vktorch</code>)</h3>
@@ -877,7 +882,7 @@ index_html = f"""<!DOCTYPE html>
 
       <a class="card dt-graph" href="chapters/09_graph_classical_ml.html">
         <div class="card-head">
-          <span class="ch">Chapter 9 &middot; Graph Data &middot; Networks &amp; Classical ML</span>
+          <span class="ch">Graph &amp; Network Data &middot; Part 1 &middot; Classical Graph ML</span>
           <span class="pill">vkgraph PageRank &middot; 85.5% Label Prop</span>
         </div>
         <h3>Graph Data Explained: Karate Club, Cora Citations, GPU <code>PageRank</code> &amp; <code>GraphRAG</code></h3>
@@ -886,11 +891,29 @@ index_html = f"""<!DOCTYPE html>
 
       <a class="card dt-graph" href="chapters/10_graph_neural_network_gcn.html">
         <div class="card-head">
-          <span class="ch">Chapter 10 &middot; Graph Data &middot; Graph Neural Network (GCN)</span>
+          <span class="ch">Graph &amp; Network Data &middot; Part 2 &middot; Deep Learning (GCN)</span>
           <span class="pill">87.35% Acc &middot; 1.6s GPU &middot; +13.5 pts vs MLP</span>
         </div>
         <h3>Graph Deep Learning: Building a 2-Layer <code>GCN</code> in <code>vktorch</code></h3>
         <p>Add one matrix multiply (<code>A_hat @ H @ W</code>) to turn a plain MLP (73.9%) into a 2-Layer Graph Convolutional Network (87.35% in 1.6s on Steam Deck GPU!), map 7 AI topic islands with <code>vkvis.UMAP</code>, and save checkpoints.</p>
+      </a>
+
+      <a class="card dt-geo" href="chapters/11_geospatial_classical_ml.html">
+        <div class="card-head">
+          <span class="ch">Geospatial Data &middot; Part 1 &middot; Classical Geo-ML</span>
+          <span class="pill">GPU DBSCAN (7 Belts) &middot; 83.29% GBDT</span>
+        </div>
+        <h3>Global Earthquakes: Haversine, Morton Indexing, GPU <code>DBSCAN</code> &amp; Geo-ML</h3>
+        <p>Load 1,763 real USGS earthquakes, solve the &plusmn;180&deg; Pacific wrap with Haversine &amp; 3D sphere coordinates, trace 7 tectonic seismic belts automatically with GPU <code>DBSCAN</code>, and climb from 77.9% to 83.29% with <code>GradientBoostingClassifier</code>.</p>
+      </a>
+
+      <a class="card dt-geo" href="chapters/12_geospatial_neural_net.html">
+        <div class="card-head">
+          <span class="ch">Geospatial Data &middot; Part 2 &middot; Deep Geo-AI</span>
+          <span class="pill">84.42% Acc &middot; Spherical Fourier Net</span>
+        </div>
+        <h3>Global Earthquakes: Fourier Spatial Encodings &amp; <code>GeoSeismicNet</code> (<code>vktorch</code>)</h3>
+        <p>Wrap 3D unit-sphere coordinates in multi-scale <code>sin/cos</code> Fourier waves (like Google SatCLIP &amp; Space2Vec) inside a Pre-Norm Residual Net &mdash; beating every classical Geo-ML model at 84.42% in 21s on Vulkan GPU.</p>
       </a>
     </div>
 

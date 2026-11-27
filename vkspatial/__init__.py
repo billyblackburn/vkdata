@@ -1,6 +1,7 @@
 """vkspatial: GeoPandas / SpatialPandas / cuSpatial-style Vulkan GPU spatial indexing & queries."""
 
 from .barnes_hut import BarnesHut3D
+from .datasets import load_earthquakes
 from .geodataframe import GeoDataFrame
 from .io import read_geojson, to_geojson
 
@@ -25,6 +26,7 @@ __all__ = [
     "bearing",
     "euclidean_distance",
     "haversine_distance",
+    "load_earthquakes",
     "lonlat_to_mercator",
     "mercator_to_lonlat",
     "morton_encode",

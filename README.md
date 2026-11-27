@@ -66,8 +66,12 @@ pixi run lab
   Train a skip-connected Temporal Neural Network (`LayerNorm` + `GELU` + `AdamW` + `CosineAnnealingLR`) in **`14.1s`** on Steam Deck GPU — beating Classical Ridge across unseen 1973–2026 Solar Cycles 21–25 (**`34.56` RMSE**, **`R² = 0.752`**), forecasting late 2027, and saving/reloading `.npz` checkpoints.
 - **Chapter 9 *(Graph Data · Networks & Classical ML)* — [Graph Data Explained: Karate Club, Cora Citations, GPU `PageRank` & `GraphRAG` (`vkgraph`)](examples/05_graphs/09_graph_classical_ml.ipynb)**
   Plain-English intro to Nodes, Edges, & Adjacency Matrices on Zachary's Karate Club (**`100%`** faction recovery from 2 leaders!), then scale to **2,708 real Cora AI papers** (`5,429` citations) with GPU `PageRank`, `BFS`, `GraphRAG` `k_hop_neighbors`, and GPU Label Propagation (`71.47%` words-only → **`85.50%`** citations / **`87.17%`** graph-smoothed).
-- **Chapter 10 *(Graph Data · Graph Neural Network `GCN`)* — [Graph Deep Learning: Building a 2-Layer `GCN` in `vktorch`](examples/05_graphs/10_graph_neural_network_gcn.ipynb)**
+- **Graphs · Part 2 *(Graph Neural Network `GCN`)* — [Graph Deep Learning: Building a 2-Layer `GCN` in `vktorch`](examples/05_graphs/10_graph_neural_network_gcn.ipynb)**
   Add a single matrix multiply (`A_hat @ H @ W`) to turn a plain MLP (`73.87%`) into a **2-Layer Graph Convolutional Network** (**`87.35%`** in **`1.6s`** on Steam Deck GPU!), map 7 glowing AI topic islands with `vkvis.UMAP`, inspect the 7×7 confusion matrix, and persist `.npz` + `vkgraph` checkpoints.
+- **Geospatial · Part 1 *(Classical Geo-ML)* — [Global Earthquakes: Haversine, Morton Indexing, GPU `DBSCAN` & Geo-ML (`vkspatial`)](examples/06_geospatial/01_earthquakes_classical_ml.ipynb)**
+  Load 1,763 real USGS global earthquakes, solve the ±180° Pacific wrap with Haversine & 3D sphere coordinates, trace 7 tectonic seismic belts automatically with GPU `DBSCAN`, and climb from `77.90%` to **`83.29%`** with `GradientBoostingClassifier`.
+- **Geospatial · Part 2 *(Deep Geo-AI)* — [Global Earthquakes: Spherical Fourier Encodings & `GeoSeismicNet` (`vktorch`)](examples/06_geospatial/02_earthquakes_geo_neural_net.ipynb)**
+  Wrap 3D unit-sphere coordinates in multi-scale `sin/cos` Fourier waves (like Google SatCLIP & Space2Vec) inside a Pre-Norm Residual Net — beating every classical Geo-ML model at **`84.42%`** in `21s` on Vulkan GPU with `vnp.memory_summary()` VRAM profiling.
 
 ---
 
