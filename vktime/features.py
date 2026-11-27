@@ -218,3 +218,17 @@ def temporal_split(
     y_tr = vnp.array(np.ascontiguousarray(y_np[:split_idx]), dtype=np.float32)
     y_te = vnp.array(np.ascontiguousarray(y_np[split_idx:]), dtype=np.float32)
     return x_tr, x_te, y_tr, y_te
+
+
+def fourier_features(timestamps: Any, period: float, *, harmonics: int = 2) -> vnp.ndarray:
+    """Compute GPU ``sin``/``cos`` Fourier harmonic features for a known cycle ``period``."""
+    p = float(period)
+    if p <= 0.0:
+        raise ValueError(f"period must be > 0, got {period}")
+    t_gpu = timestamps if isinstance(timestamps, vnp.ndarray) else vnp.array(_to_np_f32(timestamps).ravel(), dtype=np.float32)
+    cols = []
+    for k in range(1, int(harmonics) + 1):
+        ang = t_gpu * np.float32(2.0 * np.pi * k / p)
+        cols.append(vnp.sin(ang))
+        cols.append(vnp.cos(ang))
+    return vnp.column_stack(cols)

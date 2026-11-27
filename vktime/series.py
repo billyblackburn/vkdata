@@ -30,7 +30,7 @@ class TimeSeries:
         name: str = "series",
         freq: Optional[str] = None,
     ) -> None:
-        t_np = np.asarray(timestamps).ravel()
+        t_np = timestamps.to_numpy().ravel() if hasattr(timestamps, "to_numpy") else np.asarray(timestamps).ravel()
         v_np = _to_np_f32(values)
         if v_np.ndim not in (1, 2):
             raise ValueError(f"values must be 1D or 2D, got shape {v_np.shape}")
@@ -173,3 +173,63 @@ class TimeSeries:
         meta = json.loads(p.with_suffix(".meta.json").read_text(encoding="utf-8"))
         data = np.load(p)
         return cls(data["timestamps"], data["values"], name=meta["name"], freq=meta["freq"])
+
+    @classmethod
+    def from_csv(
+        cls,
+        path: Union[str, Path],
+        *,
+        time_col: Union[int, str] = 0,
+        value_col: Union[int, str] = 1,
+        sep: str = ",",
+        has_header: bool = True,
+        name: str = "series",
+        freq: Optional[str] = None,
+    ) -> "TimeSeries":
+        """Load a CSV/semicolon-delimited file directly into an in-VRAM GPU ``TimeSeries``."""
+        lines = [l.strip() for l in Path(path).read_text(encoding="utf-8").splitlines() if l.strip()]
+        if not lines:
+            raise ValueError(f"Empty CSV file: {path}")
+        if has_header:
+            header = [h.strip() for h in lines[0].split(sep)]
+            t_idx = header.index(time_col) if isinstance(time_col, str) else int(time_col)
+            v_idx = header.index(value_col) if isinstance(value_col, str) else int(value_col)
+            data_lines = lines[1:]
+        else:
+            t_idx, v_idx = int(time_col), int(value_col)
+            data_lines = lines
+
+        ts_list, val_list = [], []
+        for l in data_lines:
+            parts = [p.strip() for p in l.split(sep)]
+            if len(parts) > max(t_idx, v_idx):
+                ts_list.append(float(parts[t_idx]))
+                val_list.append(float(parts[v_idx]))
+        return cls(
+            vnp.array(ts_list, dtype=np.float32),
+            vnp.array(val_list, dtype=np.float32),
+            name=name,
+            freq=freq,
+        )
+
+
+def read_csv(
+    path: Union[str, Path],
+    *,
+    time_col: Union[int, str] = 0,
+    value_col: Union[int, str] = 1,
+    sep: str = ",",
+    has_header: bool = True,
+    name: str = "series",
+    freq: Optional[str] = None,
+) -> TimeSeries:
+    """One-liner loader for CSV time-series files directly into Vulkan GPU VRAM."""
+    return TimeSeries.from_csv(
+        path,
+        time_col=time_col,
+        value_col=value_col,
+        sep=sep,
+        has_header=has_header,
+        name=name,
+        freq=freq,
+    )

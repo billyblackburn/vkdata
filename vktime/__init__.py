@@ -2,6 +2,7 @@
 
 from .features import (
     ewma,
+    fourier_features,
     make_lag_matrix,
     rolling_max,
     rolling_mean,
@@ -10,7 +11,7 @@ from .features import (
     sliding_windows,
     temporal_split,
 )
-from .series import TimeSeries
+from .series import TimeSeries, read_csv
 from .spectral import (
     autocorrelation,
     detect_anomalies,
@@ -24,9 +25,11 @@ __all__ = [
     "autocorrelation",
     "detect_anomalies",
     "ewma",
+    "fourier_features",
     "make_lag_matrix",
     "periodogram",
     "phase_fold",
+    "read_csv",
     "rolling_max",
     "rolling_mean",
     "rolling_min",

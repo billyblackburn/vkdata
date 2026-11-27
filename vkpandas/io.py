@@ -69,15 +69,25 @@ def _parse_column(raw_vals: List[str]) -> Any:
     return _np.array(raw_vals, dtype=object)
 
 
-def read_csv(path: Union[str, Path], delimiter: str = ",") -> DataFrame:
-    """Load a CSV file directly into GPU-backed vkpandas columns."""
+def read_csv(
+    path: Union[str, Path],
+    delimiter: str = ",",
+    *,
+    sep: Union[str, None] = None,
+    names: Union[Sequence[str], None] = None,
+) -> DataFrame:
+    """Load a CSV/delimited file directly into GPU-backed vkpandas columns."""
+    delim = sep if sep is not None else delimiter
     with open(path, "r", newline="", encoding="utf-8") as f:
-        reader = csv.reader(f, delimiter=delimiter)
-        header = next(reader, None)
-        if header is None:
-            return DataFrame()
-        cols: Dict[str, List[str]] = {h.strip(): [] for h in header}
-        keys = list(cols.keys())
+        reader = csv.reader(f, delimiter=delim)
+        if names is not None:
+            keys = [str(n).strip() for n in names]
+        else:
+            header = next(reader, None)
+            if header is None:
+                return DataFrame()
+            keys = [h.strip() for h in header]
+        cols: Dict[str, List[str]] = {k: [] for k in keys}
         for row in reader:
             if not row:
                 continue
