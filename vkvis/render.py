@@ -75,14 +75,21 @@ def render_embedding(
     background: str = "#0a0d14",
     point_size: int = 2,
     title: Optional[str] = None,
+    class_names: Optional[Sequence[str]] = None,
+    legend_loc: str = "lower right",
+    clip_percentile: Optional[float] = None,
     yaw: float = 0.55,
     pitch: float = 0.40,
     dist: float = 2.1,
 ) -> Image.Image:
-    """Render a 2D or 3D embedding using ``vkshader`` + ``vkcolorcet``."""
+    """Render a 2D or 3D embedding using ``vkshader`` + ``vkcolorcet`` with optional legend."""
     Y_np = _np.asarray(Y, dtype=_np.float32)
     if Y_np.ndim != 2 or Y_np.shape[1] not in (2, 3):
         raise ValueError(f"Expected 2D or 3D embedding (N, 2|3), got {Y_np.shape}")
+    if clip_percentile is not None and 0.0 < float(clip_percentile) < 50.0:
+        p = float(clip_percentile)
+        lo, hi = _np.percentile(Y_np, [p, 100.0 - p], axis=0)
+        Y_np = _np.clip(Y_np, lo, hi)
 
     n, d = Y_np.shape
     xr = _bounds(Y_np[:, 0])
@@ -169,7 +176,23 @@ def render_embedding(
         draw = ImageDraw.Draw(out)
         draw.text((10, 5), str(title), fill=(235, 240, 248))
         out.paste(im, (0, bar_h))
-        return out
+        im = out
+
+    if class_names:
+        draw = ImageDraw.Draw(im)
+        box_w = max(130, max(len(str(c)) for c in class_names) * 7 + 40)
+        box_h = len(class_names) * 24 + 16
+        lx = 16 if "left" in legend_loc else im.width - box_w - 16
+        ly = 36 if "upper" in legend_loc else im.height - box_h - 16
+        draw.rounded_rectangle(
+            [lx, ly, lx + box_w, ly + box_h],
+            radius=8, fill="#262335", outline="#ff7edb", width=2,
+        )
+        for i, cname in enumerate(class_names):
+            yy = ly + 10 + i * 24
+            col = pal[i % len(pal)]
+            draw.ellipse([lx + 10, yy + 2, lx + 22, yy + 14], fill=col)
+            draw.text((lx + 30, yy + 1), str(cname), fill="#f4eee4")
     return im
 
 

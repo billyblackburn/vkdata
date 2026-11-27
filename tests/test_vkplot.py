@@ -50,3 +50,38 @@ def test_vkplot_dataframe_series_and_geodataframe():
     # 3D Vulkan GPU plot
     img3d = df.vkplot.plot3d("x", "y", "z", width=128, height=96, basemap=None)
     assert img3d.rgba.shape == (96, 128, 4)
+
+
+def test_vkplot_reusable_ml_charts_and_vkvis_legend():
+    import vkplot
+    import vkvis
+
+    x = np.linspace(0, 10, 50, dtype=np.float32)
+    im_line = vkplot.line_chart([(x, np.sin(x), "sin"), (x, np.cos(x), "#ff7edb", "cos")], title="Wave", vline=(5.0, "Split"))
+    assert im_line.size == (900, 340)
+
+    im_bar = vkplot.barh_chart(["feat_a", "feat_b", "feat_c"], [0.8, -0.4, 0.25], title="Corrs")
+    assert im_bar.width == 760 and im_bar.height >= 120
+
+    yt = np.linspace(0, 100, 200, dtype=np.float32)
+    yp = yt + np.random.default_rng(0).normal(0, 5, size=200).astype(np.float32)
+    im_pa = vkplot.pred_vs_actual(yt, yp, title="Pred vs Actual", lim=(0, 110))
+    assert im_pa.size == (396, 380)
+
+    im_cm = vkplot.confusion_matrix([0, 0, 1, 1, 2], [0, 1, 1, 1, 2], ["Cat", "Dog", "Bird"])
+    assert im_cm.width > 200 and im_cm.height > 150
+
+    tiles = [np.random.default_rng(i).random((8, 8)).astype(np.float32) for i in range(6)]
+    im_grid = vkplot.image_grid(tiles, titles=[f"T{i}" for i in range(6)], ncols=3, scale=4, cmap="fire", title="Grid")
+    assert im_grid.width > 100 and im_grid.height > 80
+
+    im_sbs = vkplot.side_by_side(im_pa, im_pa)
+    assert im_sbs.width > im_pa.width * 2
+
+    Y = np.random.default_rng(1).standard_normal((60, 2)).astype(np.float32)
+    labs = np.repeat([0, 1, 2], 20)
+    im_emb = vkvis.render_embedding(
+        Y, labels=labs, class_names=["A", "B", "C"], legend_loc="lower left", clip_percentile=1.5, title="UMAP"
+    )
+    assert im_emb.width == 640 and im_emb.height == 504
+

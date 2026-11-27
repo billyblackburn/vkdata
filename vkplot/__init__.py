@@ -1,8 +1,16 @@
-"""vkplot: hvPlot-style high-level plotting accessor (.vkplot) for the Vulkan HoloViz stack."""
+"""vkplot: hvPlot-style high-level plotting accessor (.vkplot) & reusable SynthWave '84 ML charts."""
 
 from __future__ import annotations
 
 from .accessor import vkPlot
+from .charts import (
+    barh_chart,
+    confusion_matrix,
+    image_grid,
+    line_chart,
+    pred_vs_actual,
+    side_by_side,
+)
 
 
 def register() -> None:
@@ -28,4 +36,13 @@ def register() -> None:
 
 register()
 
-__all__ = ["vkPlot", "register"]
+__all__ = [
+    "barh_chart",
+    "confusion_matrix",
+    "image_grid",
+    "line_chart",
+    "pred_vs_actual",
+    "register",
+    "side_by_side",
+    "vkPlot",
+]
