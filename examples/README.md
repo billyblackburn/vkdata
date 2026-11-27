@@ -25,5 +25,6 @@ Write real GPU compute kernels in plain Python (`@vnp.kernel` → GLSL 450 → S
 - [`puzzle_02_zip.ipynb`](00_vulkan_gpu_puzzles/puzzle_02_zip.ipynb)
 
 ## Bonus Labs (`bonus_labs/`)
+- **[`bonus_labs/vram_profiling_and_oom.ipynb`](bonus_labs/vram_profiling_and_oom.ipynb)** — Featured Bonus Chapter: Vulkan VRAM profiling (`memory_info`, `profile_memory`, `memory_summary`, `empty_cache`), 2.0 GB staircase, & triggering/catching a real Vulkan `ErrorOutOfDeviceMemory`!
 - **`bonus_labs/package_demos/`** — Focused demos for `vknumpy`, `vkpandas`, `vkscipy`, `vkplot`, `vkpanel`, `vkcolorcet`, `vkshader`, `vkspatial`, `vkgeoviews`, and `vkvis`.
 - **`bonus_labs/3d_and_deep_dives/`** — 3D GPU showcases (galaxies, ocean FFT, proteins, earthquakes, OpenSky flights) and deep-learning labs (backprop, Mini-GPT, Mini-Llama).

@@ -20,6 +20,7 @@ CHAPTERS = [
     ("examples/05_graphs/10_graph_neural_network_gcn.ipynb",             "10_graph_neural_network_gcn.html",    "Graphs &middot; Part 2: Graph Neural Net (GCN)"),
     ("examples/06_geospatial/01_earthquakes_classical_ml.ipynb",         "11_geospatial_classical_ml.html",     "Geospatial &middot; Part 1: Classical Geo-ML"),
     ("examples/06_geospatial/02_earthquakes_geo_neural_net.ipynb",       "12_geospatial_neural_net.html",       "Geospatial &middot; Part 2: Deep Geo-AI"),
+    ("examples/bonus_labs/vram_profiling_and_oom.ipynb",                 "bonus_vram_profiling.html",           "Bonus &middot; Vulkan VRAM Profiling &amp; OOM"),
 ]
 
 # (Term, Full Name, Category, Plain-English Explanation)
@@ -937,6 +938,18 @@ index_html = f"""<!DOCTYPE html>
         </div>
         <h3>Global Earthquakes: Fourier Spatial Encodings &amp; <code>GeoSeismicNet</code> (<code>vktorch</code>)</h3>
         <p>Wrap 3D unit-sphere coordinates in multi-scale <code>sin/cos</code> Fourier waves (like Google SatCLIP &amp; Space2Vec) inside a Pre-Norm Residual Net &mdash; beating every classical Geo-ML model at 84.42% in 21s on Vulkan GPU.</p>
+      </a>
+    </div>
+
+    <h2>Bonus Lab &middot; GPU Systems &amp; Memory Diagnostics</h2>
+    <div class="grid">
+      <a class="card dt-foundations" href="chapters/bonus_vram_profiling.html">
+        <div class="card-head">
+          <span class="ch">Bonus &middot; Vulkan GPU Memory (VRAM)</span>
+          <span class="pill">0 MB &rarr; 2.0 GB &rarr; Real OOM Catch</span>
+        </div>
+        <h3>Vulkan VRAM Profiling, Host-Copy Detection &amp; Out-of-Memory (OOM) Lab</h3>
+        <p>Tour every <code>vknumpy</code> memory tool (<code>memory_info</code>, <code>profile_memory</code>, <code>memory_summary</code>, <code>empty_cache</code>), spot a 16&times; slower accidental CPU copy, climb a 2.0 GB VRAM staircase, and safely trigger &amp; catch a real Vulkan <code>ErrorOutOfDeviceMemory</code>.</p>
       </a>
     </div>
 
