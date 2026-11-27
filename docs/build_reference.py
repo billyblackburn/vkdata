@@ -524,100 +524,96 @@ def build_reference() -> Tuple[int, int]:
   <title>vkdata API Reference ({len(PACKAGES)} Vulkan GPU Packages)</title>
   <style>
     :root {{
-      --bg: #262335; --card: #1e1a2b; --border: #495495;
-      --text: #f4eee4; --muted: #b6b1d6;
-      --pink: #ff7edb; --cyan: #36f9f6; --yellow: #fede5d; --mint: #72f1b8; --peach: #ff9e64;
+      --bg: #0d0f12; --card: #14171c; --border: #262b33;
+      --text: #e6ebf2; --muted: #9aa4b2;
+      --pink: #8ab4f8; --cyan: #8ab4f8; --yellow: #e0af68; --mint: #a8db8f; --peach: #f2a679;
     }}
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0; background-color: var(--bg); color: var(--text);
-      background-image:
-        radial-gradient(circle at 12% 0%, rgba(54, 249, 246, 0.14), transparent 38%),
-        radial-gradient(circle at 88% 5%, rgba(255, 126, 219, 0.14), transparent 40%),
-        linear-gradient(180deg, #241b2f 0%, #262335 45%, #1c1828 100%);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       line-height: 1.55; min-height: 100vh;
     }}
     .top-nav {{
       position: sticky; top: 0; z-index: 100;
-      background: linear-gradient(90deg, #1b1528, #241b35, #1b1528);
-      border-bottom: 1px solid #ff7edb;
-      box-shadow: 0 2px 16px rgba(255, 126, 219, 0.22);
+      background: #14171c;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
       padding: 10px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
     }}
     .top-nav a {{
-      color: var(--cyan); text-decoration: none; font-weight: 700; font-size: 13.5px;
-      padding: 5px 11px; border-radius: 7px; background: #2a2139;
-      border: 1px solid rgba(54, 249, 246, 0.45);
+      color: var(--text); text-decoration: none; font-weight: 500; font-size: 13.5px;
+      padding: 5px 11px; border-radius: 7px; background: #1e232b;
+      border: 1px solid #2e3541;
     }}
-    .top-nav a.gloss {{ color: var(--yellow); border-color: rgba(254, 222, 93, 0.45); }}
-    .top-nav a:hover {{ border-color: var(--pink); color: var(--pink); }}
+    .top-nav a.gloss {{ color: #93b4f8; border-color: #2e3541; }}
+    .top-nav a:hover {{ border-color: #8ab4f8; background: #262d38; color: #ffffff; }}
     .wrap {{ max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; }}
     h1 {{
-      margin: 0 0 8px; font-size: clamp(24px, 4.5vw, 36px);
-      color: var(--cyan); text-shadow: 0 0 16px rgba(54, 249, 246, 0.45);
+      margin: 0 0 8px; font-size: clamp(24px, 4.5vw, 34px);
+      color: #ffffff;
     }}
     .sub {{ color: var(--muted); margin: 0 0 18px; font-size: 15px; }}
     #search {{
       width: 100%; padding: 12px 15px; font-size: 15px; border-radius: 10px;
-      background: #171422; color: var(--text); border: 1px solid var(--cyan);
-      box-shadow: 0 0 14px rgba(54, 249, 246, 0.16); outline: none; margin-bottom: 14px;
+      background: #14171c; color: var(--text); border: 1px solid #2e3541;
+      outline: none; margin-bottom: 14px;
     }}
-    #search:focus {{ border-color: var(--pink); box-shadow: 0 0 18px rgba(255, 126, 219, 0.28); }}
+    #search:focus {{ border-color: #8ab4f8; }}
     .pill-bar {{ display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 24px; }}
     .pkg-pill {{
       text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
-      padding: 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700;
-      background: #1b1728; border: 1px solid var(--accent); color: var(--accent);
-      transition: transform 0.12s, background 0.12s;
+      padding: 4px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+      background: #14171c; border: 1px solid #2e3541; color: var(--accent);
+      transition: transform 0.12s, background 0.12s, border-color 0.12s;
     }}
-    .pkg-pill:hover {{ transform: translateY(-1px); background: rgba(255, 255, 255, 0.08); }}
+    .pkg-pill:hover {{ transform: translateY(-1px); background: #1e232b; border-color: var(--accent); }}
     .pkg-pill code {{ background: none; padding: 0; color: inherit; font-size: 12.5px; }}
     .pkg-pill .cnt {{
-      font-size: 11px; color: #1b1728; background: var(--accent);
-      padding: 0 6px; border-radius: 999px; font-weight: 800;
+      font-size: 11px; color: #0d0f12; background: var(--accent);
+      padding: 0 6px; border-radius: 999px; font-weight: 700;
     }}
     .pkg-sec {{
-      margin-bottom: 34px; background: rgba(27, 23, 40, 0.72);
+      margin-bottom: 34px; background: #14171c;
       border: 1px solid var(--border); border-top: 3px solid var(--accent);
-      border-radius: 14px; padding: 18px 18px 20px;
+      border-radius: 12px; padding: 18px 18px 20px;
     }}
     .pkg-head {{
       display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap;
     }}
     .pkg-cat {{
-      font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+      font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
       color: var(--accent);
     }}
     .pkg-sec h2 {{ margin: 2px 0 6px; font-size: 22px; color: #fff; }}
     .pkg-sec h2 code {{ color: var(--accent); background: none; padding: 0; font-size: 22px; }}
     .pkg-eq {{ font-size: 14px; font-weight: 500; color: var(--muted); }}
     .pkg-count {{
-      font-size: 12px; font-weight: 700; color: var(--accent);
-      border: 1px solid var(--accent); background: rgba(255,255,255,0.04);
+      font-size: 12px; font-weight: 600; color: var(--accent);
+      border: 1px solid #2e3541; background: #1a1f28;
       padding: 3px 10px; border-radius: 999px;
     }}
-    .pkg-sum {{ margin: 0 0 12px; color: #ded7ee; font-size: 14.5px; }}
+    .pkg-sum {{ margin: 0 0 12px; color: #cfd7e3; font-size: 14.5px; }}
     .pkg-ex {{
       margin: 0 0 16px; padding: 11px 14px; border-radius: 9px; overflow-x: auto;
-      background: #14111f; border: 1px solid rgba(73, 84, 149, 0.55);
-      color: #72f1b8; font-size: 13px; line-height: 1.45;
+      background: #0d0f12; border: 1px solid #22272f;
+      color: #a8db8f; font-size: 13px; line-height: 1.45;
     }}
     .api-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }}
     .api-item {{
-      background: var(--card); border: 1px solid rgba(73, 84, 149, 0.55);
-      border-left: 3px solid var(--accent); border-radius: 9px; padding: 10px 12px;
+      background: #111418; border: 1px solid #22272f;
+      border-left: 3px solid var(--accent); border-radius: 8px; padding: 10px 12px;
     }}
     .api-head {{ display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin-bottom: 4px; }}
     .kind-badge {{
-      font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px; letter-spacing: 0.04em;
+      font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; letter-spacing: 0.04em;
     }}
-    .kind-cls {{ background: rgba(254, 222, 93, 0.16); color: var(--yellow); border: 1px solid rgba(254, 222, 93, 0.5); }}
-    .kind-fn  {{ background: rgba(54, 249, 246, 0.13); color: var(--cyan); border: 1px solid rgba(54, 249, 246, 0.45); }}
-    .api-name {{ color: #ffffff; font-weight: 700; font-size: 13.5px; word-break: break-word; }}
-    .api-sig {{ color: #ff9e64; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; word-break: break-word; }}
+    .kind-cls {{ background: rgba(224, 175, 104, 0.14); color: var(--yellow); border: 1px solid rgba(224, 175, 104, 0.35); }}
+    .kind-fn  {{ background: rgba(138, 180, 248, 0.13); color: var(--cyan); border: 1px solid rgba(138, 180, 248, 0.35); }}
+    .api-name {{ color: #ffffff; font-weight: 600; font-size: 13.5px; word-break: break-word; }}
+    .api-sig {{ color: #93b4f8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; word-break: break-word; }}
     .api-doc {{ margin: 0; color: var(--muted); font-size: 13px; }}
-    .m-box {{ margin-top: 8px; border-top: 1px dashed rgba(73, 84, 149, 0.5); padding-top: 6px; }}
+    .m-box {{ margin-top: 8px; border-top: 1px dashed #262b33; padding-top: 6px; }}
     .m-box summary {{ cursor: pointer; color: var(--pink); font-size: 12px; font-weight: 700; }}
     .m-list {{ margin-top: 6px; display: flex; flex-direction: column; gap: 5px; }}
     .m-row {{ background: #171422; border-radius: 6px; padding: 5px 8px; }}

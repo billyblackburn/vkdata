@@ -250,106 +250,105 @@ SYNTHWAVE84_CSS = """
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   :root {
-    --jp-layout-color0: #262335 !important;
-    --jp-layout-color1: #1e1a2b !important;
-    --jp-layout-color2: #2a2139 !important;
-    --jp-border-color1: #495495 !important;
-    --jp-border-color2: #3b3355 !important;
-    --jp-ui-font-color1: #f4eee4 !important;
-    --jp-content-font-color1: #f4eee4 !important;
-    --jp-cell-editor-background: #1b1728 !important;
-    --jp-cell-editor-border-color: #495495 !important;
-    --jp-mirror-editor-keyword-color: #ff7edb !important;
-    --jp-mirror-editor-atom-color: #f97e72 !important;
-    --jp-mirror-editor-number-color: #fede5d !important;
-    --jp-mirror-editor-def-color: #72f1b8 !important;
-    --jp-mirror-editor-variable-color: #f4eee4 !important;
-    --jp-mirror-editor-variable-2-color: #ff7edb !important;
-    --jp-mirror-editor-variable-3-color: #72f1b8 !important;
-    --jp-mirror-editor-punctuation-color: #b6b1d6 !important;
-    --jp-mirror-editor-property-color: #36f9f6 !important;
-    --jp-mirror-editor-operator-color: #ff7edb !important;
-    --jp-mirror-editor-comment-color: #848bbd !important;
-    --jp-mirror-editor-string-color: #ff9e64 !important;
-    --jp-mirror-editor-string-2-color: #ff9e64 !important;
-    --jp-mirror-editor-meta-color: #72f1b8 !important;
-    --jp-mirror-editor-qualifier-color: #ff7edb !important;
-    --jp-mirror-editor-builtin-color: #36f9f6 !important;
-    --jp-mirror-editor-bracket-color: #b6b1d6 !important;
-    --jp-mirror-editor-tag-color: #ff7edb !important;
-    --jp-mirror-editor-attribute-color: #36f9f6 !important;
-    --jp-mirror-editor-header-color: #ff7edb !important;
-    --jp-mirror-editor-quote-color: #72f1b8 !important;
-    --jp-mirror-editor-link-color: #36f9f6 !important;
-    --jp-mirror-editor-error-color: #fe4450 !important;
+    --jp-layout-color0: #0d0f12 !important;
+    --jp-layout-color1: #14171c !important;
+    --jp-layout-color2: #1c2028 !important;
+    --jp-border-color1: #262b33 !important;
+    --jp-border-color2: #22272f !important;
+    --jp-ui-font-color1: #e6ebf2 !important;
+    --jp-content-font-color1: #e6ebf2 !important;
+    --jp-cell-editor-background: #14171c !important;
+    --jp-cell-editor-border-color: #262b33 !important;
+    --jp-mirror-editor-keyword-color: #7dcfff !important;
+    --jp-mirror-editor-atom-color: #e0af68 !important;
+    --jp-mirror-editor-number-color: #e0af68 !important;
+    --jp-mirror-editor-def-color: #8ab4f8 !important;
+    --jp-mirror-editor-variable-color: #e6ebf2 !important;
+    --jp-mirror-editor-variable-2-color: #8ab4f8 !important;
+    --jp-mirror-editor-variable-3-color: #a8db8f !important;
+    --jp-mirror-editor-punctuation-color: #9aa4b2 !important;
+    --jp-mirror-editor-property-color: #8ab4f8 !important;
+    --jp-mirror-editor-operator-color: #7dcfff !important;
+    --jp-mirror-editor-comment-color: #6e7787 !important;
+    --jp-mirror-editor-string-color: #a8db8f !important;
+    --jp-mirror-editor-string-2-color: #a8db8f !important;
+    --jp-mirror-editor-meta-color: #d2a8ff !important;
+    --jp-mirror-editor-qualifier-color: #7dcfff !important;
+    --jp-mirror-editor-builtin-color: #8ab4f8 !important;
+    --jp-mirror-editor-bracket-color: #9aa4b2 !important;
+    --jp-mirror-editor-tag-color: #7dcfff !important;
+    --jp-mirror-editor-attribute-color: #8ab4f8 !important;
+    --jp-mirror-editor-header-color: #ffffff !important;
+    --jp-mirror-editor-quote-color: #a8db8f !important;
+    --jp-mirror-editor-link-color: #8ab4f8 !important;
+    --jp-mirror-editor-error-color: #f7768e !important;
   }
   html, body, body.jp-Notebook {
-    background-color: #262335 !important;
-    background-image: radial-gradient(circle at 20% 0%, rgba(255, 126, 219, 0.09), transparent 45%),
-                      radial-gradient(circle at 85% 10%, rgba(54, 249, 246, 0.08), transparent 40%) !important;
-    color: #f4eee4 !important;
+    background-color: #0d0f12 !important;
+    background-image: none !important;
+    color: #e6ebf2 !important;
   }
   .jp-RenderedMarkdown {
-    color: #ede6f5 !important;
+    color: #dde3ec !important;
     line-height: 1.68;
   }
   .jp-RenderedMarkdown h1 {
-    color: #ff7edb !important;
-    text-shadow: 0 0 12px rgba(255, 126, 219, 0.45);
-    border-color: #495495 !important;
+    color: #ffffff !important;
+    text-shadow: none !important;
+    border-color: #262b33 !important;
   }
   .jp-RenderedMarkdown h2 {
-    color: #36f9f6 !important;
-    text-shadow: 0 0 10px rgba(54, 249, 246, 0.35);
-    border-color: #495495 !important;
+    color: #e6ebf2 !important;
+    text-shadow: none !important;
+    border-color: #262b33 !important;
   }
   .jp-RenderedMarkdown h3 {
-    color: #fede5d !important;
-    text-shadow: 0 0 8px rgba(254, 222, 93, 0.3);
+    color: #8ab4f8 !important;
+    text-shadow: none !important;
   }
   .jp-RenderedMarkdown strong { color: #ffffff !important; }
-  .jp-RenderedMarkdown a { color: #36f9f6 !important; }
+  .jp-RenderedMarkdown a { color: #8ab4f8 !important; }
   .jp-RenderedMarkdown a.vk-term {
     color: inherit !important;
-    text-decoration: underline dotted #36f9f6 !important;
+    text-decoration: underline dotted #8ab4f8 !important;
     text-underline-offset: 3px;
     cursor: help;
   }
-  .jp-RenderedMarkdown a.vk-code-term code { border-bottom: 1.5px dotted #36f9f6 !important; }
+  .jp-RenderedMarkdown a.vk-code-term code { border-bottom: 1.5px dotted #8ab4f8 !important; }
   .jp-RenderedMarkdown a.vk-term:hover {
-    color: #36f9f6 !important;
-    text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
+    color: #8ab4f8 !important;
+    text-shadow: none !important;
   }
   .jp-RenderedMarkdown code {
-    background: #1b1728 !important; color: #ff7edb !important;
-    border: 1px solid rgba(255, 126, 219, 0.25);
+    background: #1e232b !important; color: #93b4f8 !important;
+    border: 1px solid #2b323d;
     padding: 2px 6px; border-radius: 5px;
   }
   .jp-RenderedMarkdown blockquote {
-    border-left: 3px solid #ff7edb !important;
-    background: #1e1a2b; padding: 10px 14px; border-radius: 0 8px 8px 0;
-    color: #d6cceb !important;
-    box-shadow: 0 0 16px rgba(255, 126, 219, 0.08);
+    border-left: 3px solid #8ab4f8 !important;
+    background: #14171c; padding: 10px 14px; border-radius: 0 8px 8px 0;
+    color: #c5cedb !important;
+    box-shadow: none;
   }
   .jp-RenderedMarkdown hr {
     border: none; height: 1px;
-    background: linear-gradient(90deg, rgba(255,126,219,0.6), rgba(54,249,246,0.6), transparent);
+    background: #262b33;
   }
   .jp-InputArea-editor {
-    background: #1b1728 !important;
-    border: 1px solid #495495 !important;
+    background: #14171c !important;
+    border: 1px solid #262b33 !important;
     border-radius: 10px !important;
-    box-shadow: 0 0 18px rgba(54, 249, 246, 0.07);
+    box-shadow: none;
   }
   .jp-OutputArea-output pre {
-    color: #d7cef0 !important;
-    background: #171422 !important;
-    border: 1px solid rgba(73, 84, 149, 0.45);
+    color: #cfd7e3 !important;
+    background: #111418 !important;
+    border: 1px solid #22272f;
     border-radius: 8px; padding: 10px 12px;
   }
 
-  /* SynthWave '84 Neon Vaporwave Python Syntax Highlighting (harmonized, zero harsh red) */
-  .jp-CodeMirrorEditor, .jp-InputArea-editor, .highlight, .highlight pre { background: #1b1728 !important; color: #f4eee4 !important; }
+  /* Antigravity Dark Clean Syntax Highlighting */
+  .jp-CodeMirrorEditor, .jp-InputArea-editor, .highlight, .highlight pre { background: #14171c !important; color: #e6ebf2 !important; }
   /* Always allow smooth horizontal scrolling for long code & output lines (phones portrait + landscape!) */
   .jp-Cell, .jp-Cell-inputWrapper, .jp-Cell-outputWrapper, .jp-InputArea, .jp-OutputArea, .jp-OutputArea-child {
     min-width: 0 !important;
@@ -374,79 +373,80 @@ SYNTHWAVE84_CSS = """
     height: 6px;
   }
   .jp-InputArea-editor::-webkit-scrollbar-thumb, .highlight pre::-webkit-scrollbar-thumb, .jp-OutputArea-output pre::-webkit-scrollbar-thumb {
-    background: rgba(54, 249, 246, 0.35);
+    background: #363e4b;
     border-radius: 3px;
   }
-  .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch { color: #848bbd !important; font-style: italic; }
-  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow { color: #ff7edb !important; font-weight: 600; }
-  .highlight .o { color: #ff7edb !important; }
-  .highlight .nn, .highlight .nc, .highlight .nb, .highlight .bp { color: #36f9f6 !important; font-weight: 500; }
-  .highlight .nf, .highlight .fm, .highlight .nd { color: #72f1b8 !important; font-weight: 600; }
-  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si { color: #ff9e64 !important; }
-  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo { color: #fede5d !important; }
-  .highlight .n { color: #f4eee4 !important; }
-  .highlight .p { color: #b6b1d6 !important; }
+  .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch { color: #6e7787 !important; font-style: italic; }
+  .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow { color: #7dcfff !important; font-weight: 500; }
+  .highlight .o { color: #9aa4b2 !important; }
+  .highlight .nn, .highlight .nc, .highlight .nb, .highlight .bp { color: #8ab4f8 !important; font-weight: 500; }
+  .highlight .nf, .highlight .fm, .highlight .nd { color: #8ab4f8 !important; font-weight: 500; }
+  .highlight .s, .highlight .s1, .highlight .s2, .highlight .sa, .highlight .sb, .highlight .sc, .highlight .sd, .highlight .se, .highlight .si { color: #a8db8f !important; }
+  .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo { color: #e0af68 !important; }
+  .highlight .n { color: #e6ebf2 !important; }
+  .highlight .p { color: #9aa4b2 !important; }
 
-  /* Sticky SynthWave '84 top & bottom chapter navigation */
+  /* Sticky Antigravity Dark top & bottom chapter navigation */
   .vkbook-nav {
     position: sticky; top: 0; z-index: 1000;
-    background: linear-gradient(90deg, #1b1528, #241b35, #1b1528);
-    color: #f4eee4;
-    border-bottom: 1px solid #ff7edb;
-    box-shadow: 0 2px 16px rgba(255, 126, 219, 0.22);
+    background: #14171c;
+    color: #e6ebf2;
+    border-bottom: 1px solid #262b33;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
     padding: 10px 14px; display: flex; flex-wrap: wrap;
     align-items: center; justify-content: space-between; gap: 8px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 14px;
   }
   .vkbook-nav a {
-    color: #36f9f6; text-decoration: none; font-weight: 600;
-    padding: 5px 10px; border-radius: 6px; background: #2a2139;
-    border: 1px solid rgba(54, 249, 246, 0.45);
-    text-shadow: 0 0 6px rgba(54, 249, 246, 0.35);
+    color: #e6ebf2; text-decoration: none; font-weight: 500;
+    padding: 5px 10px; border-radius: 6px; background: #1e232b;
+    border: 1px solid #2e3541;
+    text-shadow: none;
   }
   .vkbook-nav a.gloss-btn {
-    color: #fede5d; border-color: rgba(254, 222, 93, 0.45);
-    text-shadow: 0 0 6px rgba(254, 222, 93, 0.3);
+    color: #93b4f8; border-color: #2e3541;
+    text-shadow: none;
   }
-  .vkbook-nav a:hover { background: #382c4f; border-color: #ff7edb; color: #ff7edb; }
+  .vkbook-nav a:hover { background: #262d38; border-color: #8ab4f8; color: #ffffff; }
   .vkbook-nav .title {
-    color: #ff7edb; font-weight: 700;
-    text-shadow: 0 0 10px rgba(255, 126, 219, 0.45);
+    color: #ffffff; font-weight: 600;
+    text-shadow: none;
   }
   .vkbook-footer {
     margin: 32px 0 24px; padding: 14px;
-    border-top: 1px solid #495495;
+    border-top: 1px solid #262b33;
     display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   .vkbook-footer a {
-    color: #36f9f6; text-decoration: none; font-weight: 600;
-    padding: 8px 14px; background: #1e1a2b;
-    border: 1px solid rgba(54, 249, 246, 0.45); border-radius: 8px;
+    color: #8ab4f8; text-decoration: none; font-weight: 500;
+    padding: 8px 14px; background: #14171c;
+    border: 1px solid #262b33; border-radius: 8px;
   }
+  .vkbook-footer a:hover { background: #1e232b; border-color: #8ab4f8; }
 
-  /* In-chapter SynthWave '84 tap-to-explain glossary drawer (never lose your place!) */
+  /* In-chapter tap-to-explain glossary drawer */
   #vk-tip-box {
     position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
     width: min(94vw, 540px); z-index: 2000; display: none;
-    background: #1b1528; color: #f4eee4;
-    border: 1px solid #36f9f6; border-radius: 14px; padding: 14px 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), 0 0 22px rgba(54, 249, 246, 0.28);
+    background: #14171c; color: #e6ebf2;
+    border: 1px solid #3b4351; border-radius: 12px; padding: 14px 16px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   #vk-tip-box .vk-tip-head {
     display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
   }
-  #vk-tip-box .vk-tip-term { color: #fede5d; font-weight: 800; font-size: 18px; }
-  #vk-tip-box .vk-tip-full { color: #36f9f6; font-weight: 600; font-size: 14px; margin: 2px 0 6px; }
-  #vk-tip-box .vk-tip-desc { color: #ede6f5; font-size: 14px; margin: 0 0 10px; line-height: 1.5; }
+  #vk-tip-box .vk-tip-term { color: #ffffff; font-weight: 700; font-size: 18px; }
+  #vk-tip-box .vk-tip-full { color: #8ab4f8; font-weight: 600; font-size: 14px; margin: 2px 0 6px; }
+  #vk-tip-box .vk-tip-desc { color: #c5cedb; font-size: 14px; margin: 0 0 10px; line-height: 1.5; }
   #vk-tip-box .vk-tip-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   #vk-tip-box button {
-    background: #2a2139; color: #ff7edb; border: 1px solid rgba(255,126,219,0.5);
-    border-radius: 7px; padding: 5px 12px; font-weight: 700; cursor: pointer; font-size: 13px;
+    background: #1e232b; color: #e6ebf2; border: 1px solid #2e3541;
+    border-radius: 7px; padding: 5px 12px; font-weight: 600; cursor: pointer; font-size: 13px;
   }
-  #vk-tip-box a { color: #36f9f6; font-size: 13px; font-weight: 600; text-decoration: none; }
+  #vk-tip-box a { color: #8ab4f8; font-size: 13px; font-weight: 600; text-decoration: none; }
 
   @media (max-width: 768px) {
     body.jp-Notebook { padding: 0 !important; margin: 0 !important; }
@@ -558,66 +558,61 @@ glossary_html = f"""<!DOCTYPE html>
   <title>Acronym Glossary &amp; Index &mdash; Hands-On AI, ML &amp; GPU Computing (vkdata)</title>
   <style>
     :root {{
-      --bg: #262335; --card: #1e1a2b; --border: #495495;
-      --text: #f4eee4; --muted: #b6b1d6;
-      --pink: #ff7edb; --cyan: #36f9f6; --yellow: #fede5d; --mint: #72f1b8;
+      --bg: #0d0f12; --card: #14171c; --border: #262b33;
+      --text: #e6ebf2; --muted: #9aa4b2;
+      --pink: #8ab4f8; --cyan: #8ab4f8; --yellow: #e0af68; --mint: #a8db8f;
     }}
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0; background-color: var(--bg); color: var(--text);
-      background-image:
-        radial-gradient(circle at 18% 0%, rgba(255, 126, 219, 0.14), transparent 42%),
-        radial-gradient(circle at 85% 5%, rgba(54, 249, 246, 0.12), transparent 38%),
-        linear-gradient(180deg, #241b2f 0%, #262335 45%, #1c1828 100%);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       line-height: 1.6; min-height: 100vh;
     }}
     .nav {{
       position: sticky; top: 0; z-index: 100;
-      background: linear-gradient(90deg, #1b1528, #241b35, #1b1528);
-      border-bottom: 1px solid var(--pink);
-      box-shadow: 0 2px 16px rgba(255, 126, 219, 0.22);
+      background: #14171c;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
       padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
     }}
     .nav a, .nav button {{
-      color: var(--cyan); background: #2a2139; border: 1px solid rgba(54, 249, 246, 0.45);
-      border-radius: 6px; padding: 5px 11px; font-weight: 600; font-size: 14px;
+      color: var(--text); background: #1e232b; border: 1px solid #2e3541;
+      border-radius: 6px; padding: 5px 11px; font-weight: 500; font-size: 14px;
       text-decoration: none; cursor: pointer;
     }}
-    .nav .title {{ color: var(--pink); font-weight: 700; text-shadow: 0 0 10px rgba(255, 126, 219, 0.45); }}
+    .nav a:hover, .nav button:hover {{ border-color: #8ab4f8; background: #262d38; }}
+    .nav .title {{ color: #ffffff; font-weight: 600; }}
     .wrap {{ max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }}
-    h1 {{ color: var(--pink); text-shadow: 0 0 14px rgba(255, 126, 219, 0.5); margin: 0 0 8px; }}
+    h1 {{ color: #ffffff; margin: 0 0 8px; }}
     .sub {{ color: var(--muted); margin: 0 0 18px; font-size: 15px; }}
     .search {{
       width: 100%; padding: 11px 14px; border-radius: 10px;
-      background: #1b1728; color: var(--text); font-size: 15px;
-      border: 1px solid var(--cyan); outline: none; margin-bottom: 20px;
-      box-shadow: 0 0 14px rgba(54, 249, 246, 0.12);
+      background: #14171c; color: var(--text); font-size: 15px;
+      border: 1px solid #2e3541; outline: none; margin-bottom: 20px;
     }}
-    .search::placeholder {{ color: #848bbd; }}
+    .search:focus {{ border-color: #8ab4f8; }}
+    .search::placeholder {{ color: #6e7787; }}
     .grid {{ display: grid; grid-template-columns: 1fr; gap: 12px; }}
     .term-card {{
       background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; padding: 14px 16px; scroll-margin-top: 72px;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      border-radius: 10px; padding: 14px 16px; scroll-margin-top: 72px;
+      transition: border-color 0.15s;
     }}
     .term-card:target {{
-      border-color: var(--cyan);
-      box-shadow: 0 0 24px rgba(54, 249, 246, 0.35);
-      background: #231d36;
+      border-color: #8ab4f8;
+      background: #1a1f28;
     }}
     .term-head {{ display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }}
     .term-abbr {{
-      font-size: 20px; font-weight: 800; color: var(--yellow);
-      text-shadow: 0 0 8px rgba(254, 222, 93, 0.35);
+      font-size: 19px; font-weight: 700; color: #ffffff;
     }}
     .term-cat {{
-      font-size: 12px; font-weight: 700; color: var(--mint);
-      background: rgba(114, 241, 184, 0.12); border: 1px solid rgba(114, 241, 184, 0.35);
+      font-size: 12px; font-weight: 600; color: #a8db8f;
+      background: rgba(168, 219, 143, 0.10); border: 1px solid rgba(168, 219, 143, 0.28);
       padding: 2px 8px; border-radius: 6px;
     }}
-    .term-full {{ color: var(--cyan); font-weight: 600; font-size: 14.5px; margin: 2px 0 6px; }}
-    .term-desc {{ color: var(--text); margin: 0; font-size: 14.5px; }}
+    .term-full {{ color: #8ab4f8; font-weight: 600; font-size: 14.5px; margin: 2px 0 6px; }}
+    .term-desc {{ color: #cfd7e3; margin: 0; font-size: 14.5px; }}
   </style>
 </head>
 <body>
@@ -660,116 +655,107 @@ index_html = f"""<!DOCTYPE html>
   <title>Hands-On AI, ML &amp; GPU Computing — Without CUDA or ROCm (vkdata)</title>
   <style>
     :root {{
-      --bg: #262335; --card: #1e1a2b; --border: #495495;
-      --text: #f4eee4; --muted: #b6b1d6;
-      --pink: #ff7edb; --cyan: #36f9f6; --yellow: #fede5d; --mint: #72f1b8;
+      --bg: #0d0f12; --card: #14171c; --border: #262b33;
+      --text: #e6ebf2; --muted: #9aa4b2;
+      --pink: #8ab4f8; --cyan: #8ab4f8; --yellow: #e0af68; --mint: #a8db8f;
     }}
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0; background-color: var(--bg); color: var(--text);
-      background-image:
-        radial-gradient(circle at 18% 0%, rgba(255, 126, 219, 0.16), transparent 42%),
-        radial-gradient(circle at 85% 5%, rgba(54, 249, 246, 0.14), transparent 38%),
-        linear-gradient(180deg, #241b2f 0%, #262335 45%, #1c1828 100%);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       line-height: 1.6; min-height: 100vh;
     }}
     .wrap {{ max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; }}
     .top-bar {{ display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }}
     .badge {{
-      display: inline-block; font-size: 12px; font-weight: 700;
-      color: var(--cyan); border: 1px solid rgba(54, 249, 246, 0.55);
-      background: rgba(54, 249, 246, 0.1); padding: 4px 12px; border-radius: 999px;
-      text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
+      display: inline-block; font-size: 12px; font-weight: 600;
+      color: #93b4f8; border: 1px solid #2e3541;
+      background: #1a1f28; padding: 4px 12px; border-radius: 999px;
     }}
     .gloss-pill {{
-      display: inline-block; font-size: 12px; font-weight: 700; text-decoration: none;
-      color: var(--yellow); border: 1px solid rgba(254, 222, 93, 0.55);
-      background: rgba(254, 222, 93, 0.1); padding: 4px 12px; border-radius: 999px;
+      display: inline-block; font-size: 12px; font-weight: 600; text-decoration: none;
+      color: #e6ebf2; border: 1px solid #2e3541;
+      background: #14171c; padding: 4px 12px; border-radius: 999px;
     }}
-    .gloss-pill:hover {{ background: rgba(254, 222, 93, 0.22); }}
+    .gloss-pill:hover {{ background: #1e232b; border-color: #8ab4f8; }}
     h1 {{
-      font-size: clamp(26px, 5vw, 40px); line-height: 1.18; margin: 0 0 12px;
-      color: var(--pink); text-shadow: 0 0 18px rgba(255, 126, 219, 0.55);
+      font-size: clamp(26px, 5vw, 38px); line-height: 1.18; margin: 0 0 12px;
+      color: #ffffff;
     }}
-    .sub {{ color: var(--muted); font-size: 16px; margin: 0 0 26px; }}
+    .sub {{ color: var(--muted); font-size: 15.5px; margin: 0 0 26px; }}
     h2 {{
-      font-size: 20px; margin: 32px 0 14px; color: var(--cyan);
-      text-shadow: 0 0 10px rgba(54, 249, 246, 0.4);
-      border-bottom: 1px solid rgba(255, 126, 219, 0.35); padding-bottom: 6px;
+      font-size: 19px; margin: 32px 0 14px; color: #ffffff;
+      border-bottom: 1px solid var(--border); padding-bottom: 8px;
     }}
-    .grid {{ display: grid; grid-template-columns: 1fr; gap: 14px; }}
+    .grid {{ display: grid; grid-template-columns: 1fr; gap: 12px; }}
     .dt-legend {{
       display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px;
     }}
     .dt-chip {{
       display: inline-flex; align-items: center; gap: 6px;
-      font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
-      background: rgba(255, 255, 255, 0.04); border: 1px solid var(--accent, var(--border));
+      font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+      background: #14171c; border: 1px solid var(--border);
       color: var(--accent, var(--text));
     }}
     .dt-chip .dot {{
-      width: 8px; height: 8px; border-radius: 50%; background: var(--accent, var(--cyan));
-      box-shadow: 0 0 8px var(--accent, var(--cyan));
+      width: 7px; height: 7px; border-radius: 50%; background: var(--accent, var(--cyan));
     }}
     .rw-wrap {{
       overflow-x: auto; margin: 0 0 18px;
-      background: #1b1728; border: 1px solid var(--border); border-radius: 12px;
+      background: #14171c; border: 1px solid var(--border); border-radius: 10px;
     }}
     .rw-table {{
       width: 100%; border-collapse: collapse; font-size: 13px;
     }}
     .rw-table th {{
-      text-align: left; padding: 9px 12px; color: var(--cyan);
-      border-bottom: 1px solid rgba(255, 126, 219, 0.35); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
+      text-align: left; padding: 9px 12px; color: #9aa4b2;
+      border-bottom: 1px solid var(--border); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em;
     }}
     .rw-table td {{
-      padding: 8px 12px; border-bottom: 1px solid rgba(73, 84, 149, 0.28); color: var(--muted); vertical-align: top;
+      padding: 8px 12px; border-bottom: 1px solid #1e232b; color: #cfd7e3; vertical-align: top;
     }}
     .rw-table tr:last-child td {{ border-bottom: none; }}
-    .rw-type {{ font-weight: 800; white-space: nowrap; }}
+    .rw-type {{ font-weight: 700; white-space: nowrap; }}
     .card {{
-      --accent: var(--pink);
-      --accent-bg: rgba(255, 126, 219, 0.10);
-      --accent-glow: rgba(255, 126, 219, 0.28);
+      --accent: #8ab4f8;
+      --accent-bg: rgba(138, 180, 248, 0.10);
       display: block; text-decoration: none; color: inherit;
       background: var(--card);
       border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      border-radius: 12px; padding: 16px 18px;
-      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+      border-left: 3px solid var(--accent);
+      border-radius: 10px; padding: 15px 18px;
+      transition: border-color 0.15s, background 0.15s, transform 0.15s;
     }}
-    .card.dt-foundations {{ --accent: #fede5d; --accent-bg: rgba(254, 222, 93, 0.12);  --accent-glow: rgba(254, 222, 93, 0.25); }}
-    .card.dt-tabular     {{ --accent: #36f9f6; --accent-bg: rgba(54, 249, 246, 0.11);  --accent-glow: rgba(54, 249, 246, 0.26); }}
-    .card.dt-image       {{ --accent: #ff7edb; --accent-bg: rgba(255, 126, 219, 0.11); --accent-glow: rgba(255, 126, 219, 0.28); }}
-    .card.dt-vector      {{ --accent: #72f1b8; --accent-bg: rgba(114, 241, 184, 0.11); --accent-glow: rgba(114, 241, 184, 0.26); }}
-    .card.dt-timeseries  {{ --accent: #ff9e64; --accent-bg: rgba(255, 158, 100, 0.12); --accent-glow: rgba(255, 158, 100, 0.26); }}
-    .card.dt-graph       {{ --accent: #c792ea; --accent-bg: rgba(199, 146, 234, 0.12); --accent-glow: rgba(199, 146, 234, 0.28); }}
-    .card.dt-geo         {{ --accent: #ff5e7e; --accent-bg: rgba(255, 94, 126, 0.12);  --accent-glow: rgba(255, 94, 126, 0.28); }}
+    .card.dt-foundations {{ --accent: #e0af68; --accent-bg: rgba(224, 175, 104, 0.10); }}
+    .card.dt-tabular     {{ --accent: #8ab4f8; --accent-bg: rgba(138, 180, 248, 0.10); }}
+    .card.dt-image       {{ --accent: #d2a8ff; --accent-bg: rgba(210, 168, 255, 0.10); }}
+    .card.dt-vector      {{ --accent: #a8db8f; --accent-bg: rgba(168, 219, 143, 0.10); }}
+    .card.dt-timeseries  {{ --accent: #f2a679; --accent-bg: rgba(242, 166, 121, 0.10); }}
+    .card.dt-graph       {{ --accent: #7dcfff; --accent-bg: rgba(125, 207, 255, 0.10); }}
+    .card.dt-geo         {{ --accent: #f7768e; --accent-bg: rgba(247, 118, 142, 0.10); }}
     .card:hover {{
-      border-color: var(--accent); transform: translateY(-2px);
-      box-shadow: 0 0 22px var(--accent-glow);
+      border-color: #3b4351; border-left-color: var(--accent);
+      background: #191d24; transform: translateY(-1px);
     }}
     .card-head {{ display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }}
     .ch {{
-      color: var(--accent); font-weight: 700; font-size: 13px;
-      text-transform: uppercase; letter-spacing: 0.05em;
-      text-shadow: 0 0 8px var(--accent-glow);
+      color: var(--accent); font-weight: 600; font-size: 12.5px;
+      text-transform: uppercase; letter-spacing: 0.04em;
     }}
     .pill {{
-      font-size: 12px; font-weight: 700; color: var(--accent);
-      background: var(--accent-bg); border: 1px solid var(--accent);
+      font-size: 12px; font-weight: 600; color: var(--accent);
+      background: var(--accent-bg); border: 1px solid rgba(255, 255, 255, 0.08);
       padding: 2px 9px; border-radius: 6px;
     }}
-    .card h3 {{ margin: 6px 0 6px; font-size: 18px; color: #ffffff; }}
-    .card p {{ margin: 0; color: var(--muted); font-size: 14.5px; }}
+    .card h3 {{ margin: 6px 0 6px; font-size: 17.5px; color: #ffffff; font-weight: 600; }}
+    .card p {{ margin: 0; color: var(--muted); font-size: 14px; }}
     .note {{
-      margin-top: 30px; background: #1a1626; border: 1px solid rgba(54, 249, 246, 0.4);
-      border-radius: 12px; padding: 15px 18px; font-size: 14px; color: var(--muted);
+      margin-top: 30px; background: #14171c; border: 1px solid var(--border);
+      border-radius: 10px; padding: 15px 18px; font-size: 14px; color: var(--muted);
     }}
-    .note strong {{ color: var(--yellow); }}
-    .note a {{ color: var(--cyan); text-decoration: none; font-weight: 600; }}
-    code {{ background: #2b2340; padding: 2px 6px; border-radius: 5px; font-size: 13px; color: var(--pink); }}
+    .note strong {{ color: #ffffff; }}
+    .note a {{ color: #8ab4f8; text-decoration: none; font-weight: 600; }}
+    code {{ background: #1e232b; padding: 2px 6px; border-radius: 5px; font-size: 13px; color: #93b4f8; }}
   </style>
 </head>
 <body>
@@ -782,7 +768,7 @@ index_html = f"""<!DOCTYPE html>
     <h1>Hands-On AI, Machine Learning &amp; GPU Computing &mdash; Without CUDA or ROCm</h1>
     <p class="sub">
       Learn how AI actually works on the Vulkan GPU you already own (Steam Deck, AMD APU, Intel iGPU/Arc, older Radeon/NVIDIA, or Apple MoltenVK) &mdash; powered by the bundled <code>vkdata</code> toolkit.
-      <em>Tip: Tap or hover any <span style="border-bottom:1px dotted #36f9f6;color:#f4eee4;">dotted acronym</span> in a chapter to jump straight to its plain-English definition!</em>
+      <em>Tip: Tap or hover any <span style="border-bottom:1px dotted #8ab4f8;color:#f4eee4;">dotted acronym</span> in a chapter to jump straight to its plain-English definition!</em>
     </p>
 
     <h2>AI Foundations &middot; Building Blocks of Neural Networks</h2>
@@ -809,12 +795,12 @@ index_html = f"""<!DOCTYPE html>
     <h2>AI by Data Type &middot; Classical ML &rarr; Deep Learning on Your Vulkan GPU</h2>
     <p style="color:var(--muted);font-size:14px;margin:-6px 0 10px;">Jump into any real-world data type below &mdash; every section pairs <strong>Part 1: Feature Discovery &amp; Classical ML</strong> with <strong>Part 2: Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
     <div class="dt-legend">
-      <span class="dt-chip" style="--accent:#36f9f6;"><span class="dot"></span>Tabular Data</span>
-      <span class="dt-chip" style="--accent:#ff7edb;"><span class="dot"></span>Image Data</span>
-      <span class="dt-chip" style="--accent:#72f1b8;"><span class="dot"></span>Vector &amp; Text (NLP)</span>
-      <span class="dt-chip" style="--accent:#ff9e64;"><span class="dot"></span>Time-Series</span>
-      <span class="dt-chip" style="--accent:#c792ea;"><span class="dot"></span>Graph &amp; Network</span>
-      <span class="dt-chip" style="--accent:#ff5e7e;"><span class="dot"></span>Geospatial &amp; Location</span>
+      <span class="dt-chip" style="--accent:#8ab4f8;"><span class="dot"></span>Tabular Data</span>
+      <span class="dt-chip" style="--accent:#d2a8ff;"><span class="dot"></span>Image Data</span>
+      <span class="dt-chip" style="--accent:#a8db8f;"><span class="dot"></span>Vector &amp; Text (NLP)</span>
+      <span class="dt-chip" style="--accent:#f2a679;"><span class="dot"></span>Time-Series</span>
+      <span class="dt-chip" style="--accent:#7dcfff;"><span class="dot"></span>Graph &amp; Network</span>
+      <span class="dt-chip" style="--accent:#f7768e;"><span class="dot"></span>Geospatial &amp; Location</span>
     </div>
     <div class="rw-wrap">
       <table class="rw-table">
@@ -822,12 +808,12 @@ index_html = f"""<!DOCTYPE html>
           <tr><th>Data Type</th><th>Popular Real-World Algorithms</th><th>Who Uses It</th></tr>
         </thead>
         <tbody>
-          <tr><td class="rw-type" style="color:#36f9f6;">Tabular</td><td>Ridge, Random Forest, Gradient Boosting (XGBoost), KNN, Residual MLPs</td><td>Zillow, Airbnb, Stripe, Visa, Amazon</td></tr>
-          <tr><td class="rw-type" style="color:#ff7edb;">Image (CV)</td><td>PCA + HOG, 2D CNNs (ResNet, YOLO), Vision Transformers (ViT)</td><td>Tesla, Waymo, Apple Face ID, Pinterest, Google Lens</td></tr>
-          <tr><td class="rw-type" style="color:#72f1b8;">Vector / Text</td><td>TF-IDF, BM25, Neural Embeddings + Hybrid RRF, IVF ANN, Transformers</td><td>Google, Perplexity, Spotify, Notion, OpenAI / Anthropic</td></tr>
-          <tr><td class="rw-type" style="color:#ff9e64;">Time-Series</td><td>FFT / Periodogram, ARIMA, Lag-Ridge, 1D Temporal Nets, PatchTST</td><td>NASA, NOAA, Uber, Apple Watch, Electric Grids</td></tr>
-          <tr><td class="rw-type" style="color:#c792ea;">Graph / Network</td><td>PageRank, BFS, Label Propagation, GraphRAG, GCN / GraphSAGE / GAT</td><td>Google Search, LinkedIn, Pinterest PinSage, PayPal, Uber Eats</td></tr>
-          <tr><td class="rw-type" style="color:#ff5e7e;">Geospatial</td><td>Haversine, Morton Z-Order / H3, DBSCAN, GBDT, Fourier Geo-Nets (SatCLIP)</td><td>Uber, Google Maps, DoorDash, USGS, NOAA</td></tr>
+          <tr><td class="rw-type" style="color:#8ab4f8;">Tabular</td><td>Ridge, Random Forest, Gradient Boosting (XGBoost), KNN, Residual MLPs</td><td>Zillow, Airbnb, Stripe, Visa, Amazon</td></tr>
+          <tr><td class="rw-type" style="color:#d2a8ff;">Image (CV)</td><td>PCA + HOG, 2D CNNs (ResNet, YOLO), Vision Transformers (ViT)</td><td>Tesla, Waymo, Apple Face ID, Pinterest, Google Lens</td></tr>
+          <tr><td class="rw-type" style="color:#a8db8f;">Vector / Text</td><td>TF-IDF, BM25, Neural Embeddings + Hybrid RRF, IVF ANN, Transformers</td><td>Google, Perplexity, Spotify, Notion, OpenAI / Anthropic</td></tr>
+          <tr><td class="rw-type" style="color:#f2a679;">Time-Series</td><td>FFT / Periodogram, ARIMA, Lag-Ridge, 1D Temporal Nets, PatchTST</td><td>NASA, NOAA, Uber, Apple Watch, Electric Grids</td></tr>
+          <tr><td class="rw-type" style="color:#7dcfff;">Graph / Network</td><td>PageRank, BFS, Label Propagation, GraphRAG, GCN / GraphSAGE / GAT</td><td>Google Search, LinkedIn, Pinterest PinSage, PayPal, Uber Eats</td></tr>
+          <tr><td class="rw-type" style="color:#f7768e;">Geospatial</td><td>Haversine, Morton Z-Order / H3, DBSCAN, GBDT, Fourier Geo-Nets (SatCLIP)</td><td>Uber, Google Maps, DoorDash, USGS, NOAA</td></tr>
         </tbody>
       </table>
     </div>

@@ -6,66 +6,61 @@
   <title>Acronym Glossary &amp; Index &mdash; Hands-On AI, ML &amp; GPU Computing (vkdata)</title>
   <style>
     :root {
-      --bg: #262335; --card: #1e1a2b; --border: #495495;
-      --text: #f4eee4; --muted: #b6b1d6;
-      --pink: #ff7edb; --cyan: #36f9f6; --yellow: #fede5d; --mint: #72f1b8;
+      --bg: #0d0f12; --card: #14171c; --border: #262b33;
+      --text: #e6ebf2; --muted: #9aa4b2;
+      --pink: #8ab4f8; --cyan: #8ab4f8; --yellow: #e0af68; --mint: #a8db8f;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0; background-color: var(--bg); color: var(--text);
-      background-image:
-        radial-gradient(circle at 18% 0%, rgba(255, 126, 219, 0.14), transparent 42%),
-        radial-gradient(circle at 85% 5%, rgba(54, 249, 246, 0.12), transparent 38%),
-        linear-gradient(180deg, #241b2f 0%, #262335 45%, #1c1828 100%);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       line-height: 1.6; min-height: 100vh;
     }
     .nav {
       position: sticky; top: 0; z-index: 100;
-      background: linear-gradient(90deg, #1b1528, #241b35, #1b1528);
-      border-bottom: 1px solid var(--pink);
-      box-shadow: 0 2px 16px rgba(255, 126, 219, 0.22);
+      background: #14171c;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
       padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
     }
     .nav a, .nav button {
-      color: var(--cyan); background: #2a2139; border: 1px solid rgba(54, 249, 246, 0.45);
-      border-radius: 6px; padding: 5px 11px; font-weight: 600; font-size: 14px;
+      color: var(--text); background: #1e232b; border: 1px solid #2e3541;
+      border-radius: 6px; padding: 5px 11px; font-weight: 500; font-size: 14px;
       text-decoration: none; cursor: pointer;
     }
-    .nav .title { color: var(--pink); font-weight: 700; text-shadow: 0 0 10px rgba(255, 126, 219, 0.45); }
+    .nav a:hover, .nav button:hover { border-color: #8ab4f8; background: #262d38; }
+    .nav .title { color: #ffffff; font-weight: 600; }
     .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
-    h1 { color: var(--pink); text-shadow: 0 0 14px rgba(255, 126, 219, 0.5); margin: 0 0 8px; }
+    h1 { color: #ffffff; margin: 0 0 8px; }
     .sub { color: var(--muted); margin: 0 0 18px; font-size: 15px; }
     .search {
       width: 100%; padding: 11px 14px; border-radius: 10px;
-      background: #1b1728; color: var(--text); font-size: 15px;
-      border: 1px solid var(--cyan); outline: none; margin-bottom: 20px;
-      box-shadow: 0 0 14px rgba(54, 249, 246, 0.12);
+      background: #14171c; color: var(--text); font-size: 15px;
+      border: 1px solid #2e3541; outline: none; margin-bottom: 20px;
     }
-    .search::placeholder { color: #848bbd; }
+    .search:focus { border-color: #8ab4f8; }
+    .search::placeholder { color: #6e7787; }
     .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
     .term-card {
       background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; padding: 14px 16px; scroll-margin-top: 72px;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      border-radius: 10px; padding: 14px 16px; scroll-margin-top: 72px;
+      transition: border-color 0.15s;
     }
     .term-card:target {
-      border-color: var(--cyan);
-      box-shadow: 0 0 24px rgba(54, 249, 246, 0.35);
-      background: #231d36;
+      border-color: #8ab4f8;
+      background: #1a1f28;
     }
     .term-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
     .term-abbr {
-      font-size: 20px; font-weight: 800; color: var(--yellow);
-      text-shadow: 0 0 8px rgba(254, 222, 93, 0.35);
+      font-size: 19px; font-weight: 700; color: #ffffff;
     }
     .term-cat {
-      font-size: 12px; font-weight: 700; color: var(--mint);
-      background: rgba(114, 241, 184, 0.12); border: 1px solid rgba(114, 241, 184, 0.35);
+      font-size: 12px; font-weight: 600; color: #a8db8f;
+      background: rgba(168, 219, 143, 0.10); border: 1px solid rgba(168, 219, 143, 0.28);
       padding: 2px 8px; border-radius: 6px;
     }
-    .term-full { color: var(--cyan); font-weight: 600; font-size: 14.5px; margin: 2px 0 6px; }
-    .term-desc { color: var(--text); margin: 0; font-size: 14.5px; }
+    .term-full { color: #8ab4f8; font-weight: 600; font-size: 14.5px; margin: 2px 0 6px; }
+    .term-desc { color: #cfd7e3; margin: 0; font-size: 14.5px; }
   </style>
 </head>
 <body>

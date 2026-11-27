@@ -6,116 +6,107 @@
   <title>Hands-On AI, ML &amp; GPU Computing — Without CUDA or ROCm (vkdata)</title>
   <style>
     :root {
-      --bg: #262335; --card: #1e1a2b; --border: #495495;
-      --text: #f4eee4; --muted: #b6b1d6;
-      --pink: #ff7edb; --cyan: #36f9f6; --yellow: #fede5d; --mint: #72f1b8;
+      --bg: #0d0f12; --card: #14171c; --border: #262b33;
+      --text: #e6ebf2; --muted: #9aa4b2;
+      --pink: #8ab4f8; --cyan: #8ab4f8; --yellow: #e0af68; --mint: #a8db8f;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0; background-color: var(--bg); color: var(--text);
-      background-image:
-        radial-gradient(circle at 18% 0%, rgba(255, 126, 219, 0.16), transparent 42%),
-        radial-gradient(circle at 85% 5%, rgba(54, 249, 246, 0.14), transparent 38%),
-        linear-gradient(180deg, #241b2f 0%, #262335 45%, #1c1828 100%);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       line-height: 1.6; min-height: 100vh;
     }
     .wrap { max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; }
     .top-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
     .badge {
-      display: inline-block; font-size: 12px; font-weight: 700;
-      color: var(--cyan); border: 1px solid rgba(54, 249, 246, 0.55);
-      background: rgba(54, 249, 246, 0.1); padding: 4px 12px; border-radius: 999px;
-      text-shadow: 0 0 8px rgba(54, 249, 246, 0.45);
+      display: inline-block; font-size: 12px; font-weight: 600;
+      color: #93b4f8; border: 1px solid #2e3541;
+      background: #1a1f28; padding: 4px 12px; border-radius: 999px;
     }
     .gloss-pill {
-      display: inline-block; font-size: 12px; font-weight: 700; text-decoration: none;
-      color: var(--yellow); border: 1px solid rgba(254, 222, 93, 0.55);
-      background: rgba(254, 222, 93, 0.1); padding: 4px 12px; border-radius: 999px;
+      display: inline-block; font-size: 12px; font-weight: 600; text-decoration: none;
+      color: #e6ebf2; border: 1px solid #2e3541;
+      background: #14171c; padding: 4px 12px; border-radius: 999px;
     }
-    .gloss-pill:hover { background: rgba(254, 222, 93, 0.22); }
+    .gloss-pill:hover { background: #1e232b; border-color: #8ab4f8; }
     h1 {
-      font-size: clamp(26px, 5vw, 40px); line-height: 1.18; margin: 0 0 12px;
-      color: var(--pink); text-shadow: 0 0 18px rgba(255, 126, 219, 0.55);
+      font-size: clamp(26px, 5vw, 38px); line-height: 1.18; margin: 0 0 12px;
+      color: #ffffff;
     }
-    .sub { color: var(--muted); font-size: 16px; margin: 0 0 26px; }
+    .sub { color: var(--muted); font-size: 15.5px; margin: 0 0 26px; }
     h2 {
-      font-size: 20px; margin: 32px 0 14px; color: var(--cyan);
-      text-shadow: 0 0 10px rgba(54, 249, 246, 0.4);
-      border-bottom: 1px solid rgba(255, 126, 219, 0.35); padding-bottom: 6px;
+      font-size: 19px; margin: 32px 0 14px; color: #ffffff;
+      border-bottom: 1px solid var(--border); padding-bottom: 8px;
     }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
     .dt-legend {
       display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px;
     }
     .dt-chip {
       display: inline-flex; align-items: center; gap: 6px;
-      font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px;
-      background: rgba(255, 255, 255, 0.04); border: 1px solid var(--accent, var(--border));
+      font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+      background: #14171c; border: 1px solid var(--border);
       color: var(--accent, var(--text));
     }
     .dt-chip .dot {
-      width: 8px; height: 8px; border-radius: 50%; background: var(--accent, var(--cyan));
-      box-shadow: 0 0 8px var(--accent, var(--cyan));
+      width: 7px; height: 7px; border-radius: 50%; background: var(--accent, var(--cyan));
     }
     .rw-wrap {
       overflow-x: auto; margin: 0 0 18px;
-      background: #1b1728; border: 1px solid var(--border); border-radius: 12px;
+      background: #14171c; border: 1px solid var(--border); border-radius: 10px;
     }
     .rw-table {
       width: 100%; border-collapse: collapse; font-size: 13px;
     }
     .rw-table th {
-      text-align: left; padding: 9px 12px; color: var(--cyan);
-      border-bottom: 1px solid rgba(255, 126, 219, 0.35); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
+      text-align: left; padding: 9px 12px; color: #9aa4b2;
+      border-bottom: 1px solid var(--border); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em;
     }
     .rw-table td {
-      padding: 8px 12px; border-bottom: 1px solid rgba(73, 84, 149, 0.28); color: var(--muted); vertical-align: top;
+      padding: 8px 12px; border-bottom: 1px solid #1e232b; color: #cfd7e3; vertical-align: top;
     }
     .rw-table tr:last-child td { border-bottom: none; }
-    .rw-type { font-weight: 800; white-space: nowrap; }
+    .rw-type { font-weight: 700; white-space: nowrap; }
     .card {
-      --accent: var(--pink);
-      --accent-bg: rgba(255, 126, 219, 0.10);
-      --accent-glow: rgba(255, 126, 219, 0.28);
+      --accent: #8ab4f8;
+      --accent-bg: rgba(138, 180, 248, 0.10);
       display: block; text-decoration: none; color: inherit;
       background: var(--card);
       border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      border-radius: 12px; padding: 16px 18px;
-      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+      border-left: 3px solid var(--accent);
+      border-radius: 10px; padding: 15px 18px;
+      transition: border-color 0.15s, background 0.15s, transform 0.15s;
     }
-    .card.dt-foundations { --accent: #fede5d; --accent-bg: rgba(254, 222, 93, 0.12);  --accent-glow: rgba(254, 222, 93, 0.25); }
-    .card.dt-tabular     { --accent: #36f9f6; --accent-bg: rgba(54, 249, 246, 0.11);  --accent-glow: rgba(54, 249, 246, 0.26); }
-    .card.dt-image       { --accent: #ff7edb; --accent-bg: rgba(255, 126, 219, 0.11); --accent-glow: rgba(255, 126, 219, 0.28); }
-    .card.dt-vector      { --accent: #72f1b8; --accent-bg: rgba(114, 241, 184, 0.11); --accent-glow: rgba(114, 241, 184, 0.26); }
-    .card.dt-timeseries  { --accent: #ff9e64; --accent-bg: rgba(255, 158, 100, 0.12); --accent-glow: rgba(255, 158, 100, 0.26); }
-    .card.dt-graph       { --accent: #c792ea; --accent-bg: rgba(199, 146, 234, 0.12); --accent-glow: rgba(199, 146, 234, 0.28); }
-    .card.dt-geo         { --accent: #ff5e7e; --accent-bg: rgba(255, 94, 126, 0.12);  --accent-glow: rgba(255, 94, 126, 0.28); }
+    .card.dt-foundations { --accent: #e0af68; --accent-bg: rgba(224, 175, 104, 0.10); }
+    .card.dt-tabular     { --accent: #8ab4f8; --accent-bg: rgba(138, 180, 248, 0.10); }
+    .card.dt-image       { --accent: #d2a8ff; --accent-bg: rgba(210, 168, 255, 0.10); }
+    .card.dt-vector      { --accent: #a8db8f; --accent-bg: rgba(168, 219, 143, 0.10); }
+    .card.dt-timeseries  { --accent: #f2a679; --accent-bg: rgba(242, 166, 121, 0.10); }
+    .card.dt-graph       { --accent: #7dcfff; --accent-bg: rgba(125, 207, 255, 0.10); }
+    .card.dt-geo         { --accent: #f7768e; --accent-bg: rgba(247, 118, 142, 0.10); }
     .card:hover {
-      border-color: var(--accent); transform: translateY(-2px);
-      box-shadow: 0 0 22px var(--accent-glow);
+      border-color: #3b4351; border-left-color: var(--accent);
+      background: #191d24; transform: translateY(-1px);
     }
     .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
     .ch {
-      color: var(--accent); font-weight: 700; font-size: 13px;
-      text-transform: uppercase; letter-spacing: 0.05em;
-      text-shadow: 0 0 8px var(--accent-glow);
+      color: var(--accent); font-weight: 600; font-size: 12.5px;
+      text-transform: uppercase; letter-spacing: 0.04em;
     }
     .pill {
-      font-size: 12px; font-weight: 700; color: var(--accent);
-      background: var(--accent-bg); border: 1px solid var(--accent);
+      font-size: 12px; font-weight: 600; color: var(--accent);
+      background: var(--accent-bg); border: 1px solid rgba(255, 255, 255, 0.08);
       padding: 2px 9px; border-radius: 6px;
     }
-    .card h3 { margin: 6px 0 6px; font-size: 18px; color: #ffffff; }
-    .card p { margin: 0; color: var(--muted); font-size: 14.5px; }
+    .card h3 { margin: 6px 0 6px; font-size: 17.5px; color: #ffffff; font-weight: 600; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; }
     .note {
-      margin-top: 30px; background: #1a1626; border: 1px solid rgba(54, 249, 246, 0.4);
-      border-radius: 12px; padding: 15px 18px; font-size: 14px; color: var(--muted);
+      margin-top: 30px; background: #14171c; border: 1px solid var(--border);
+      border-radius: 10px; padding: 15px 18px; font-size: 14px; color: var(--muted);
     }
-    .note strong { color: var(--yellow); }
-    .note a { color: var(--cyan); text-decoration: none; font-weight: 600; }
-    code { background: #2b2340; padding: 2px 6px; border-radius: 5px; font-size: 13px; color: var(--pink); }
+    .note strong { color: #ffffff; }
+    .note a { color: #8ab4f8; text-decoration: none; font-weight: 600; }
+    code { background: #1e232b; padding: 2px 6px; border-radius: 5px; font-size: 13px; color: #93b4f8; }
   </style>
 </head>
 <body>
@@ -128,7 +119,7 @@
     <h1>Hands-On AI, Machine Learning &amp; GPU Computing &mdash; Without CUDA or ROCm</h1>
     <p class="sub">
       Learn how AI actually works on the Vulkan GPU you already own (Steam Deck, AMD APU, Intel iGPU/Arc, older Radeon/NVIDIA, or Apple MoltenVK) &mdash; powered by the bundled <code>vkdata</code> toolkit.
-      <em>Tip: Tap or hover any <span style="border-bottom:1px dotted #36f9f6;color:#f4eee4;">dotted acronym</span> in a chapter to jump straight to its plain-English definition!</em>
+      <em>Tip: Tap or hover any <span style="border-bottom:1px dotted #8ab4f8;color:#f4eee4;">dotted acronym</span> in a chapter to jump straight to its plain-English definition!</em>
     </p>
 
     <h2>AI Foundations &middot; Building Blocks of Neural Networks</h2>
@@ -155,12 +146,12 @@
     <h2>AI by Data Type &middot; Classical ML &rarr; Deep Learning on Your Vulkan GPU</h2>
     <p style="color:var(--muted);font-size:14px;margin:-6px 0 10px;">Jump into any real-world data type below &mdash; every section pairs <strong>Part 1: Feature Discovery &amp; Classical ML</strong> with <strong>Part 2: Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
     <div class="dt-legend">
-      <span class="dt-chip" style="--accent:#36f9f6;"><span class="dot"></span>Tabular Data</span>
-      <span class="dt-chip" style="--accent:#ff7edb;"><span class="dot"></span>Image Data</span>
-      <span class="dt-chip" style="--accent:#72f1b8;"><span class="dot"></span>Vector &amp; Text (NLP)</span>
-      <span class="dt-chip" style="--accent:#ff9e64;"><span class="dot"></span>Time-Series</span>
-      <span class="dt-chip" style="--accent:#c792ea;"><span class="dot"></span>Graph &amp; Network</span>
-      <span class="dt-chip" style="--accent:#ff5e7e;"><span class="dot"></span>Geospatial &amp; Location</span>
+      <span class="dt-chip" style="--accent:#8ab4f8;"><span class="dot"></span>Tabular Data</span>
+      <span class="dt-chip" style="--accent:#d2a8ff;"><span class="dot"></span>Image Data</span>
+      <span class="dt-chip" style="--accent:#a8db8f;"><span class="dot"></span>Vector &amp; Text (NLP)</span>
+      <span class="dt-chip" style="--accent:#f2a679;"><span class="dot"></span>Time-Series</span>
+      <span class="dt-chip" style="--accent:#7dcfff;"><span class="dot"></span>Graph &amp; Network</span>
+      <span class="dt-chip" style="--accent:#f7768e;"><span class="dot"></span>Geospatial &amp; Location</span>
     </div>
     <div class="rw-wrap">
       <table class="rw-table">
@@ -168,12 +159,12 @@
           <tr><th>Data Type</th><th>Popular Real-World Algorithms</th><th>Who Uses It</th></tr>
         </thead>
         <tbody>
-          <tr><td class="rw-type" style="color:#36f9f6;">Tabular</td><td>Ridge, Random Forest, Gradient Boosting (XGBoost), KNN, Residual MLPs</td><td>Zillow, Airbnb, Stripe, Visa, Amazon</td></tr>
-          <tr><td class="rw-type" style="color:#ff7edb;">Image (CV)</td><td>PCA + HOG, 2D CNNs (ResNet, YOLO), Vision Transformers (ViT)</td><td>Tesla, Waymo, Apple Face ID, Pinterest, Google Lens</td></tr>
-          <tr><td class="rw-type" style="color:#72f1b8;">Vector / Text</td><td>TF-IDF, BM25, Neural Embeddings + Hybrid RRF, IVF ANN, Transformers</td><td>Google, Perplexity, Spotify, Notion, OpenAI / Anthropic</td></tr>
-          <tr><td class="rw-type" style="color:#ff9e64;">Time-Series</td><td>FFT / Periodogram, ARIMA, Lag-Ridge, 1D Temporal Nets, PatchTST</td><td>NASA, NOAA, Uber, Apple Watch, Electric Grids</td></tr>
-          <tr><td class="rw-type" style="color:#c792ea;">Graph / Network</td><td>PageRank, BFS, Label Propagation, GraphRAG, GCN / GraphSAGE / GAT</td><td>Google Search, LinkedIn, Pinterest PinSage, PayPal, Uber Eats</td></tr>
-          <tr><td class="rw-type" style="color:#ff5e7e;">Geospatial</td><td>Haversine, Morton Z-Order / H3, DBSCAN, GBDT, Fourier Geo-Nets (SatCLIP)</td><td>Uber, Google Maps, DoorDash, USGS, NOAA</td></tr>
+          <tr><td class="rw-type" style="color:#8ab4f8;">Tabular</td><td>Ridge, Random Forest, Gradient Boosting (XGBoost), KNN, Residual MLPs</td><td>Zillow, Airbnb, Stripe, Visa, Amazon</td></tr>
+          <tr><td class="rw-type" style="color:#d2a8ff;">Image (CV)</td><td>PCA + HOG, 2D CNNs (ResNet, YOLO), Vision Transformers (ViT)</td><td>Tesla, Waymo, Apple Face ID, Pinterest, Google Lens</td></tr>
+          <tr><td class="rw-type" style="color:#a8db8f;">Vector / Text</td><td>TF-IDF, BM25, Neural Embeddings + Hybrid RRF, IVF ANN, Transformers</td><td>Google, Perplexity, Spotify, Notion, OpenAI / Anthropic</td></tr>
+          <tr><td class="rw-type" style="color:#f2a679;">Time-Series</td><td>FFT / Periodogram, ARIMA, Lag-Ridge, 1D Temporal Nets, PatchTST</td><td>NASA, NOAA, Uber, Apple Watch, Electric Grids</td></tr>
+          <tr><td class="rw-type" style="color:#7dcfff;">Graph / Network</td><td>PageRank, BFS, Label Propagation, GraphRAG, GCN / GraphSAGE / GAT</td><td>Google Search, LinkedIn, Pinterest PinSage, PayPal, Uber Eats</td></tr>
+          <tr><td class="rw-type" style="color:#f7768e;">Geospatial</td><td>Haversine, Morton Z-Order / H3, DBSCAN, GBDT, Fourier Geo-Nets (SatCLIP)</td><td>Uber, Google Maps, DoorDash, USGS, NOAA</td></tr>
         </tbody>
       </table>
     </div>
