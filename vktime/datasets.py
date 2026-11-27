@@ -17,7 +17,7 @@ def load_sunspots(data_dir: str | Path | None = None):
 
     if data_dir is None:
         repo_cache = (
-            Path(__file__).resolve().parent.parent / "examples" / "tldr_end2end" / "data"
+            Path(__file__).resolve().parent.parent / "examples" / "data"
         )
         cache_dir = repo_cache if repo_cache.exists() else Path("data")
     else:

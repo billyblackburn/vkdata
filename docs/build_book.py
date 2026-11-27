@@ -6,18 +6,18 @@ import re
 from pathlib import Path
 
 CHAPTERS = [
-    ("examples/00_ai_foundations/01_the_perceptron.ipynb",         "00_the_perceptron.html",            "Foundations &middot; The Perceptron"),
-    ("examples/00_ai_foundations/02_multi_layer_perceptron.ipynb", "00b_multi_layer_perceptron.html",   "Foundations &middot; Multi-Layer Perceptrons"),
-    ("examples/tldr_end2end/01_housing_classical_ml.ipynb",        "01_housing_classical_ml.html",      "Ch. 1 &middot; Housing Classical ML"),
-    ("examples/tldr_end2end/02_housing_neural_network.ipynb",      "02_housing_neural_network.html",    "Ch. 2 &middot; Housing Neural Net"),
-    ("examples/tldr_end2end/03_fashion_classical_ml.ipynb",        "03_fashion_classical_ml.html",      "Ch. 3 &middot; Fashion Classical CV"),
-    ("examples/tldr_end2end/04_fashion_cnn_deep_learning.ipynb",   "04_fashion_cnn_deep_learning.html", "Ch. 4 &middot; Fashion 2D CNN"),
-    ("examples/tldr_end2end/05_vector_search_classical_ml.ipynb",  "05_vector_search_classical_ml.html","Ch. 5 &middot; Vector Search &amp; Classical NLP"),
-    ("examples/tldr_end2end/06_vector_embeddings_neural_net.ipynb","06_vector_embeddings_neural_net.html","Ch. 6 &middot; Neural Embeddings &amp; Deep NLP"),
-    ("examples/tldr_end2end/07_solar_timeseries_classical_ml.ipynb","07_solar_timeseries_classical_ml.html","Ch. 7 &middot; Solar Time-Series &amp; Classical ML"),
-    ("examples/tldr_end2end/08_solar_timeseries_neural_net.ipynb", "08_solar_timeseries_neural_net.html", "Ch. 8 &middot; Solar Forecaster Neural Net"),
-    ("examples/tldr_end2end/09_graph_classical_ml.ipynb",          "09_graph_classical_ml.html",          "Ch. 9 &middot; Graph Data &amp; Classical ML"),
-    ("examples/tldr_end2end/10_graph_neural_network_gcn.ipynb",    "10_graph_neural_network_gcn.html",    "Ch. 10 &middot; Graph Neural Network (GCN)"),
+    ("examples/00_foundations/00a_the_perceptron.ipynb",                 "00_the_perceptron.html",            "Foundations &middot; The Perceptron"),
+    ("examples/00_foundations/00b_multi_layer_perceptron.ipynb",         "00b_multi_layer_perceptron.html",   "Foundations &middot; Multi-Layer Perceptrons"),
+    ("examples/01_tabular/01_housing_classical_ml.ipynb",                "01_housing_classical_ml.html",      "Ch. 1 &middot; Housing Classical ML"),
+    ("examples/01_tabular/02_housing_neural_network.ipynb",              "02_housing_neural_network.html",    "Ch. 2 &middot; Housing Neural Net"),
+    ("examples/02_images/03_fashion_classical_ml.ipynb",                 "03_fashion_classical_ml.html",      "Ch. 3 &middot; Fashion Classical CV"),
+    ("examples/02_images/04_fashion_cnn_deep_learning.ipynb",            "04_fashion_cnn_deep_learning.html", "Ch. 4 &middot; Fashion 2D CNN"),
+    ("examples/03_vectors_and_text/05_vector_search_classical_ml.ipynb", "05_vector_search_classical_ml.html","Ch. 5 &middot; Vector Search &amp; Classical NLP"),
+    ("examples/03_vectors_and_text/06_vector_embeddings_neural_net.ipynb","06_vector_embeddings_neural_net.html","Ch. 6 &middot; Neural Embeddings &amp; Deep NLP"),
+    ("examples/04_time_series/07_solar_timeseries_classical_ml.ipynb",   "07_solar_timeseries_classical_ml.html","Ch. 7 &middot; Solar Time-Series &amp; Classical ML"),
+    ("examples/04_time_series/08_solar_timeseries_neural_net.ipynb",     "08_solar_timeseries_neural_net.html", "Ch. 8 &middot; Solar Forecaster Neural Net"),
+    ("examples/05_graphs/09_graph_classical_ml.ipynb",                   "09_graph_classical_ml.html",          "Ch. 9 &middot; Graph Data &amp; Classical ML"),
+    ("examples/05_graphs/10_graph_neural_network_gcn.ipynb",             "10_graph_neural_network_gcn.html",    "Ch. 10 &middot; Graph Neural Network (GCN)"),
 ]
 
 # (Term, Full Name, Category, Plain-English Explanation)

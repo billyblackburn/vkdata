@@ -19,7 +19,6 @@ def load_bbc_news(data_dir: str | Path | None = None):
         repo_cache = (
             Path(__file__).resolve().parent.parent
             / "examples"
-            / "tldr_end2end"
             / "data"
             / "bbc_news"
         )

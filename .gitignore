@@ -12,4 +12,4 @@ __pycache__/
 dist/
 wheelhouse/
 .ipynb_checkpoints/
-examples/tldr_end2end/data/
+examples/data/

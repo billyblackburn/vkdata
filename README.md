@@ -37,36 +37,36 @@ pixi run lab
 
 ## Table of Contents
 
-### Part 0 · AI Foundations: Building Blocks of Neural Networks (`examples/00_ai_foundations/`)
+### Part 0 · AI Foundations: Building Blocks of Neural Networks (`examples/00_foundations/`)
 *Start from absolute zero: understand what a neuron, a hidden layer, an activation function, and "billions of parameters" actually mean.*
 
-- **Foundations 1 — [The Perceptron: How a Single Artificial Neuron Works](examples/00_ai_foundations/01_the_perceptron.ipynb)**
+- **Foundations 1 — [The Perceptron: How a Single Artificial Neuron Works](examples/00_foundations/00a_the_perceptron.ipynb)**
   Weighted votes (`AND`, `OR`, `NOT`, `NAND`, `NOR`), watching a straight line learn with `vklearn.Perceptron`, running the same smooth neuron on Vulkan GPU (`vktorch.nn.Linear` + `Sigmoid`), and hitting the famous `XOR` limit.
-- **Foundations 2 — [Multi-Layer Perceptrons (MLPs): Bending Space, Solving XOR & LLM Parameters](examples/00_ai_foundations/02_multi_layer_perceptron.ipynb)**
+- **Foundations 2 — [Multi-Layer Perceptrons (MLPs): Bending Space, Solving XOR & LLM Parameters](examples/00_foundations/00b_multi_layer_perceptron.ipynb)**
   Wire 3 perceptrons (`OR` + `NAND` → `AND`) to solve `XOR` by hand, prove why `GELU`/`ReLU` activations prevent linear collapse, watch 1 Neuron (`60%`) → Tiny MLP `2→4→1` (4-sided diamond, `100%`) → Deep MLP `2→32→32→1` (smooth circle, `100%`), and follow the parameter ladder from **3 knobs to 8 Billion in Llama 3**.
 
-### Part I · End-to-End Projects: Tabular, Image, Vector & Time-Series Data (`examples/tldr_end2end/`)
-*Follow along across all 4 core AI data types — **Tabular**, **Image**, **Vector / Text**, and **Time-Series** — discovering features & benchmarking Classical ML first, then seeing if Deep Learning (`vktorch`) beats it on the exact same split.*
+### Part I · The 5 Core AI Data Types (`examples/01_tabular/` → `05_graphs/`)
+*Follow along across all 5 core AI data types — **Tabular**, **Image**, **Vector / Text**, **Time-Series**, and **Graph** — discovering features & benchmarking Classical ML first, then seeing if Deep Learning (`vktorch`) beats it on the exact same split.*
 
-- **Chapter 1 *(Tabular Data)* — [California Housing: Feature Discovery & Classical ML](examples/tldr_end2end/01_housing_classical_ml.ipynb)**
+- **Chapter 1 *(Tabular Data)* — [California Housing: Feature Discovery & Classical ML](examples/01_tabular/01_housing_classical_ml.ipynb)**
   Load 20,640 Census districts, spot the `$500k` Census price cap on a GPU map, split without data leakage, engineer 36 domain + Haversine + `KMeans`-RBF features, and race `LinearRegression` → `Ridge` → GPU Distance-Weighted KNN (`$69.6k` → **`$52.7k` RMSE**, `0.640` → **`0.794` $R^2$**, plus an `87.5%` price-tier classifier).
-- **Chapter 2 *(Tabular Data)* — [California Housing: Beating Classical ML with a Deep Neural Network](examples/tldr_end2end/02_housing_neural_network.ipynb)**
+- **Chapter 2 *(Tabular Data)* — [California Housing: Beating Classical ML with a Deep Neural Network](examples/01_tabular/02_housing_neural_network.ipynb)**
   Train a `vktorch` Pre-Norm Residual MLP (`LayerNorm` + `GELU` + `AdamW`) on the exact same split — comparing raw 8 features (`$50.3k`) vs. 36 engineered features (**`$48.2k` RMSE**, **`0.828` $R^2$** — beating GPU KNN by `-$4.5k` and the raw baseline by `-$21.4k`), plus `.npz` checkpoint saving & reloading.
-- **Chapter 3 *(Image Data)* — [Fashion-MNIST: Image Feature Discovery & Classical Computer Vision](examples/tldr_end2end/03_fashion_classical_ml.ipynb)**
+- **Chapter 3 *(Image Data)* — [Fashion-MNIST: Image Feature Discovery & Classical Computer Vision](examples/02_images/03_fashion_classical_ml.ipynb)**
   Classify 10 clothing categories (`28 × 28` images): visualize "Average Clothing" prototypes, discover GPU **"Eigen-Clothes"** with `vklearn.PCA`, hand-craft Sobel/HOG edge features, and climb from `81.50%` (raw pixels) to **`86.45%`** — while inspecting the confusion matrix to see why `Shirt` stalls at `57.5%`.
-- **Chapter 4 *(Image Data)* — [Fashion-MNIST: Beating Classical CV with a 2D CNN (`vktorch`)](examples/tldr_end2end/04_fashion_cnn_deep_learning.ipynb)**
+- **Chapter 4 *(Image Data)* — [Fashion-MNIST: Beating Classical CV with a 2D CNN (`vktorch`)](examples/02_images/04_fashion_cnn_deep_learning.ipynb)**
   Train a modern strided `Conv2d` CNN (`15` epochs in **`24.5s`** on Steam Deck GPU with `12.8×` faster 100%-VRAM SPIR-V `im2col`/`col2im`!) directly on raw `28 × 28` images — beating every Classical CV model at **`87.70%`** (`Shirt` `+10.0 pts`), plus learned 3×3 filter & feature-map visuals.
-- **Chapter 5 *(Vector / Text Data · Classical NLP)* — [Full-Length BBC News: TF-IDF Vectors, `vkvec` RAG Chunking & Classical NLP](examples/tldr_end2end/05_vector_search_classical_ml.ipynb)**
+- **Chapter 5 *(Vector / Text Data · Classical NLP)* — [Full-Length BBC News: TF-IDF Vectors, `vkvec` RAG Chunking & Classical NLP](examples/03_vectors_and_text/05_vector_search_classical_ml.ipynb)**
   Walk through the 3-step NLP pipeline on **2,225 complete multi-paragraph BBC News articles** (median 337 words, up to 4,492 words), chunk long articles into overlapping RAG passages with `vkvec.chunk_text`, run filtered Vulkan GPU Vector Search (`vkvec.VectorIndex`), visualize 5 topic islands with `vkvis.UMAP`, classify sections (`93.26%` BoW → **`97.30%`** TF-IDF + GPU Ridge), and hit the **Synonym Wall** (`0.000`).
-- **Chapter 6 *(Vector / Text Data · Deep NLP & Hybrid Search)* — [Full-Length BBC News: Learned Neural Embeddings & `vkvec` Hybrid Search](examples/tldr_end2end/06_vector_embeddings_neural_net.ipynb)**
+- **Chapter 6 *(Vector / Text Data · Deep NLP & Hybrid Search)* — [Full-Length BBC News: Learned Neural Embeddings & `vkvec` Hybrid Search](examples/03_vectors_and_text/06_vector_embeddings_neural_net.ipynb)**
   Train a `vktorch` Neural Text Encoder (`18` epochs in **`12.2s`** on Steam Deck GPU) to compress full articles into dense **64-D meaning vectors** (`31×` smaller than TF-IDF), shatter the Synonym Wall (**`0.000` → `+0.994` / `+0.999`** on zero-word-overlap synonyms!), fuse **Okapi `BM25` + 64-D Neural Search** with `vkvec.HybridIndex` (`RRF`), and beat Classical NLP (**`97.53%`**) with `.npz` + `.vkvec` persistence.
-- **Chapter 7 *(Time-Series Data · Astronomy & Classical ML)* — [277 Years of Solar Sunspots: Spectral Discovery & Classical Forecasting (`vktime`)](examples/tldr_end2end/07_solar_timeseries_classical_ml.ipynb)**
+- **Chapter 7 *(Time-Series Data · Astronomy & Classical ML)* — [277 Years of Solar Sunspots: Spectral Discovery & Classical Forecasting (`vktime`)](examples/04_time_series/07_solar_timeseries_classical_ml.ipynb)**
   Load 3,334 real Royal Observatory of Belgium solar observations (1749–2026), automatically discover the **11.11-year Solar Cycle** with GPU `vktime.autocorrelation` & `periodogram`, fold 25 cycles with `phase_fold`, and forecast 12 months ahead without lookahead leakage (`49.46` → **`35.39` RMSE**, `R² = 0.740`).
-- **Chapter 8 *(Time-Series Data · Deep Temporal Neural Net)* — [Solar Cycle Forecasting: Beating Classical ML with `SolarForecasterNet` (`vktorch`)](examples/tldr_end2end/08_solar_timeseries_neural_net.ipynb)**
+- **Chapter 8 *(Time-Series Data · Deep Temporal Neural Net)* — [Solar Cycle Forecasting: Beating Classical ML with `SolarForecasterNet` (`vktorch`)](examples/04_time_series/08_solar_timeseries_neural_net.ipynb)**
   Train a skip-connected Temporal Neural Network (`LayerNorm` + `GELU` + `AdamW` + `CosineAnnealingLR`) in **`14.1s`** on Steam Deck GPU — beating Classical Ridge across unseen 1973–2026 Solar Cycles 21–25 (**`34.56` RMSE**, **`R² = 0.752`**), forecasting late 2027, and saving/reloading `.npz` checkpoints.
-- **Chapter 9 *(Graph Data · Networks & Classical ML)* — [Graph Data Explained: Karate Club, Cora Citations, GPU `PageRank` & `GraphRAG` (`vkgraph`)](examples/tldr_end2end/09_graph_classical_ml.ipynb)**
+- **Chapter 9 *(Graph Data · Networks & Classical ML)* — [Graph Data Explained: Karate Club, Cora Citations, GPU `PageRank` & `GraphRAG` (`vkgraph`)](examples/05_graphs/09_graph_classical_ml.ipynb)**
   Plain-English intro to Nodes, Edges, & Adjacency Matrices on Zachary's Karate Club (**`100%`** faction recovery from 2 leaders!), then scale to **2,708 real Cora AI papers** (`5,429` citations) with GPU `PageRank`, `BFS`, `GraphRAG` `k_hop_neighbors`, and GPU Label Propagation (`71.47%` words-only → **`85.50%`** citations / **`87.17%`** graph-smoothed).
-- **Chapter 10 *(Graph Data · Graph Neural Network `GCN`)* — [Graph Deep Learning: Building a 2-Layer `GCN` in `vktorch`](examples/tldr_end2end/10_graph_neural_network_gcn.ipynb)**
+- **Chapter 10 *(Graph Data · Graph Neural Network `GCN`)* — [Graph Deep Learning: Building a 2-Layer `GCN` in `vktorch`](examples/05_graphs/10_graph_neural_network_gcn.ipynb)**
   Add a single matrix multiply (`A_hat @ H @ W`) to turn a plain MLP (`73.87%`) into a **2-Layer Graph Convolutional Network** (**`87.35%`** in **`1.6s`** on Steam Deck GPU!), map 7 glowing AI topic islands with `vkvis.UMAP`, inspect the 7×7 confusion matrix, and persist `.npz` + `vkgraph` checkpoints.
 
 ---
@@ -80,40 +80,11 @@ pixi run lab
 
 ---
 
-### Part III · GPU Data Foundations & Visual Exploration (`examples/01_gpu_foundations/` & `02_eda_and_visualization/`)
-*Manipulate arrays, tables, and millions of data points interactively on your GPU before modeling.*
+### Bonus Labs · Package Demos & 3D Deep Dives (`examples/bonus_labs/`)
+*Standalone package demos, feature-engineering labs, and real-time 3D GPU showcases tucked neatly alongside the main book:*
 
-- **Chapter 8 — [GPU Arrays & Linear Algebra (`vknumpy`)](examples/01_gpu_foundations/vknumpy_demo.ipynb)** — 1024×1024 GPU matrix multiplication vs. CPU, `einsum`, linear solvers, & 5M-point SPIR-V histograms.
-- **Chapter 9 — [GPU DataFrames (`vkpandas`)](examples/01_gpu_foundations/vkpandas_demo.ipynb)** — Filtering, `groupby`, `merge`, and Parquet I/O directly in VRAM.
-- **Chapter 10 — [GPU Scientific Computing (`vkscipy`)](examples/01_gpu_foundations/vkscipy_demo.ipynb)** — Pairwise distances, Sobel/Gaussian image filters, spectrograms, & nonlinear curve fitting.
-- **Chapter 11 — [Visual EDA on Millions of Rows](examples/02_eda_and_visualization/nyc_taxi_holoviews.ipynb)** — Interactive 11.84M-point NYC Taxi explorer, plus focused labs on [perceptual colormaps (`vkcolorcet`)](examples/02_eda_and_visualization/vkcolorcet_demo.ipynb), [`.vkplot`](examples/02_eda_and_visualization/vkplot_demo.ipynb), [reactive dashboards (`vkpanel`)](examples/02_eda_and_visualization/vkpanel_demo.ipynb), and [5-line GPU datashading (`vkshader`)](examples/02_eda_and_visualization/nyc_taxi_vkshader.ipynb).
-
----
-
-### Part IV · Feature Engineering, Selection & Manifold Learning (`examples/03_feature_engineering_and_selection/`)
-*Turn messy raw columns into clean, high-signal features — and visualize high-dimensional data.*
-
-- **Chapter 12 — [Feature Selection & Engineering Lab](examples/03_feature_engineering_and_selection/feature_selection_and_engineering.ipynb)** — Variance threshold, GPU collinearity pruning (`vkscipy.stats.corrcoef`), engineered interactions, permutation importance, & before/after neural network ablation.
-- **Chapter 13 — [Manifold Learning & Dimensionality Reduction (`vkvis`)](examples/03_feature_engineering_and_selection/vkvis_manifold_demo.ipynb)** — 7-algorithm GPU comparison (`UMAP`, `TSNE`, `PaCMAP`, `LocalMAP`, `TriMap`, `DREAMS`, `CNE`), 3D Swiss Roll unrolling, and animated UMAP training.
-- **Chapter 14 — [Geospatial Feature Engineering (`vkspatial` & `vkgeoviews`)](examples/03_feature_engineering_and_selection/vkspatial_demo.ipynb)** — Haversine distances, 1M-point Morton spatial indexes, `point_in_polygon`, and [single-pass GPU spatial joins on 11.84M NYC trips](examples/03_feature_engineering_and_selection/vkgeoviews_demo.ipynb).
-
----
-
-### Part V · Classical Machine Learning on Real Datasets (`examples/04_classical_ml/`)
-*Supervised regression, classification, and unsupervised clustering at scale.*
-
-- **Chapter 15 — [End-to-End Tabular ML: NYC Taxi Fares & Tips](examples/04_classical_ml/nyc_taxi_ml.ipynb)** — Fare & tip regression, tip classification, K-Means hotspots, & interactive trip predictor.
-- **Chapter 16 — [Unsupervised 3D Clustering: 150,000 SDSS Galaxies](examples/04_classical_ml/sdss_cosmic_web_3d.ipynb)** — 3D GPU K-Means on the real SDSS DR17 cosmic web + Color–Magnitude Diagram.
-- **Chapter 17 — [Geospatial Hotspots: 2.12 Million Real Earthquakes](examples/04_classical_ml/earthquakes_3d_vkdata.ipynb)** — Spatial joins, GPU K-Means clustering, & 3D subduction-zone explorer on USGS seismic data.
-
----
-
-### Part VI · Deep Learning, Backpropagation & Modern LLMs (`examples/05_deep_learning/`)
-*Learn how autograd, regularization, CNNs, Autoencoders, and Llama-style Transformers work under the hood with `vktorch`.*
-
-- **Chapter 18 — [Backpropagation & Regularization Visual Lab](examples/05_deep_learning/backprop_and_regularization_lab.ipynb)** — Step-by-step chain-rule gradients & side-by-side overfitting vs. `Dropout` + `AdamW` weight decay.
-- **Chapter 19 — [MLPs, 2D CNNs & a Causal Mini-GPT Transformer](examples/05_deep_learning/vktorch_deep_learning_demo.ipynb)** — Train a 3-Spiral MLP, a 2D `Conv2d` CNN, and a Mini-GPT live on your Vulkan GPU.
-- **Chapter 20 — [Denoising Autoencoders & Modern Mini-Llama (`RMSNorm` + `SwiGLU`)](examples/05_deep_learning/autoencoder_and_mini_llama.ipynb)** — Visualize an Autoencoder's latent space with `vkvis.UMAP` and train a Mini-Llama that generates coherent sentences in seconds.
+- **Package Demos (`examples/bonus_labs/package_demos/`)**: [`vknumpy_demo.ipynb`](examples/bonus_labs/package_demos/vknumpy_demo.ipynb), [`vkpandas_demo.ipynb`](examples/bonus_labs/package_demos/vkpandas_demo.ipynb), [`vkscipy_demo.ipynb`](examples/bonus_labs/package_demos/vkscipy_demo.ipynb), [`nyc_taxi_holoviews.ipynb`](examples/bonus_labs/package_demos/nyc_taxi_holoviews.ipynb), [`nyc_taxi_vkshader.ipynb`](examples/bonus_labs/package_demos/nyc_taxi_vkshader.ipynb), [`vkcolorcet_demo.ipynb`](examples/bonus_labs/package_demos/vkcolorcet_demo.ipynb), [`vkplot_demo.ipynb`](examples/bonus_labs/package_demos/vkplot_demo.ipynb), [`vkpanel_demo.ipynb`](examples/bonus_labs/package_demos/vkpanel_demo.ipynb), [`feature_selection_and_engineering.ipynb`](examples/bonus_labs/package_demos/feature_selection_and_engineering.ipynb), [`vkvis_manifold_demo.ipynb`](examples/bonus_labs/package_demos/vkvis_manifold_demo.ipynb), [`vkspatial_demo.ipynb`](examples/bonus_labs/package_demos/vkspatial_demo.ipynb), [`vkgeoviews_demo.ipynb`](examples/bonus_labs/package_demos/vkgeoviews_demo.ipynb).
+- **Deep Learning & 3D Showcases (`examples/bonus_labs/3d_and_deep_dives/`)**: [`backprop_and_regularization_lab.ipynb`](examples/bonus_labs/3d_and_deep_dives/backprop_and_regularization_lab.ipynb), [`vktorch_deep_learning_demo.ipynb`](examples/bonus_labs/3d_and_deep_dives/vktorch_deep_learning_demo.ipynb), [`autoencoder_and_mini_llama.ipynb`](examples/bonus_labs/3d_and_deep_dives/autoencoder_and_mini_llama.ipynb), [`nyc_taxi_ml.ipynb`](examples/bonus_labs/3d_and_deep_dives/nyc_taxi_ml.ipynb), [`sdss_cosmic_web_3d.ipynb`](examples/bonus_labs/3d_and_deep_dives/sdss_cosmic_web_3d.ipynb), [`earthquakes_3d_vkdata.ipynb`](examples/bonus_labs/3d_and_deep_dives/earthquakes_3d_vkdata.ipynb), [`opensky_vkdata.ipynb`](examples/bonus_labs/3d_and_deep_dives/opensky_vkdata.ipynb), [`vkastro_milky_way_3d.ipynb`](examples/bonus_labs/3d_and_deep_dives/vkastro_milky_way_3d.ipynb), [`protein_molecule_3d.ipynb`](examples/bonus_labs/3d_and_deep_dives/protein_molecule_3d.ipynb), [`nbody_galaxies_3d.ipynb`](examples/bonus_labs/3d_and_deep_dives/nbody_galaxies_3d.ipynb), [`ocean_fft_3d.ipynb`](examples/bonus_labs/3d_and_deep_dives/ocean_fft_3d.ipynb), [`wgpu_pygfx_nbody.ipynb`](examples/bonus_labs/3d_and_deep_dives/wgpu_pygfx_nbody.ipynb), [`datoviz_nbody_galaxies.ipynb`](examples/bonus_labs/3d_and_deep_dives/datoviz_nbody_galaxies.ipynb).
 
 #### Book Sidebar: Why Fused GPU Kernels Make Deep Learning Faster (In Plain English)
 A modern GPU can do math *ridiculously* fast — usually much faster than it can carry numbers back and forth from video memory (VRAM).
@@ -163,12 +134,5 @@ Every chapter in this book runs on the bundled `vkdata` toolkit — powered by `
 
 ---
 
-## Appendix B · Bonus GPU Physics & Scientific Showcases (`examples/extras_and_showcase/`)
-*Extra real-time GPU simulations & 3D visualizations to explore after finishing the main book:*
-- [`opensky_vkdata.ipynb`](examples/extras_and_showcase/opensky_vkdata.ipynb) — 10.23M real OpenSky flight trajectories (2D + 3D Europe orbit)
-- [`vkastro_milky_way_3d.ipynb`](examples/extras_and_showcase/vkastro_milky_way_3d.ipynb) — 400,000 real ESA Gaia DR3 stars & Hertzsprung–Russell diagram
-- [`protein_molecule_3d.ipynb`](examples/extras_and_showcase/protein_molecule_3d.ipynb) — Real RCSB PDB proteins (`6VXX` 23.7k-atom Spike Trimer) as 3D Vulkan sphere impostors
-- [`nbody_galaxies_3d.ipynb`](examples/extras_and_showcase/nbody_galaxies_3d.ipynb) — 16,384-body 3D Barnes-Hut colliding galaxies + 0.91 ms SPIR-V HDR Bloom (~41 FPS)
-- [`ocean_fft_3d.ipynb`](examples/extras_and_showcase/ocean_fft_3d.ipynb) — Vulkan GPU Tessendorf 2D IFFT ocean simulation
-- [`wgpu_pygfx_nbody.ipynb`](examples/extras_and_showcase/wgpu_pygfx_nbody.ipynb) — WebGPU (`wgpu` + `pygfx`) 16,384-body colliding galaxies (~96 FPS)
-- [`datoviz_nbody_galaxies.ipynb`](examples/extras_and_showcase/datoviz_nbody_galaxies.ipynb) & [`datoviz_nbody_galaxies.py`](examples/extras_and_showcase/datoviz_nbody_galaxies.py) — Native Vulkan 60+ FPS Datoviz window with Dear ImGui HUD
+## Appendix B · Bonus Labs & 3D Showcases (`examples/bonus_labs/`)
+See [`examples/README.md`](examples/README.md) for the complete book-matching index of all chapters, Vulkan GPU puzzles, and bonus labs.
