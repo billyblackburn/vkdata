@@ -7912,6 +7912,33 @@ a.anchor-link {
 
   /* SynthWave '84 Neon Vaporwave Python Syntax Highlighting (harmonized, zero harsh red) */
   .jp-CodeMirrorEditor, .jp-InputArea-editor, .highlight, .highlight pre { background: #1b1728 !important; color: #f4eee4 !important; }
+  /* Always allow smooth horizontal scrolling for long code & output lines (phones portrait + landscape!) */
+  .jp-Cell, .jp-Cell-inputWrapper, .jp-Cell-outputWrapper, .jp-InputArea, .jp-OutputArea, .jp-OutputArea-child {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .jp-InputArea-editor, .jp-CodeMirrorEditor, .jp-InputArea-editor .highlight, .jp-OutputArea-output {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .jp-InputArea-editor pre, .highlight pre, .jp-OutputArea-output pre {
+    white-space: pre !important;
+    word-wrap: normal !important;
+    overflow-wrap: normal !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-width: 100% !important;
+    padding-bottom: 6px !important;
+  }
+  .jp-InputArea-editor::-webkit-scrollbar, .highlight pre::-webkit-scrollbar, .jp-OutputArea-output pre::-webkit-scrollbar {
+    height: 6px;
+  }
+  .jp-InputArea-editor::-webkit-scrollbar-thumb, .highlight pre::-webkit-scrollbar-thumb, .jp-OutputArea-output pre::-webkit-scrollbar-thumb {
+    background: rgba(54, 249, 246, 0.35);
+    border-radius: 3px;
+  }
   .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch { color: #848bbd !important; font-style: italic; }
   .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow { color: #ff7edb !important; font-weight: 600; }
   .highlight .o { color: #ff7edb !important; }
@@ -7997,7 +8024,7 @@ a.anchor-link {
 
 </head>
 <body class="jp-Notebook" data-jp-theme-light="false" data-jp-theme-name="JupyterLab Dark">
-<div class="vkbook-nav"><span style="display:flex;gap:6px;align-items:center;"><a href="../index.html">&larr; Home</a><a class="gloss-btn" href="../glossary.html">Glossary</a><a class="gloss-btn" href="../reference.html">API Docs</a></span><span class="title">Ch. 3 &middot; Fashion Classical CV</span><span style="display:flex;gap:6px;"><a href="02_housing_neural_network.html">&larr; Prev</a><a href="04_fashion_cnn_deep_learning.html">Next &rarr;</a></span></div>
+<div class="vkbook-nav"><span style="display:flex;gap:6px;align-items:center;"><a href="../index.html">&larr; Home</a><a class="gloss-btn" href="../glossary.html">Glossary</a><a class="gloss-btn" href="../reference.html">API Docs</a></span><span class="title">Images &middot; Part 1: Classical CV</span><span style="display:flex;gap:6px;"><a href="02_housing_neural_network.html">&larr; Prev</a><a href="04_fashion_cnn_deep_learning.html">Next &rarr;</a></span></div>
 
 <main>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fash-ml-c00">

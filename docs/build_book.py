@@ -349,6 +349,33 @@ SYNTHWAVE84_CSS = """
 
   /* SynthWave '84 Neon Vaporwave Python Syntax Highlighting (harmonized, zero harsh red) */
   .jp-CodeMirrorEditor, .jp-InputArea-editor, .highlight, .highlight pre { background: #1b1728 !important; color: #f4eee4 !important; }
+  /* Always allow smooth horizontal scrolling for long code & output lines (phones portrait + landscape!) */
+  .jp-Cell, .jp-Cell-inputWrapper, .jp-Cell-outputWrapper, .jp-InputArea, .jp-OutputArea, .jp-OutputArea-child {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .jp-InputArea-editor, .jp-CodeMirrorEditor, .jp-InputArea-editor .highlight, .jp-OutputArea-output {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .jp-InputArea-editor pre, .highlight pre, .jp-OutputArea-output pre {
+    white-space: pre !important;
+    word-wrap: normal !important;
+    overflow-wrap: normal !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-width: 100% !important;
+    padding-bottom: 6px !important;
+  }
+  .jp-InputArea-editor::-webkit-scrollbar, .highlight pre::-webkit-scrollbar, .jp-OutputArea-output pre::-webkit-scrollbar {
+    height: 6px;
+  }
+  .jp-InputArea-editor::-webkit-scrollbar-thumb, .highlight pre::-webkit-scrollbar-thumb, .jp-OutputArea-output pre::-webkit-scrollbar-thumb {
+    background: rgba(54, 249, 246, 0.35);
+    border-radius: 3px;
+  }
   .highlight .c, .highlight .c1, .highlight .cm, .highlight .ch { color: #848bbd !important; font-style: italic; }
   .highlight .k, .highlight .kn, .highlight .kd, .highlight .kc, .highlight .ow { color: #ff7edb !important; font-weight: 600; }
   .highlight .o { color: #ff7edb !important; }
@@ -468,23 +495,6 @@ chap_dir = Path("docs/chapters")
 for idx, (_, fname, title) in enumerate(CHAPTERS):
     fp = chap_dir / fname
     html = fp.read_text(encoding="utf-8")
-    if "vkbook-nav" in html:
-        # Ensure existing styled chapters also get the API Docs button
-        if "../reference.html" not in html:
-            html = html.replace(
-                '<a class="gloss-btn" href="../glossary.html">Glossary</a>',
-                '<a class="gloss-btn" href="../glossary.html">Glossary</a><a class="gloss-btn" href="../reference.html">API Docs</a>',
-                1,
-            )
-            html = html.replace(
-                '<a href="../glossary.html">Acronym Glossary</a>',
-                '<a href="../glossary.html">Acronym Glossary</a><a href="../reference.html">vkdata API Docs</a>',
-                1,
-            )
-            fp.write_text(html, encoding="utf-8")
-            print("Added API Docs link ->", fp)
-        continue
-    html = link_acronyms_in_markdown(html)
     prev_link = f'<a href="{CHAPTERS[idx-1][1]}">&larr; Prev</a>' if idx > 0 else ""
     next_link = f'<a href="{CHAPTERS[idx+1][1]}">Next &rarr;</a>' if idx + 1 < len(CHAPTERS) else ""
     nav_html = (
@@ -506,6 +516,19 @@ for idx, (_, fname, title) in enumerate(CHAPTERS):
         f'{next_link or "<a href=\"../index.html\">Back to Table of Contents &rarr;</a>"}'
         f'</div>'
     )
+    if "vkbook-nav" in html:
+        # Refresh SynthWave CSS + top nav + bottom footer in place on already-styled chapters
+        html = re.sub(
+            r'<meta name="viewport"[^>]*>\s*<style>.*?</style>',
+            lambda _m: SYNTHWAVE84_CSS.strip(),
+            html, count=1, flags=re.S,
+        )
+        html = re.sub(r'<div class="vkbook-nav">.*?</div>', lambda _m: nav_html, html, count=1, flags=re.S)
+        html = re.sub(r'<div class="vkbook-footer">.*?</div>', lambda _m: footer_html, html, count=1, flags=re.S)
+        fp.write_text(html, encoding="utf-8")
+        print("Refreshed CSS & Nav ->", fp)
+        continue
+    html = link_acronyms_in_markdown(html)
     html = html.replace("</head>", SYNTHWAVE84_CSS + "\n</head>", 1)
     bi = html.find(">", html.find("<body")) + 1
     html = html[:bi] + "\n" + nav_html + "\n" + html[bi:]
