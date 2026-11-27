@@ -2,7 +2,7 @@
 
 ### *An Interactive, Follow-Along Book Powered by `vkdata` (Included!)*
 
-> **Read on your phone or browser right now:** **[https://billyblackburn.github.io/vkdata/](https://billyblackburn.github.io/vkdata/)** &nbsp;|&nbsp; **[API Reference (16 Packages)](https://billyblackburn.github.io/vkdata/reference.html)** &nbsp;|&nbsp; **[Glossary](https://billyblackburn.github.io/vkdata/glossary.html)**
+> **Read on your phone or browser right now:** **[https://billyblackburn.github.io/vkdata/](https://billyblackburn.github.io/vkdata/)** &nbsp;|&nbsp; **[API Reference (17 Packages)](https://billyblackburn.github.io/vkdata/reference.html)** &nbsp;|&nbsp; **[Glossary](https://billyblackburn.github.io/vkdata/glossary.html)**
 
 Most AI and machine learning books assume you own a modern NVIDIA CUDA GPU, a supported AMD ROCm card, or a cloud GPU subscription. **This book takes a different path:** it comes bundled with its own pure-Vulkan GPU toolkit (**`vkdata`**), so every single chapter runs live on the **Vulkan 1.3+ GPU you already own** — whether that's a **Steam Deck, AMD APU, older Radeon, Intel integrated/Arc GPU, older NVIDIA card, or Apple Silicon (MoltenVK)**.
 
@@ -22,7 +22,7 @@ pixi run build
 # 3. Inspect your Vulkan GPU specs & run a 1-second compute/bandwidth check
 pixi run gpu-specs
 
-# 4. Verify everything works on your GPU (82 tests across all 16 included packages)
+# 4. Verify everything works on your GPU (86 tests across all 17 included packages)
 pixi run test
 
 # 5. Open the interactive book in JupyterLab!
@@ -64,6 +64,10 @@ pixi run lab
   Load 3,334 real Royal Observatory of Belgium solar observations (1749–2026), automatically discover the **11.11-year Solar Cycle** with GPU `vktime.autocorrelation` & `periodogram`, fold 25 cycles with `phase_fold`, and forecast 12 months ahead without lookahead leakage (`49.46` → **`35.39` RMSE**, `R² = 0.740`).
 - **Chapter 8 *(Time-Series Data · Deep Temporal Neural Net)* — [Solar Cycle Forecasting: Beating Classical ML with `SolarForecasterNet` (`vktorch`)](examples/tldr_end2end/08_solar_timeseries_neural_net.ipynb)**
   Train a skip-connected Temporal Neural Network (`LayerNorm` + `GELU` + `AdamW` + `CosineAnnealingLR`) in **`14.1s`** on Steam Deck GPU — beating Classical Ridge across unseen 1973–2026 Solar Cycles 21–25 (**`34.56` RMSE**, **`R² = 0.752`**), forecasting late 2027, and saving/reloading `.npz` checkpoints.
+- **Chapter 9 *(Graph Data · Networks & Classical ML)* — [Graph Data Explained: Karate Club, Cora Citations, GPU `PageRank` & `GraphRAG` (`vkgraph`)](examples/tldr_end2end/09_graph_classical_ml.ipynb)**
+  Plain-English intro to Nodes, Edges, & Adjacency Matrices on Zachary's Karate Club (**`100%`** faction recovery from 2 leaders!), then scale to **2,708 real Cora AI papers** (`5,429` citations) with GPU `PageRank`, `BFS`, `GraphRAG` `k_hop_neighbors`, and GPU Label Propagation (`71.47%` words-only → **`85.50%`** citations / **`87.17%`** graph-smoothed).
+- **Chapter 10 *(Graph Data · Graph Neural Network `GCN`)* — [Graph Deep Learning: Building a 2-Layer `GCN` in `vktorch`](examples/tldr_end2end/10_graph_neural_network_gcn.ipynb)**
+  Add a single matrix multiply (`A_hat @ H @ W`) to turn a plain MLP (`73.87%`) into a **2-Layer Graph Convolutional Network** (**`87.35%`** in **`1.6s`** on Steam Deck GPU!), map 7 glowing AI topic islands with `vkvis.UMAP`, inspect the 7×7 confusion matrix, and persist `.npz` + `vkgraph` checkpoints.
 
 ---
 
@@ -133,7 +137,7 @@ Here is the real measured speedup on a **Steam Deck APU** (`1024 × 256` tensor,
 
 ---
 
-## Appendix A · The Included `vkdata` Toolkit (16 Pure-Vulkan Packages)
+## Appendix A · The Included `vkdata` Toolkit (17 Pure-Vulkan Packages)
 
 Every chapter in this book runs on the bundled `vkdata` toolkit — powered by `llama.cpp`'s `ggml-vulkan`, `Tencent/ncnn`, and custom SPIR-V compute shaders sharing a **single `VkDevice` and zero-copy `VkBuffer`s**.
 
@@ -154,6 +158,7 @@ Every chapter in this book runs on the bundled `vkdata` toolkit — powered by `
 | **`vktorch`** | `PyTorch` | Dynamic reverse-mode autograd (`Tensor`, `.backward()`, `no_grad()`), `nn` (`Linear`, `LoRALinear`, `Conv2d`, `MaxPool2d`, `LayerNorm`, `RMSNorm`, `SwiGLU`, `Embedding`, `MultiheadAttention`, `KVCache`, `TransformerBlock`, `LlamaBlock`), fused SPIR-V kernels (incl. `RoPE` & `im2col`/`col2im`), `optim` (`SGD`, `Adam`, `AdamW`, `CosineAnnealingLR`), `DataLoader`, & `.npz` checkpointing |
 | **`vkvec`** | `FAISS` / `Qdrant` | In-VRAM Vulkan GPU Vector Database (`VectorIndex` Cosine/L2/Dot + `where=` filtering), **Okapi `BM25Index`** full-text inverted index, **`HybridIndex` (Reciprocal Rank Fusion / RRF)**, GPU `TfidfVectorizer`, `cosine_similarity`, & RAG `chunk_text` |
 | **`vktime`** | `Timescale` / `statsmodels` | In-VRAM Vulkan GPU Time-Series toolkit: `TimeSeries` (resampling, detrending, `.save()`/`.load()`), GPU rolling stats & `ewma`, `make_lag_matrix`, `sliding_windows`, leak-free `temporal_split`, GPU `autocorrelation`, `periodogram`, `seasonal_decompose`, robust `detect_anomalies`, & astronomy `phase_fold` |
+| **`vkgraph`** | `NetworkX` / `PyG` / `cuGraph` | In-VRAM Vulkan GPU Graph Database & Analytics: `Graph` (edge lists or `vkpandas` DataFrames), GPU `pagerank`, `BFS` `shortest_path`, `GraphRAG` `k_hop_neighbors`, GPU `label_propagation`, `normalized_adjacency` for `vktorch` GCNs, `karate_club` / `load_cora`, & SynthWave `render_graph` |
 | **`vkastro`** | `Astropy` | GPU `SkyCoord`, `aitoff_projection`, photometry, `FlatLambdaCDM` cosmology, & `read_fits` |
 
 ---

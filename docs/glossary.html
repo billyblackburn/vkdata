@@ -71,7 +71,7 @@
 <body>
   <div class="nav">
     <button onclick="if (history.length > 1) history.back(); else location.href='index.html';">&larr; Back</button>
-    <span class="title">Acronym Glossary (70 Terms)</span>
+    <span class="title">Acronym Glossary (76 Terms)</span>
     <span style="display:flex;gap:6px;flex-wrap:wrap;">
       <a href="reference.html" style="color:var(--mint);border-color:rgba(114,241,184,0.45);">&#128218; API Docs</a>
       <a href="index.html">Book Home</a>
@@ -137,6 +137,14 @@
         </div>
         <div class="term-full">Binary Cross-Entropy</div>
         <p class="term-desc">The standard loss function for Yes/No (0 vs 1) classification that rewards confident correct probabilities and heavily penalizes confident wrong guesses.</p>
+      </div>
+      <div class="term-card" id="term-bfs" data-search="bfs breadth-first search graph &amp; network explores a graph layer-by-layer (1-hop, then 2-hop, ...) to find the shortest path between two nodes or retrieve k-hop neighborhoods for graphrag.">
+        <div class="term-head">
+          <span class="term-abbr">BFS</span>
+          <span class="term-cat">Graph &amp; Network</span>
+        </div>
+        <div class="term-full">Breadth-First Search</div>
+        <p class="term-desc">Explores a graph layer-by-layer (1-hop, then 2-hop, ...) to find the shortest path between two nodes or retrieve k-hop neighborhoods for GraphRAG.</p>
       </div>
       <div class="term-card" id="term-bm25" data-search="bm25 best matching 25 (okapi bm25) vector &amp; text the gold-standard full-text keyword search algorithm used by elasticsearch and lucene — scores exact word matches while balancing term frequency and document length.">
         <div class="term-head">
@@ -258,6 +266,14 @@
         <div class="term-full">Fast Fourier Transform</div>
         <p class="term-desc">An algorithm that breaks a time-series signal into its underlying sine-wave frequencies, revealing hidden periodic cycles instantly.</p>
       </div>
+      <div class="term-card" id="term-gcn" data-search="gcn graph convolutional network graph &amp; network the classic gnn layer: h&#x27; = gelu(a_hat @ h @ w) — averages each node with its neighbors via the normalized adjacency matrix a_hat before a linear + activation layer.">
+        <div class="term-head">
+          <span class="term-abbr">GCN</span>
+          <span class="term-cat">Graph &amp; Network</span>
+        </div>
+        <div class="term-full">Graph Convolutional Network</div>
+        <p class="term-desc">The classic GNN layer: H&#x27; = GELU(A_hat @ H @ W) — averages each node with its neighbors via the normalized adjacency matrix A_hat before a Linear + activation layer.</p>
+      </div>
       <div class="term-card" id="term-gelu" data-search="gelu gaussian error linear unit activations a smooth modern activation function used in transformers and resnets that gently bends negative values toward zero so stacked layers can learn curves.">
         <div class="term-head">
           <span class="term-abbr">GELU</span>
@@ -274,6 +290,14 @@
         <div class="term-full">OpenGL Shading Language</div>
         <p class="term-desc">A C-like language for writing GPU compute shaders that compile to SPIR-V for Vulkan.</p>
       </div>
+      <div class="term-card" id="term-gnn" data-search="gnn graph neural network graph &amp; network a neural network that learns directly on graphs by passing messages between connected nodes so every node learns from both its own features and its neighbors.">
+        <div class="term-head">
+          <span class="term-abbr">GNN</span>
+          <span class="term-cat">Graph &amp; Network</span>
+        </div>
+        <div class="term-full">Graph Neural Network</div>
+        <p class="term-desc">A neural network that learns directly on graphs by passing messages between connected nodes so every node learns from both its own features and its neighbors.</p>
+      </div>
       <div class="term-card" id="term-gpu" data-search="gpu graphics processing unit hardware &amp; vulkan a chip with thousands of tiny parallel cores originally built for 3d graphics, now ideal for doing millions of ai math operations at once.">
         <div class="term-head">
           <span class="term-abbr">GPU</span>
@@ -281,6 +305,14 @@
         </div>
         <div class="term-full">Graphics Processing Unit</div>
         <p class="term-desc">A chip with thousands of tiny parallel cores originally built for 3D graphics, now ideal for doing millions of AI math operations at once.</p>
+      </div>
+      <div class="term-card" id="term-graphrag" data-search="graphrag graph-augmented retrieval graph &amp; network combines a knowledge graph with rag: after finding a relevant node, traverses 1-hop or 2-hop graph edges to pull connected context before answering.">
+        <div class="term-head">
+          <span class="term-abbr">GraphRAG</span>
+          <span class="term-cat">Graph &amp; Network</span>
+        </div>
+        <div class="term-full">Graph-Augmented Retrieval</div>
+        <p class="term-desc">Combines a Knowledge Graph with RAG: after finding a relevant node, traverses 1-hop or 2-hop graph edges to pull connected context before answering.</p>
       </div>
       <div class="term-card" id="term-hog" data-search="hog histogram of oriented gradients classical ml a classic computer vision feature descriptor that summarizes the direction and strength of edges inside small image grid cells.">
         <div class="term-head">
@@ -321,6 +353,14 @@
         </div>
         <div class="term-full">Key-Value Cache</div>
         <p class="term-desc">Saves past attention Keys and Values in GPU VRAM during text generation so each new token only computes 1 step instead of reprocessing the whole prompt.</p>
+      </div>
+      <div class="term-card" id="term-label-propagation" data-search="label propagation graph semi-supervised diffusion graph &amp; network spreads known labels from a few labeled nodes across graph edges until every unlabeled node inherits the dominant label of its neighborhood.">
+        <div class="term-head">
+          <span class="term-abbr">Label Propagation</span>
+          <span class="term-cat">Graph &amp; Network</span>
+        </div>
+        <div class="term-full">Graph Semi-Supervised Diffusion</div>
+        <p class="term-desc">Spreads known labels from a few labeled nodes across graph edges until every unlabeled node inherits the dominant label of its neighborhood.</p>
       </div>
       <div class="term-card" id="term-layernorm" data-search="layernorm layer normalization deep learning rescales each row of neuron outputs to mean 0 and variance 1 so deep networks train smoothly without exploding or vanishing numbers.">
         <div class="term-head">
@@ -449,6 +489,14 @@
         </div>
         <div class="term-full">One-vs-Rest</div>
         <p class="term-desc">A strategy that turns a binary (Yes/No) classifier into a multi-class classifier by training one model per class (&#x27;Is it a Shirt? Is it a Sneaker? ...&#x27;).</p>
+      </div>
+      <div class="term-card" id="term-pagerank" data-search="pagerank graph node importance algorithm graph &amp; network google&#x27;s classic graph algorithm: a node is important if other important nodes link to it — computed on gpu by repeated matrix multiplication.">
+        <div class="term-head">
+          <span class="term-abbr">PageRank</span>
+          <span class="term-cat">Graph &amp; Network</span>
+        </div>
+        <div class="term-full">Graph Node Importance Algorithm</div>
+        <p class="term-desc">Google&#x27;s classic graph algorithm: a node is important if other important nodes link to it — computed on GPU by repeated matrix multiplication.</p>
       </div>
       <div class="term-card" id="term-pca" data-search="pca principal component analysis classical ml a classic dimensionality-reduction algorithm that compresses many correlated features (like 784 pixels) into a smaller set of top visual patterns.">
         <div class="term-head">

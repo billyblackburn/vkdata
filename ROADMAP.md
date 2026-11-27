@@ -16,6 +16,7 @@ This roadmap tracks what is complete and what's next for both the **interactive 
   - *Ch. 3–4 · Image Data (Fashion-MNIST):* Classical CV (`81.50%` → `86.45%` PCA + Edge/HOG) vs. `vktorch` 2D CNN (**`87.70%`**, `Shirt` `+10.0 pts`, **24.5s** on Steam Deck APU).
   - *Ch. 5–6 · Vector / Text Data & NLP (Full-Length BBC News):* `vkvec` TF-IDF + RAG chunking + GPU Vector DB (`97.30%`) vs. `vktorch` 64-D Neural Embeddings (**`97.53%`**, Synonym Wall broken `0.000 → +0.999`, plus **Hybrid BM25 + Neural RRF Search**).
   - *Ch. 7–8 · Time-Series & Astronomy (SILSO Solar Sunspots, 1749–2026):* `vktime` 11.1-yr spectral discovery + Classical Ridge (`35.39` RMSE) vs. `vktorch` `SolarForecasterNet` (**`34.56` RMSE**, `R² = 0.752`, `14.1s` on Steam Deck GPU).
+  - *Ch. 9–10 · Graph & Network Data (Karate Club + Cora AI Citations):* `vkgraph` GPU `PageRank`, `BFS`, `GraphRAG`, & Label Propagation (`85.50%`) vs. `vktorch` 2-Layer `GCN` (**`87.35%`** in `1.6s` on Steam Deck GPU, `+13.5 pts` over plain MLP).
 - **Parts II–VI Notebooks (`examples/`):** Vulkan GPU Puzzles (`@vnp.kernel`), GPU Foundations, Visual EDA on 11.84M rows, Feature Selection & 7-algorithm UMAP/Manifold Learning, Classical ML at scale, Backprop Lab, Autoencoders, & Mini-Llama (`RMSNorm` + `SwiGLU`).
 - **Hardware Inspector:** [`scripts/gpu_specs.py`](scripts/gpu_specs.py) (`pixi run gpu-specs`) for instant Vulkan device limits + 1-second FP32 GEMM & SPIR-V bandwidth check.
 
@@ -40,7 +41,7 @@ This roadmap tracks what is complete and what's next for both the **interactive 
 
 ### Databases & Data Engines (`vkvec`, `vkgraph`, `vktime`, `vksql`)
 - [x] **Full-Text Search (BM25) + Hybrid Search (`vkvec`):** Okapi `BM25Index` inverted index + `reciprocal_rank_fusion` (RRF) + `HybridIndex` combining exact keyword/code matching with Vulkan GPU dense vector search.
-- [ ] **Graph Database & GPU Graph Analytics (`vkgraph`):** Nodes + edges in GPU sparse/adjacency structures, Vulkan-accelerated PageRank, shortest path (BFS), community detection, Knowledge Graph / **GraphRAG** traversal, and **Graph Neural Networks (GNNs)** in `vktorch`.
+- [x] **Graph Database & GPU Graph Analytics (`vkgraph`):** In-VRAM `Graph` (edge lists + `vkpandas` DataFrames), GPU `pagerank`, `BFS` `shortest_path`, `GraphRAG` `k_hop_neighbors`, GPU `label_propagation`, `normalized_adjacency` for `vktorch` GCNs, `render_graph`, and Ch. 9–10!
 - [x] **Time-Series Database & Signal Engine (`vktime`):** GPU `TimeSeries` (resampling, linear/rolling detrending, persistence), rolling windows, `make_lag_matrix`, `sliding_windows`, leak-free `temporal_split`, GPU `autocorrelation`, `periodogram`, `seasonal_decompose`, robust `detect_anomalies`, & `phase_fold` *(ready for Ch. 7 & 8!)*.
 - [ ] **SQL Query Layer (`vksql` on `vkpandas`):** DuckDB-style `SELECT ... WHERE ... JOIN ... GROUP BY` SQL execution directly on GPU DataFrames.
 - [ ] **Document / Key-Value (NoSQL) Guide:** Plain-English book sidebar comparing Relational, Columnar, Vector, Graph, Time-Series, and Document/KV stores so learners know which database fits each AI workload.

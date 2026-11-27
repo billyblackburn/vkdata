@@ -81,6 +81,15 @@ PACKAGES: List[Tuple[str, str, str, str, str, str, List[str]]] = [
         [],
     ),
     (
+        "vkgraph",
+        "AI, ML, Search & Time-Series",
+        "#c792ea",
+        "NetworkX / PyG / cuGraph",
+        "In-VRAM Vulkan GPU Graph Database & Analytics: Graph (from edge lists or vkpandas DataFrames), GPU PageRank, BFS shortest_path, GraphRAG k_hop_neighbors, GPU Label Propagation, normalized_adjacency for vktorch GCNs, Karate Club & Cora loaders, and SynthWave render_graph.",
+        "import vkgraph\ng, factions = vkgraph.karate_club()\npr = g.pagerank()\npath = g.shortest_path(16, 26)",
+        [],
+    ),
+    (
         "vkvis",
         "AI, ML, Search & Time-Series",
         "#72f1b8",
@@ -512,7 +521,7 @@ def build_reference() -> Tuple[int, int]:
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>vkdata API Reference (16 Vulkan GPU Packages)</title>
+  <title>vkdata API Reference ({len(PACKAGES)} Vulkan GPU Packages)</title>
   <style>
     :root {{
       --bg: #262335; --card: #1e1a2b; --border: #495495;
@@ -624,13 +633,13 @@ def build_reference() -> Tuple[int, int]:
       <a href="index.html">&larr; Book Home</a>
       <a class="gloss" href="glossary.html">&#128214; Acronym Glossary</a>
     </div>
-    <span style="color:#ff7edb;font-weight:700;font-size:13.5px;">vkdata API Reference &middot; 16 Packages</span>
+    <span style="color:#ff7edb;font-weight:700;font-size:13.5px;">vkdata API Reference &middot; {len(PACKAGES)} Packages</span>
   </nav>
 
   <div class="wrap">
     <h1><code>vkdata</code> Toolset API Reference</h1>
     <p class="sub">
-      Auto-generated directly from the live code across all <strong>16 pure-Vulkan GPU packages</strong>
+      Auto-generated directly from the live code across all <strong>{len(PACKAGES)} pure-Vulkan GPU packages</strong>
       ({total_entries} top-level classes &amp; functions + {total_methods} class methods).
       Type any keyword below to filter instantly, or click a package pill to jump right to it.
     </p>
@@ -669,7 +678,7 @@ def build_reference() -> Tuple[int, int]:
 """
     out = Path("docs/reference.html")
     out.write_text(page, encoding="utf-8")
-    print(f"Generated {out} -> 16 packages, {total_entries} top-level APIs, {total_methods} class methods")
+    print(f"Generated {out} -> {len(PACKAGES)} packages, {total_entries} top-level APIs, {total_methods} class methods")
     return total_entries, total_methods
 
 

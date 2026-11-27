@@ -16,6 +16,8 @@ CHAPTERS = [
     ("examples/tldr_end2end/06_vector_embeddings_neural_net.ipynb","06_vector_embeddings_neural_net.html","Ch. 6 &middot; Neural Embeddings &amp; Deep NLP"),
     ("examples/tldr_end2end/07_solar_timeseries_classical_ml.ipynb","07_solar_timeseries_classical_ml.html","Ch. 7 &middot; Solar Time-Series &amp; Classical ML"),
     ("examples/tldr_end2end/08_solar_timeseries_neural_net.ipynb", "08_solar_timeseries_neural_net.html", "Ch. 8 &middot; Solar Forecaster Neural Net"),
+    ("examples/tldr_end2end/09_graph_classical_ml.ipynb",          "09_graph_classical_ml.html",          "Ch. 9 &middot; Graph Data &amp; Classical ML"),
+    ("examples/tldr_end2end/10_graph_neural_network_gcn.ipynb",    "10_graph_neural_network_gcn.html",    "Ch. 10 &middot; Graph Neural Network (GCN)"),
 ]
 
 # (Term, Full Name, Category, Plain-English Explanation)
@@ -160,6 +162,18 @@ GLOSSARY = [
      "A plot of signal power vs. frequency computed via FFT — the tallest spike tells you the dominant repeating period (e.g. 11.11 years for solar sunspots)."),
     ("Lookahead Leakage", "Peeking into the Future During Training", "Time-Series",
      "The #1 time-series bug: randomly shuffling chronological data so your model trains on future timestamps to predict the past. Always use a chronological temporal_split instead!"),
+    ("PageRank", "Graph Node Importance Algorithm", "Graph & Network",
+     "Google's classic graph algorithm: a node is important if other important nodes link to it — computed on GPU by repeated matrix multiplication."),
+    ("BFS", "Breadth-First Search", "Graph & Network",
+     "Explores a graph layer-by-layer (1-hop, then 2-hop, ...) to find the shortest path between two nodes or retrieve k-hop neighborhoods for GraphRAG."),
+    ("GNN", "Graph Neural Network", "Graph & Network",
+     "A neural network that learns directly on graphs by passing messages between connected nodes so every node learns from both its own features and its neighbors."),
+    ("GCN", "Graph Convolutional Network", "Graph & Network",
+     "The classic GNN layer: H' = GELU(A_hat @ H @ W) — averages each node with its neighbors via the normalized adjacency matrix A_hat before a Linear + activation layer."),
+    ("GraphRAG", "Graph-Augmented Retrieval", "Graph & Network",
+     "Combines a Knowledge Graph with RAG: after finding a relevant node, traverses 1-hop or 2-hop graph edges to pull connected context before answering."),
+    ("Label Propagation", "Graph Semi-Supervised Diffusion", "Graph & Network",
+     "Spreads known labels from a few labeled nodes across graph edges until every unlabeled node inherits the dominant label of its neighborhood."),
 ]
 
 def _slug(term: str) -> str:
@@ -688,6 +702,7 @@ index_html = f"""<!DOCTYPE html>
     .card.dt-image       {{ --accent: #ff7edb; --accent-bg: rgba(255, 126, 219, 0.11); --accent-glow: rgba(255, 126, 219, 0.28); }}
     .card.dt-vector      {{ --accent: #72f1b8; --accent-bg: rgba(114, 241, 184, 0.11); --accent-glow: rgba(114, 241, 184, 0.26); }}
     .card.dt-timeseries  {{ --accent: #ff9e64; --accent-bg: rgba(255, 158, 100, 0.12); --accent-glow: rgba(255, 158, 100, 0.26); }}
+    .card.dt-graph       {{ --accent: #c792ea; --accent-bg: rgba(199, 146, 234, 0.12); --accent-glow: rgba(199, 146, 234, 0.28); }}
     .card:hover {{
       border-color: var(--accent); transform: translateY(-2px);
       box-shadow: 0 0 22px var(--accent-glow);
@@ -719,7 +734,7 @@ index_html = f"""<!DOCTYPE html>
     <div class="top-bar">
       <span class="badge">Interactive Follow-Along Book &middot; Pure Vulkan GPU</span>
       <a class="gloss-pill" href="glossary.html">&#128214; Acronym Glossary ({len(GLOSSARY)} Terms)</a>
-      <a class="gloss-pill" href="reference.html" style="color:var(--mint);border-color:rgba(114,241,184,0.55);background:rgba(114,241,184,0.10);">&#128218; vkdata API Reference (16 Packages)</a>
+      <a class="gloss-pill" href="reference.html" style="color:var(--mint);border-color:rgba(114,241,184,0.55);background:rgba(114,241,184,0.10);">&#128218; vkdata API Reference (17 Packages)</a>
     </div>
     <h1>Hands-On AI, Machine Learning &amp; GPU Computing &mdash; Without CUDA or ROCm</h1>
     <p class="sub">
@@ -748,13 +763,14 @@ index_html = f"""<!DOCTYPE html>
       </a>
     </div>
 
-    <h2>Part I &middot; End-to-End Projects: Tabular, Image, Vector &amp; Time-Series Data</h2>
+    <h2>Part I &middot; End-to-End Projects: Tabular, Image, Vector, Time-Series &amp; Graph Data</h2>
     <p style="color:var(--muted);font-size:14px;margin:-6px 0 10px;">Every data type follows the same pattern: <strong>Feature Discovery &amp; Classical ML</strong> first, then <strong>Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
     <div class="dt-legend">
       <span class="dt-chip" style="--accent:#36f9f6;"><span class="dot"></span>Tabular Data (Ch. 1&ndash;2)</span>
       <span class="dt-chip" style="--accent:#ff7edb;"><span class="dot"></span>Image Data (Ch. 3&ndash;4)</span>
       <span class="dt-chip" style="--accent:#72f1b8;"><span class="dot"></span>Vector / Text &amp; NLP (Ch. 5&ndash;6)</span>
       <span class="dt-chip" style="--accent:#ff9e64;"><span class="dot"></span>Time-Series &amp; Astronomy (Ch. 7&ndash;8)</span>
+      <span class="dt-chip" style="--accent:#c792ea;"><span class="dot"></span>Graph &amp; Network Data (Ch. 9&ndash;10)</span>
     </div>
     <div class="grid">
       <a class="card dt-tabular" href="chapters/01_housing_classical_ml.html">
@@ -828,13 +844,31 @@ index_html = f"""<!DOCTYPE html>
         <h3>Solar Cycle Forecasting: Beating Classical ML with <code>SolarForecasterNet</code> (<code>vktorch</code>)</h3>
         <p>Train a skip-connected Temporal Neural Network (<code>LayerNorm</code> + <code>GELU</code> + <code>CosineAnnealingLR</code>) in 14.1s on Steam Deck GPU &mdash; beating Classical Ridge across unseen 1973&ndash;2026 Solar Cycles 21&ndash;25 and forecasting 2027.</p>
       </a>
+
+      <a class="card dt-graph" href="chapters/09_graph_classical_ml.html">
+        <div class="card-head">
+          <span class="ch">Chapter 9 &middot; Graph Data &middot; Networks &amp; Classical ML</span>
+          <span class="pill">vkgraph PageRank &middot; 85.5% Label Prop</span>
+        </div>
+        <h3>Graph Data Explained: Karate Club, Cora Citations, GPU <code>PageRank</code> &amp; <code>GraphRAG</code></h3>
+        <p>Learn what Nodes, Edges, and Adjacency Matrices are on Zachary's Karate Club (100% faction recovery!), then scale to 2,708 real Cora AI papers with GPU <code>PageRank</code>, <code>BFS</code>, <code>GraphRAG</code> k-hop retrieval, and Label Propagation.</p>
+      </a>
+
+      <a class="card dt-graph" href="chapters/10_graph_neural_network_gcn.html">
+        <div class="card-head">
+          <span class="ch">Chapter 10 &middot; Graph Data &middot; Graph Neural Network (GCN)</span>
+          <span class="pill">87.35% Acc &middot; 1.6s GPU &middot; +13.5 pts vs MLP</span>
+        </div>
+        <h3>Graph Deep Learning: Building a 2-Layer <code>GCN</code> in <code>vktorch</code></h3>
+        <p>Add one matrix multiply (<code>A_hat @ H @ W</code>) to turn a plain MLP (73.9%) into a 2-Layer Graph Convolutional Network (87.35% in 1.6s on Steam Deck GPU!), map 7 AI topic islands with <code>vkvis.UMAP</code>, and save checkpoints.</p>
+      </a>
     </div>
 
     <h2>Reference &middot; Glossary &amp; <code>vkdata</code> Toolset Documentation</h2>
     <div class="grid">
       <a class="card dt-vector" href="reference.html">
         <div class="card-head">
-          <span class="ch">API Reference &middot; 16 Vulkan GPU Packages</span>
+          <span class="ch">API Reference &middot; 17 Vulkan GPU Packages</span>
           <span class="pill">Searchable Functions, Classes &amp; Signatures</span>
         </div>
         <h3><code>vkdata</code> Toolset Documentation (Complete Function Guide)</h3>
