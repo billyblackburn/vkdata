@@ -75,6 +75,7 @@ from .ops import (
     cbrt,
     ceil,
     clip,
+    column_stack,
     compress,
     concatenate,
     copy,

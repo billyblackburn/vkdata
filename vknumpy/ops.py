@@ -1231,6 +1231,13 @@ def hstack(tup: Sequence[Any]) -> ndarray:
     return concatenate(arrs, axis=1)
 
 
+def column_stack(tup: Sequence[Any]) -> ndarray:
+    """Stack 1D/2D GPU arrays as columns into a single 2D GPU array."""
+    arrs = [asarray(x) for x in tup]
+    prepped = [a.reshape(a.shape[0], 1) if a.ndim == 1 else a for a in arrs]
+    return concatenate(prepped, axis=1)
+
+
 def dstack(tup: Sequence[Any]) -> ndarray:
     arrs = [asarray(x) for x in tup]
     prepped = []
