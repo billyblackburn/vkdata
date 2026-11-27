@@ -76,3 +76,69 @@ class MinMaxScaler:
 
     def fit_transform(self, X: Any, y: Any = None) -> vnp.ndarray:
         return self.fit(X, y).transform(X)
+
+
+class SimpleImputer:
+    """Leak-free NaN imputer (median, mean, or constant) compatible with vklearn.Pipeline."""
+
+    def __init__(self, strategy: str = "median", fill_value: float = 0.0) -> None:
+        s = strategy.lower()
+        if s not in ("median", "mean", "constant"):
+            raise ValueError(f"Unsupported strategy {strategy!r}; expected 'median', 'mean', or 'constant'")
+        self.strategy = s
+        self.fill_value = float(fill_value)
+        self.statistics_: Optional[np.ndarray] = None
+
+    def fit(self, X: Any, y: Any = None) -> "SimpleImputer":
+        arr = X.to_numpy().astype(np.float32, copy=False) if hasattr(X, "to_numpy") else np.asarray(X, dtype=np.float32)
+        if arr.ndim == 1:
+            arr = arr[:, None]
+        if self.strategy == "median":
+            stats = np.nanmedian(arr, axis=0)
+        elif self.strategy == "mean":
+            stats = np.nanmean(arr, axis=0)
+        else:
+            stats = np.full((arr.shape[1],), self.fill_value, dtype=np.float32)
+        self.statistics_ = np.where(np.isnan(stats), self.fill_value, stats).astype(np.float32)
+        return self
+
+    def transform(self, X: Any) -> vnp.ndarray:
+        if self.statistics_ is None:
+            raise RuntimeError("SimpleImputer must be fitted before calling transform()")
+        arr = X.to_numpy().astype(np.float32, copy=True) if hasattr(X, "to_numpy") else np.array(X, dtype=np.float32, copy=True)
+        was_1d = arr.ndim == 1
+        if was_1d:
+            arr = arr[:, None]
+        nan_mask = np.isnan(arr)
+        if nan_mask.any():
+            rows, cols = np.nonzero(nan_mask)
+            arr[rows, cols] = self.statistics_[cols]
+        return vnp.array(arr.ravel() if was_1d else arr, dtype=np.float32)
+
+    def fit_transform(self, X: Any, y: Any = None) -> vnp.ndarray:
+        return self.fit(X, y).transform(X)
+
+
+class OneHotEncoder:
+    """Encode 1D categorical strings/integers into float32 one-hot columns on Vulkan GPU."""
+
+    def __init__(self, *, drop_last: bool = False) -> None:
+        self.drop_last = bool(drop_last)
+        self.categories_: Optional[list] = None
+
+    def fit(self, x: Any, y: Any = None) -> "OneHotEncoder":
+        arr = x.to_numpy() if hasattr(x, "to_numpy") else np.asarray(x)
+        self.categories_ = sorted({str(v) for v in arr.ravel()})
+        return self
+
+    def transform(self, x: Any) -> vnp.ndarray:
+        if self.categories_ is None:
+            raise RuntimeError("OneHotEncoder must be fitted before calling transform()")
+        arr = (x.to_numpy() if hasattr(x, "to_numpy") else np.asarray(x)).astype(str).ravel()
+        cats = self.categories_[:-1] if (self.drop_last and len(self.categories_) > 1) else self.categories_
+        cols = [(arr == c).astype(np.float32) for c in cats]
+        mat = np.column_stack(cols) if cols else np.zeros((len(arr), 0), dtype=np.float32)
+        return vnp.array(np.ascontiguousarray(mat), dtype=np.float32)
+
+    def fit_transform(self, x: Any, y: Any = None) -> vnp.ndarray:
+        return self.fit(x, y).transform(x)

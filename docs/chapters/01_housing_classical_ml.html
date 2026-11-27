@@ -8210,36 +8210,26 @@ Columns: ['longitude', 'latitude', 'housing_median_age', 'total_rooms', 'total_b
     <span class="s2">"total_rooms"</span><span class="p">,</span> <span class="s2">"total_bedrooms"</span><span class="p">,</span> <span class="s2">"population"</span><span class="p">,</span>
     <span class="s2">"households"</span><span class="p">,</span> <span class="s2">"median_income"</span><span class="p">,</span>
 <span class="p">]</span>
-
 <span class="n">X_raw_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">df</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">raw_num_cols</span><span class="p">])</span>
 <span class="n">y_all</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">"median_house_value"</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="n">ocean_all</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">"ocean_proximity"</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
 
-<span class="c1"># Deterministic 80/20 train/test split</span>
-<span class="n">idx_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_all</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-<span class="n">idx_tr</span><span class="p">,</span> <span class="n">idx_te</span> <span class="o">=</span> <span class="n">vkl</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span><span class="n">idx_all</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
-<span class="n">idx_tr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">idx_tr</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">idx_tr</span><span class="p">,</span> <span class="s2">"to_numpy"</span><span class="p">)</span> <span class="k">else</span> <span class="n">idx_tr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-<span class="n">idx_te</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">idx_te</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">idx_te</span><span class="p">,</span> <span class="s2">"to_numpy"</span><span class="p">)</span> <span class="k">else</span> <span class="n">idx_te</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+<span class="c1"># 1. Deterministic 80/20 train/test split across all arrays in ONE line!</span>
+<span class="n">X_tr_raw</span><span class="p">,</span> <span class="n">X_te_raw</span><span class="p">,</span> <span class="n">y_tr</span><span class="p">,</span> <span class="n">y_te</span><span class="p">,</span> <span class="n">ocean_tr</span><span class="p">,</span> <span class="n">ocean_te</span> <span class="o">=</span> <span class="n">vkl</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span>
+    <span class="n">X_raw_all</span><span class="p">,</span> <span class="n">y_all</span><span class="p">,</span> <span class="n">ocean_all</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span>
+<span class="p">)</span>
 
-<span class="n">X_tr_raw</span> <span class="o">=</span> <span class="n">X_raw_all</span><span class="p">[</span><span class="n">idx_tr</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">X_te_raw</span> <span class="o">=</span> <span class="n">X_raw_all</span><span class="p">[</span><span class="n">idx_te</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">y_tr</span><span class="p">,</span> <span class="n">y_te</span> <span class="o">=</span> <span class="n">y_all</span><span class="p">[</span><span class="n">idx_tr</span><span class="p">],</span> <span class="n">y_all</span><span class="p">[</span><span class="n">idx_te</span><span class="p">]</span>
-<span class="n">ocean_tr</span><span class="p">,</span> <span class="n">ocean_te</span> <span class="o">=</span> <span class="n">ocean_all</span><span class="p">[</span><span class="n">idx_tr</span><span class="p">],</span> <span class="n">ocean_all</span><span class="p">[</span><span class="n">idx_te</span><span class="p">]</span>
+<span class="c1"># 2. Leak-free NaN imputation fitted strictly on training data!</span>
+<span class="n">imputer</span> <span class="o">=</span> <span class="n">vkl</span><span class="o">.</span><span class="n">SimpleImputer</span><span class="p">(</span><span class="n">strategy</span><span class="o">=</span><span class="s2">"median"</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_tr_raw</span><span class="p">)</span>
+<span class="n">X_tr_raw</span><span class="p">,</span> <span class="n">X_te_raw</span> <span class="o">=</span> <span class="n">imputer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X_tr_raw</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span> <span class="n">imputer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X_te_raw</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Train size: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">y_tr</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> | Test size: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">y_te</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> | Imputed NaN bedrooms with train median = </span><span class="si">{</span><span class="n">imputer</span><span class="o">.</span><span class="n">statistics_</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-<span class="c1"># Impute missing total_bedrooms (col 4) using ONLY the training-set median!</span>
-<span class="n">bed_col</span> <span class="o">=</span> <span class="n">raw_num_cols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">"total_bedrooms"</span><span class="p">)</span>
-<span class="n">med_bedrooms</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">(</span><span class="n">X_tr_raw</span><span class="p">[:,</span> <span class="n">bed_col</span><span class="p">]))</span>
-<span class="n">X_tr_raw</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X_tr_raw</span><span class="p">[:,</span> <span class="n">bed_col</span><span class="p">]),</span> <span class="n">bed_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">med_bedrooms</span>
-<span class="n">X_te_raw</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">X_te_raw</span><span class="p">[:,</span> <span class="n">bed_col</span><span class="p">]),</span> <span class="n">bed_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">med_bedrooms</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Train size: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">y_tr</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> | Test size: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">y_te</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> | Imputed NaN bedrooms with train median = </span><span class="si">{</span><span class="n">med_bedrooms</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-<span class="c1"># Baseline: StandardScaler + LinearRegression on raw 8 numeric features</span>
+<span class="c1"># 3. Baseline: StandardScaler + LinearRegression on raw 8 numeric features</span>
 <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 <span class="n">baseline</span> <span class="o">=</span> <span class="n">vkl</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">([</span>
     <span class="p">(</span><span class="s2">"scaler"</span><span class="p">,</span> <span class="n">vkl</span><span class="o">.</span><span class="n">StandardScaler</span><span class="p">()),</span>
     <span class="p">(</span><span class="s2">"model"</span><span class="p">,</span> <span class="n">vkl</span><span class="o">.</span><span class="n">LinearRegression</span><span class="p">()),</span>
-<span class="p">])</span>
-<span class="n">baseline</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_tr_raw</span><span class="p">,</span> <span class="n">y_tr</span><span class="p">)</span>
+<span class="p">])</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_tr_raw</span><span class="p">,</span> <span class="n">y_tr</span><span class="p">)</span>
 <span class="n">pred_base</span> <span class="o">=</span> <span class="n">baseline</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_te_raw</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
 <span class="n">dt_base</span> <span class="o">=</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1000.0</span>
 
@@ -8262,7 +8252,7 @@ Columns: ['longitude', 'latitude', 'housing_median_age', 'total_rooms', 'total_b
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Train size: 16,512 | Test size: 4,128 | Imputed NaN bedrooms with train median = 434
-Baseline LinearRegression (8 raw features) in 23.2 ms:
+Baseline LinearRegression (8 raw features) in 15.7 ms:
   Test RMSE = $69,601  |  Test MAE = $50,917  |  Test R^2 = 0.6401
 </pre>
 </div>
@@ -8553,10 +8543,10 @@ Top 12 features most correlated with House Value (GPU vkscipy.stats.corrcoef):
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Model                                  |  Test RMSE |   Test MAE | Test R^2 |     Time
 --------------------------------------------------------------------------------------
-1. Baseline LinearReg (8 raw feats)    | $   69,601 | $   50,917 |   0.6401 |   23.2 ms
-2. Engineered LinearReg (36 feats)     | $   61,389 | $   43,711 |   0.7200 |   24.2 ms
-3. Engineered Ridge (alpha=0.1)        | $   61,388 | $   43,713 |   0.7200 |   20.5 ms
-4. GPU Distance-Weighted KNN (k=15)    | $   52,690 | $   33,936 |   0.7938 |  386.9 ms
+1. Baseline LinearReg (8 raw feats)    | $   69,601 | $   50,917 |   0.6401 |   15.7 ms
+2. Engineered LinearReg (36 feats)     | $   61,389 | $   43,711 |   0.7200 |   21.3 ms
+3. Engineered Ridge (alpha=0.1)        | $   61,388 | $   43,713 |   0.7200 |   20.2 ms
+4. GPU Distance-Weighted KNN (k=15)    | $   52,690 | $   33,936 |   0.7938 |  514.6 ms
 
 Total error reduction from Feature Discovery + Non-linear GPU KNN: -$16,910 RMSE!
 
@@ -8663,8 +8653,8 @@ Bonus Classifier (Price &gt;= $180,400): Test Accuracy = 87.52% | Confusion Matr
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Custom Neighborhood Appraisals (1990 Census Dollars):
   Silicon Valley (Palo Alto, high income, NEAR BAY)  -&gt; Ridge: $  477,134 | GPU KNN: $  490,304
-  Central Valley (Fresno, moderate income, INLAND)   -&gt; Ridge: $   87,089 | GPU KNN: $   77,062
-  LA Coast (Santa Monica, upper income, &lt;1H OCEAN)   -&gt; Ridge: $  406,817 | GPU KNN: $  429,078
+  Central Valley (Fresno, moderate income, INLAND)   -&gt; Ridge: $   87,088 | GPU KNN: $   77,062
+  LA Coast (Santa Monica, upper income, &lt;1H OCEAN)   -&gt; Ridge: $  406,816 | GPU KNN: $  429,078
 </pre>
 </div>
 </div>

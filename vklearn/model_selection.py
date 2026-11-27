@@ -14,6 +14,8 @@ def _slice_rows(arr: Any, idx: vnp.ndarray) -> Any:
         return arr._take(idx)
     if isinstance(arr, vnp.ndarray):
         return vnp.take(arr, idx, axis=0)
+    if isinstance(arr, list):
+        return [arr[int(i)] for i in idx.to_numpy()]
     return np.asarray(arr)[idx.to_numpy()]
 
 

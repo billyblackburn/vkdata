@@ -92,3 +92,22 @@ def test_perceptron_binary_and_history():
     assert clf.score(X, y) == 1.0
     assert clf.n_updates_ > 0
     assert len(clf.history_) == clf.n_updates_ + 1
+
+
+def test_simple_imputer_onehot_and_multi_split():
+    import vklearn as vkl
+
+    X = np.array([[1.0, np.nan], [2.0, 4.0], [3.0, 6.0], [4.0, 8.0], [5.0, 10.0]], dtype=np.float32)
+    cats = ["A", "B", "A", "C", "B"]
+    y = np.arange(5, dtype=np.float32)
+
+    X_tr, X_te, y_tr, y_te, c_tr, c_te = vkl.train_test_split(X, y, cats, test_size=0.2, random_state=42)
+    assert len(X_tr) == 4 and len(X_te) == 1 and isinstance(c_tr, list)
+
+    imp = vkl.SimpleImputer(strategy="median").fit(X_tr)
+    X_tr_c = imp.transform(X_tr).to_numpy()
+    assert not np.isnan(X_tr_c).any()
+
+    ohe = vkl.OneHotEncoder(drop_last=False).fit(cats)
+    oh = ohe.transform(cats).to_numpy()
+    assert oh.shape == (5, 3) and np.allclose(oh.sum(axis=1), 1.0)

@@ -15,7 +15,7 @@ from .metrics import (
 from .model_selection import train_test_split
 from .neighbors import KNeighborsClassifier, NearestNeighbors
 from .pipeline import Pipeline
-from .preprocessing import MinMaxScaler, StandardScaler
+from .preprocessing import MinMaxScaler, OneHotEncoder, SimpleImputer, StandardScaler
 
 __all__ = [
     "KMeans",
@@ -24,10 +24,12 @@ __all__ = [
     "LogisticRegression",
     "MinMaxScaler",
     "NearestNeighbors",
+    "OneHotEncoder",
     "PCA",
     "Perceptron",
     "Pipeline",
     "Ridge",
+    "SimpleImputer",
     "StandardScaler",
     "accuracy_score",
     "cluster",
