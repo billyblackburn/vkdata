@@ -8016,6 +8016,16 @@ a.anchor-link {
 <li>Spot extreme solar maxima with robust <strong><code>vktime.detect_anomalies</code></strong> and decompose the signal with <strong><code>vktime.seasonal_decompose</code></strong>.</li>
 <li>Build a <strong>12-month-ahead Solar Cycle forecaster</strong> (<code>vktime.make_lag_matrix</code> + <code>vktime.temporal_split</code> + <a class="vk-term vk-code-term" href="../glossary.html#term-ridge" title="Ridge Regression (L2 Regularization): Linear regression with a gentle penalty (alpha) on huge weights so correlated features don&#x27;t make the model overfit." data-term="Ridge" data-full="Ridge Regression (L2 Regularization)" data-desc="Linear regression with a gentle penalty (alpha) on huge weights so correlated features don&#x27;t make the model overfit."><code>vklearn.Ridge</code></a>), dropping error from <strong><code>49.29</code> → <code>36.41</code> <a class="vk-term" href="../glossary.html#term-rmse" title="Root Mean Squared Error: Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better." data-term="RMSE" data-full="Root Mean Squared Error" data-desc="Square root of MSE — puts your typical prediction error back into real-world units (like dollars for house prices!). Lower is better.">RMSE</a></strong>!</li>
 </ol>
+<blockquote>
+<p><strong>Reading the SILSO Table Columns:</strong></p>
+<ul>
+<li><strong><code>year</code>, <code>month</code>, <code>frac_year</code>:</strong> Observation date (e.g., <code>1749.042</code> = mid-January 1749).</li>
+<li><strong><code>sunspots</code>:</strong> Monthly mean total sunspot number — our forecasting target.</li>
+<li><strong><code>std</code>:</strong> Standard deviation across solar observatories worldwide (<code>-1.0</code> in 1749–1817 means <em>not recorded yet</em> before a global observatory network existed).</li>
+<li><strong><code>obs</code>:</strong> Number of telescope observations averaged that month (<code>-1</code> = unknown in early historical records; modern months exceed <strong>1,000+ observations</strong>).</li>
+<li><strong><code>definitive</code>:</strong> Verification flag (<code>1</code> = final locked-in historical value, <code>0</code> = provisional for the most recent few months).</li>
+</ul>
+</blockquote>
 </div>
 </div>
 </div>
