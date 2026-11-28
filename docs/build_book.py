@@ -480,6 +480,37 @@ SYNTHWAVE84_CSS = """
   .vk-code-open .vk-code-toggle .vk-code-chev { transform: rotate(180deg); color: #8ab4f8; }
   .vk-code-collapsed .jp-Cell-inputWrapper { display: none !important; }
 
+  /* Dark-theme HTML tables (fixes JupyterLab white zebra-striping on df.head()/df.describe()) */
+  .jp-RenderedHTMLCommon table {
+    background: #14171c !important;
+    color: #e6ebf2 !important;
+    border-collapse: collapse !important;
+    border: 1px solid #262b33 !important;
+    border-radius: 6px;
+  }
+  .jp-RenderedHTMLCommon thead tr,
+  .jp-RenderedHTMLCommon thead th {
+    background: #1a1f28 !important;
+    color: #ffffff !important;
+    border-bottom: 2px solid #8ab4f8 !important;
+  }
+  .jp-RenderedHTMLCommon tbody tr:nth-child(odd) {
+    background: #14171c !important;
+    color: #e6ebf2 !important;
+  }
+  .jp-RenderedHTMLCommon tbody tr:nth-child(even) {
+    background: #1b2029 !important;
+    color: #e6ebf2 !important;
+  }
+  .jp-RenderedHTMLCommon tbody tr:hover {
+    background: #232a36 !important;
+  }
+  .jp-RenderedHTMLCommon th,
+  .jp-RenderedHTMLCommon td {
+    color: #e6ebf2 !important;
+    border-color: #262b33 !important;
+  }
+
   @media (max-width: 768px) {
     body.jp-Notebook { padding: 0 !important; margin: 0 !important; }
     .jp-Notebook { padding: 8px !important; }
