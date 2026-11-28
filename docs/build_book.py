@@ -448,6 +448,38 @@ SYNTHWAVE84_CSS = """
   }
   #vk-tip-box a { color: #8ab4f8; font-size: 13px; font-weight: 600; text-decoration: none; }
 
+  /* Collapsible Python Code Cells (Reader Mode by default — tap to inspect code!) */
+  .vkbook-nav button.code-all-btn {
+    color: #a8db8f; background: #1e232b; border: 1px solid #2e3541;
+    border-radius: 6px; padding: 5px 10px; font-weight: 600; font-size: 13px;
+    cursor: pointer; font-family: inherit;
+  }
+  .vkbook-nav button.code-all-btn:hover { background: #262d38; border-color: #a8db8f; color: #ffffff; }
+  .vk-reader-banner {
+    max-width: 1100px; margin: 12px auto 4px; padding: 10px 14px;
+    background: #14171c; border: 1px solid #262b33; border-left: 3px solid #8ab4f8;
+    border-radius: 8px; color: #9aa4b2; font-size: 13.5px; line-height: 1.5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .vk-reader-banner strong { color: #e6ebf2; }
+  .vk-reader-banner code {
+    background: #1e232b; color: #93b4f8; padding: 1px 6px; border-radius: 4px; font-size: 12.5px;
+  }
+  .vk-code-toggle {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    width: 100%; margin: 4px 0 6px; padding: 7px 12px;
+    background: #14171c; color: #9aa4b2;
+    border: 1px solid #262b33; border-radius: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 12.5px; font-weight: 600; cursor: pointer; text-align: left;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+  }
+  .vk-code-toggle:hover { border-color: #8ab4f8; background: #1a1f28; color: #e6ebf2; }
+  .vk-code-toggle .vk-code-tag { color: #93b4f8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .vk-code-toggle .vk-code-chev { transition: transform 0.15s; }
+  .vk-code-open .vk-code-toggle .vk-code-chev { transform: rotate(180deg); color: #8ab4f8; }
+  .vk-code-collapsed .jp-Cell-inputWrapper { display: none !important; }
+
   @media (max-width: 768px) {
     body.jp-Notebook { padding: 0 !important; margin: 0 !important; }
     .jp-Notebook { padding: 8px !important; }
@@ -470,11 +502,12 @@ POPOVER_JS = """
   <div class="vk-tip-full" id="vk-t-full"></div>
   <p class="vk-tip-desc" id="vk-t-desc"></p>
   <div class="vk-tip-actions">
-    <span style="font-size:12px;color:#848bbd;">Tap anywhere outside to dismiss</span>
+    <span style="font-size:12px;color:#6e7787;">Tap anywhere outside to dismiss</span>
     <a id="vk-t-more" href="../glossary.html">Open Full Glossary &rarr;</a>
   </div>
 </div>
 <script>
+  // 1. Tap-to-explain acronym glossary drawer
   document.addEventListener('click', (e) => {
     const box = document.getElementById('vk-tip-box');
     const a = e.target.closest('a.vk-term');
@@ -489,6 +522,47 @@ POPOVER_JS = """
       box.style.display = 'none';
     }
   });
+
+  // 2. Collapsible Python code cells (collapsed by default for clean reading!)
+  (function initCollapsibleCode() {
+    const cells = Array.from(document.querySelectorAll('.jp-CodeCell'));
+    const allBtn = document.getElementById('vk-toggle-all-code');
+    let allOpen = false;
+
+    function setCellState(cell, open) {
+      cell.classList.toggle('vk-code-collapsed', !open);
+      cell.classList.toggle('vk-code-open', open);
+      const lbl = cell.querySelector('.vk-code-lbl');
+      if (lbl) lbl.textContent = open ? 'Hide Code' : 'Show Code';
+    }
+
+    cells.forEach((cell) => {
+      const inp = cell.querySelector('.jp-Cell-inputWrapper');
+      if (!inp) return;
+      const pre = inp.querySelector('pre');
+      const lines = pre ? pre.textContent.trim().split('\\n').length : 0;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'vk-code-toggle';
+      btn.innerHTML =
+        '<span><span class="vk-code-tag">&lt;/&gt;</span> <span class="vk-code-lbl">Show Code</span>' +
+        (lines ? ' <span style="color:#6e7787;font-weight:500;">(' + lines + ' lines)</span>' : '') +
+        '</span><span class="vk-code-chev">&#9662;</span>';
+      btn.addEventListener('click', () => {
+        setCellState(cell, cell.classList.contains('vk-code-collapsed'));
+      });
+      cell.insertBefore(btn, inp);
+      setCellState(cell, false);
+    });
+
+    if (allBtn) {
+      allBtn.addEventListener('click', () => {
+        allOpen = !allOpen;
+        cells.forEach((c) => setCellState(c, allOpen));
+        allBtn.textContent = allOpen ? 'Hide All Code' : 'Show All Code';
+      });
+    }
+  })();
 </script>
 """
 
@@ -500,13 +574,19 @@ for idx, (_, fname, title) in enumerate(CHAPTERS):
     next_link = f'<a href="{CHAPTERS[idx+1][1]}">Next &rarr;</a>' if idx + 1 < len(CHAPTERS) else ""
     nav_html = (
         f'<div class="vkbook-nav">'
-        f'<span style="display:flex;gap:6px;align-items:center;">'
+        f'<span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'
         f'<a href="../index.html">&larr; Home</a>'
         f'<a class="gloss-btn" href="../glossary.html">Glossary</a>'
         f'<a class="gloss-btn" href="../reference.html">API Docs</a>'
+        f'<button type="button" class="code-all-btn" id="vk-toggle-all-code">Show All Code</button>'
         f'</span>'
         f'<span class="title">{title}</span>'
         f'<span style="display:flex;gap:6px;">{prev_link}{next_link}</span>'
+        f'</div>'
+        f'<div class="vk-reader-banner">'
+        f'<strong>Reader Mode:</strong> Modern AI coding assistants can write and run this code for you &mdash; '
+        f'so Python cells start collapsed to keep the book easy to read. Tap any <code>&lt;/&gt; Show Code</code> bar '
+        f'(or <strong>Show All Code</strong> above) whenever you want to peek under the hood and see how it works.'
         f'</div>'
     )
     footer_html = (
@@ -518,16 +598,21 @@ for idx, (_, fname, title) in enumerate(CHAPTERS):
         f'</div>'
     )
     if "vkbook-nav" in html:
-        # Refresh SynthWave CSS + top nav + bottom footer in place on already-styled chapters
+        # Refresh CSS + top nav/banner + bottom footer + popover/collapsible-code JS in place
         html = re.sub(
             r'<meta name="viewport"[^>]*>\s*<style>.*?</style>',
             lambda _m: SYNTHWAVE84_CSS.strip(),
             html, count=1, flags=re.S,
         )
-        html = re.sub(r'<div class="vkbook-nav">.*?</div>', lambda _m: nav_html, html, count=1, flags=re.S)
+        html = re.sub(
+            r'<div class="vkbook-nav">.*?</div>(?:\s*<div class="vk-reader-banner">.*?</div>)?',
+            lambda _m: nav_html,
+            html, count=1, flags=re.S,
+        )
         html = re.sub(r'<div class="vkbook-footer">.*?</div>', lambda _m: footer_html, html, count=1, flags=re.S)
+        html = re.sub(r'<div id="vk-tip-box".*?</script>', lambda _m: POPOVER_JS.strip(), html, count=1, flags=re.S)
         fp.write_text(html, encoding="utf-8")
-        print("Refreshed CSS & Nav ->", fp)
+        print("Refreshed CSS, Nav & Collapsible Code ->", fp)
         continue
     html = link_acronyms_in_markdown(html)
     html = html.replace("</head>", SYNTHWAVE84_CSS + "\n</head>", 1)
@@ -820,7 +905,8 @@ index_html = f"""<!DOCTYPE html>
     <h1>Hands-On AI, Machine Learning &amp; GPU Computing &mdash; Without CUDA or ROCm</h1>
     <p class="sub">
       Learn how AI actually works on the Vulkan GPU you already own (Steam Deck, AMD APU, Intel iGPU/Arc, older Radeon/NVIDIA, or Apple MoltenVK) &mdash; powered by the bundled <code>vkdata</code> toolkit.
-      <em>Tip: Tap or hover any <span style="border-bottom:1px dotted #8ab4f8;color:#f4eee4;">dotted acronym</span> in a chapter to jump straight to its plain-English definition!</em>
+      <strong>Modern AI coding assistants can handle writing the code for you</strong>, so code cells start collapsed inside every chapter for distraction-free reading &mdash; tap any <code>&lt;/&gt; Show Code</code> bar anytime to see exactly how it works under the hood.
+      <em>Tip: Tap any <span style="border-bottom:1px dotted #8ab4f8;color:#e6ebf2;">dotted acronym</span> for its plain-English definition!</em>
     </p>
 
     <h2>Table of Contents &middot; Tap Any Section to Open</h2>
