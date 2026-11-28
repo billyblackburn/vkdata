@@ -8115,9 +8115,6 @@ a.anchor-link {
 
 <span class="c1"># 1. Load &amp; cache California Housing directly into a Vulkan GPU DataFrame (1 line!)</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">vkl</span><span class="o">.</span><span class="n">load_california_housing</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loaded California Housing: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> districts x </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2"> columns"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Columns:"</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">()</span>
 
 <span class="c1"># Inspect missing values, ranges, and categories in one line on Vulkan GPU!</span>
 <span class="n">display</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
@@ -8131,15 +8128,6 @@ a.anchor-link {
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Loaded California Housing: 20,640 districts x 10 columns
-Columns: ['longitude', 'latitude', 'housing_median_age', 'total_rooms', 'total_bedrooms', 'population', 'households', 'median_income', 'median_house_value', 'ocean_proximity']
-
-</pre>
-</div>
-</div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr" tabindex="0">
@@ -8306,7 +8294,7 @@ ggml_vulkan: 0 = AMD Custom GPU 0405 (RADV VANGOGH) (radv) | uma: 1 | rebar: 1 |
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Train: 16,512 | Test: 4,128 | Imputed NaN bedrooms with train median = 434
-Baseline LinearRegression (8 raw features, 100% GPU Pipeline) in 64.5 ms:
+Baseline LinearRegression (8 raw features, 100% GPU Pipeline) in 80.5 ms:
   Test RMSE = $69,601  |  Test MAE = $50,917  |  Test R^2 = 0.6401
 </pre>
 </div>
@@ -8581,12 +8569,12 @@ Top 12 features most correlated with House Value (GPU vkscipy.stats.corrcoef):
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Model                                     |  Test RMSE |   Test MAE | Test R^2 |     Time
 ------------------------------------------------------------------------------------------
-1. Baseline LinearReg (8 raw feats)       | $   69,601 | $   50,917 |   0.6401 |   64.5 ms
-2. Engineered LinearReg (36 feats)        | $   61,389 | $   43,711 |   0.7200 |  110.0 ms
-3. Engineered Ridge (alpha=0.1)           | $   61,388 | $   43,713 |   0.7200 |   92.5 ms
-4. RandomForestRegressor (25 trees)       | $   52,990 | $   36,688 |   0.7914 | 3314.5 ms
-5. GPU KNeighborsRegressor (k=15)         | $   52,690 | $   33,936 |   0.7938 |  441.5 ms
-6. GradientBoostingRegressor (60 trees)   | $   54,531 | $   38,515 |   0.7791 | 5488.5 ms
+1. Baseline LinearReg (8 raw feats)       | $   69,601 | $   50,917 |   0.6401 |   80.5 ms
+2. Engineered LinearReg (36 feats)        | $   61,389 | $   43,711 |   0.7200 |  117.6 ms
+3. Engineered Ridge (alpha=0.1)           | $   61,388 | $   43,713 |   0.7200 |  126.5 ms
+4. RandomForestRegressor (25 trees)       | $   52,990 | $   36,688 |   0.7914 | 3248.7 ms
+5. GPU KNeighborsRegressor (k=15)         | $   52,690 | $   33,936 |   0.7938 |  435.0 ms
+6. GradientBoostingRegressor (60 trees)   | $   54,531 | $   38,515 |   0.7791 | 5283.8 ms
 
 Total error reduction from Feature Discovery + Tree/KNN Ensembles: -$16,911 RMSE!
 Top-5 GradientBoosting features: median_income (56.0%), ocean_INLAND (14.7%), pop_per_hh (11.4%), housing_median_age (3.7%), dist_nearest_hub (2.7%)
@@ -8703,9 +8691,9 @@ Bonus Classifier (Price &gt;= $180,400): Test Accuracy = 87.52% | Confusion Matr
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Custom Neighborhood Appraisals (1990 Census Dollars):
-  Silicon Valley (Palo Alto, high income, NEAR BAY)  -&gt; Ridge: $  477,137 | GPU KNN: $  490,305 | GBDT: $  472,840
-  Central Valley (Fresno, moderate income, INLAND)   -&gt; Ridge: $   87,091 | GPU KNN: $   77,062 | GBDT: $  103,105
-  LA Coast (Santa Monica, upper income, &lt;1H OCEAN)   -&gt; Ridge: $  406,817 | GPU KNN: $  429,078 | GBDT: $  439,164
+  Silicon Valley (Palo Alto, high income, NEAR BAY)  -&gt; Ridge: $  477,134 | GPU KNN: $  490,305 | GBDT: $  472,840
+  Central Valley (Fresno, moderate income, INLAND)   -&gt; Ridge: $   87,089 | GPU KNN: $   77,062 | GBDT: $  103,105
+  LA Coast (Santa Monica, upper income, &lt;1H OCEAN)   -&gt; Ridge: $  406,816 | GPU KNN: $  429,078 | GBDT: $  439,164
 </pre>
 </div>
 </div>
