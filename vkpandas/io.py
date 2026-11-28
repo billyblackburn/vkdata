@@ -75,9 +75,17 @@ def read_csv(
     *,
     sep: Union[str, None] = None,
     names: Union[Sequence[str], None] = None,
-) -> DataFrame:
-    """Load a CSV/delimited file directly into GPU-backed vkpandas columns."""
+    chunksize: Union[int, None] = None,
+) -> Any:
+    """Load a CSV/delimited file directly into GPU-backed vkpandas columns.
+
+    Pass ``chunksize=N`` to stream the file out-of-core as an iterator of GPU DataFrames.
+    """
     delim = sep if sep is not None else delimiter
+    if chunksize is not None:
+        from .streaming import iter_csv_chunks
+
+        return iter_csv_chunks(path, chunksize=int(chunksize), delimiter=delim, names=names)
     with open(path, "r", newline="", encoding="utf-8") as f:
         reader = csv.reader(f, delimiter=delim)
         if names is not None:
