@@ -107,6 +107,58 @@
     .note strong { color: #ffffff; }
     .note a { color: #8ab4f8; text-decoration: none; font-weight: 600; }
     code { background: #1e232b; padding: 2px 6px; border-radius: 5px; font-size: 13px; color: #93b4f8; }
+
+    /* Collapsible 1-box-per-data-type Table of Contents */
+    details.dt-box {
+      --accent: #8ab4f8;
+      --accent-bg: rgba(138, 180, 248, 0.10);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    details.dt-box.dt-foundations { --accent: #e0af68; --accent-bg: rgba(224, 175, 104, 0.10); }
+    details.dt-box.dt-tabular     { --accent: #8ab4f8; --accent-bg: rgba(138, 180, 248, 0.10); }
+    details.dt-box.dt-image       { --accent: #d2a8ff; --accent-bg: rgba(210, 168, 255, 0.10); }
+    details.dt-box.dt-vector      { --accent: #a8db8f; --accent-bg: rgba(168, 219, 143, 0.10); }
+    details.dt-box.dt-timeseries  { --accent: #f2a679; --accent-bg: rgba(242, 166, 121, 0.10); }
+    details.dt-box.dt-graph       { --accent: #7dcfff; --accent-bg: rgba(125, 207, 255, 0.10); }
+    details.dt-box.dt-geo         { --accent: #f7768e; --accent-bg: rgba(247, 118, 142, 0.10); }
+    details.dt-box:hover { border-color: #3b4351; border-left-color: var(--accent); }
+    details.dt-box[open] { border-color: #3b4351; border-left-color: var(--accent); background: #161a21; }
+    details.dt-box > summary {
+      list-style: none; cursor: pointer; padding: 15px 18px; user-select: none;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    details.dt-box > summary::-webkit-details-marker { display: none; }
+    .dt-sum-top {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .dt-sum-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .dt-sum-title { font-size: 17.5px; font-weight: 600; color: #ffffff; }
+    .dt-sum-sub { font-size: 13.5px; color: var(--muted); margin: 2px 0 0; }
+    .dt-chev {
+      color: var(--muted); font-size: 14px; transition: transform 0.18s; margin-left: 6px;
+    }
+    details.dt-box[open] .dt-chev { transform: rotate(180deg); color: var(--accent); }
+    .dt-parts {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px; padding: 0 16px 16px; border-top: 1px solid #22272f; padding-top: 12px;
+    }
+    .dt-part {
+      display: block; text-decoration: none; color: inherit;
+      background: #0f1217; border: 1px solid #262b33; border-radius: 8px;
+      padding: 12px 14px; transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    }
+    .dt-part:hover { border-color: var(--accent); background: #1b2029; transform: translateY(-1px); }
+    .dt-part-tag {
+      font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--accent); display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px;
+    }
+    .dt-part h4 { margin: 0 0 4px; font-size: 15px; color: #ffffff; font-weight: 600; }
+    .dt-part p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
   </style>
 </head>
 <body>
@@ -122,37 +174,201 @@
       <em>Tip: Tap or hover any <span style="border-bottom:1px dotted #8ab4f8;color:#f4eee4;">dotted acronym</span> in a chapter to jump straight to its plain-English definition!</em>
     </p>
 
-    <h2>AI Foundations &middot; Building Blocks of Neural Networks</h2>
+    <h2>Table of Contents &middot; Tap Any Section to Open</h2>
+    <p style="color:var(--muted);font-size:14px;margin:-6px 0 14px;">Click any data type below to open its <strong>Classical ML</strong> and <strong>Deep Learning (<code>vktorch</code>)</strong> chapters.</p>
+
     <div class="grid">
-      <a class="card dt-foundations" href="chapters/00_the_perceptron.html">
-        <div class="card-head">
-          <span class="ch">Foundations &middot; Part A &middot; 1 Artificial Neuron</span>
-          <span class="pill">5 Gates &rarr; GPU Neuron &rarr; XOR Wall</span>
+      <details class="dt-box dt-foundations">
+        <summary>
+          <div class="dt-sum-top">
+            <div class="dt-sum-left">
+              <span class="dt-sum-title">AI Foundations &middot; Neurons, MLPs &amp; LLMs</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="pill">5 Gates &rarr; XOR 100% &rarr; 8B Llama</span>
+              <span class="dt-chev">&#9662;</span>
+            </div>
+          </div>
+          <p class="dt-sum-sub">Start from zero: how a single artificial neuron works, why activations bend space, and what &ldquo;billions of parameters&rdquo; really means.</p>
+        </summary>
+        <div class="dt-parts">
+          <a class="dt-part" href="chapters/00_the_perceptron.html">
+            <div class="dt-part-tag"><span>Part A &middot; 1 Artificial Neuron</span><span>5 Gates &rarr; XOR Wall</span></div>
+            <h4>The Perceptron</h4>
+            <p>Weighted votes (AND, OR, NOT, NAND, NOR), watching a straight line learn with <code>vklearn.Perceptron</code>, and running a smooth neuron on Vulkan GPU.</p>
+          </a>
+          <a class="dt-part" href="chapters/00b_multi_layer_perceptron.html">
+            <div class="dt-part-tag"><span>Part B &middot; Hidden Layers</span><span>XOR 100% &rarr; 8B</span></div>
+            <h4>Multi-Layer Perceptrons (MLPs)</h4>
+            <p>Solve XOR by hand, see why <code>GELU</code> prevents linear collapse, watch MLPs sculpt concentric circles, and trace the parameter ladder up to 8B LLMs.</p>
+          </a>
         </div>
-        <h3>The Perceptron: How a Single Artificial Neuron Works</h3>
-        <p>Start from zero: weighted votes (AND, OR, NOT, NAND, NOR), watching a single straight line learn with <code>vklearn.Perceptron</code>, running the same neuron on your Vulkan GPU with <code>vktorch</code>, and hitting the famous XOR limit.</p>
-      </a>
+      </details>
 
-      <a class="card dt-foundations" href="chapters/00b_multi_layer_perceptron.html">
-        <div class="card-head">
-          <span class="ch">Foundations &middot; Part B &middot; Hidden Layers &amp; LLMs</span>
-          <span class="pill">XOR 100% &middot; 3 Params &rarr; 8B Llama</span>
+      <details class="dt-box dt-tabular">
+        <summary>
+          <div class="dt-sum-top">
+            <div class="dt-sum-left">
+              <span class="dt-sum-title">Tabular Data &middot; California Housing</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="pill">$69.6k &rarr; $47.9k RMSE &middot; R&sup2; 0.830</span>
+              <span class="dt-chev">&#9662;</span>
+            </div>
+          </div>
+          <p class="dt-sum-sub">20,640 Census districts: feature engineering, RandomForest, GradientBoosting, GPU KNN, and a Pre-Norm Residual Neural Net.</p>
+        </summary>
+        <div class="dt-parts">
+          <a class="dt-part" href="chapters/01_housing_classical_ml.html">
+            <div class="dt-part-tag"><span>Part 1 &middot; Classical ML</span><span>$69.6k &rarr; $52.7k</span></div>
+            <h4>Feature Discovery, Tree Ensembles &amp; GPU KNN</h4>
+            <p>Engineer 36 domain + Haversine + KMeans-RBF features and race LinearReg, Ridge, <code>RandomForestRegressor</code>, <code>GradientBoostingRegressor</code>, and GPU <code>KNeighborsRegressor</code> + 3-fold CV.</p>
+          </a>
+          <a class="dt-part" href="chapters/02_housing_neural_network.html">
+            <div class="dt-part-tag"><span>Part 2 &middot; Deep Learning</span><span>$47.9k RMSE</span></div>
+            <h4>Beating Classical ML with a Deep Residual Net</h4>
+            <p>Train a <code>vktorch</code> Pre-Norm Residual MLP (fused SPIR-V LayerNorm, GELU, AdamW) with live <code>vnp.memory_summary()</code> VRAM profiling and .npz checkpointing.</p>
+          </a>
         </div>
-        <h3>Multi-Layer Perceptrons (MLPs): Bending Space, Solving XOR &amp; LLM Parameters</h3>
-        <p>Wire 3 perceptrons together to solve XOR by hand, see why <code>GELU</code>/<code>ReLU</code> activations are mandatory, watch 4 neurons draw a diamond while 32&times;32 sculpts a smooth circle, and trace the parameter ladder up to 8B LLMs.</p>
-      </a>
+      </details>
+
+      <details class="dt-box dt-image">
+        <summary>
+          <div class="dt-sum-top">
+            <div class="dt-sum-left">
+              <span class="dt-sum-title">Image Data &middot; Fashion-MNIST</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="pill">81.5% &rarr; 87.70% Acc &middot; 2D CNN</span>
+              <span class="dt-chev">&#9662;</span>
+            </div>
+          </div>
+          <p class="dt-sum-sub">10 clothing categories (28&times;28 pixels): PCA Eigen-Clothes &amp; Sobel/HOG edges vs. a 100%-VRAM SPIR-V 2D Convolutional Neural Network.</p>
+        </summary>
+        <div class="dt-parts">
+          <a class="dt-part" href="chapters/03_fashion_classical_ml.html">
+            <div class="dt-part-tag"><span>Part 1 &middot; Classical CV</span><span>81.5% &rarr; 86.45%</span></div>
+            <h4>Image Feature Discovery &amp; Classical CV</h4>
+            <p>Visualize GPU &ldquo;Average Clothing&rdquo; prototypes, discover Eigen-Clothes with PCA, hand-craft Sobel/HOG edge features, and inspect the 10&times;10 confusion matrix.</p>
+          </a>
+          <a class="dt-part" href="chapters/04_fashion_cnn_deep_learning.html">
+            <div class="dt-part-tag"><span>Part 2 &middot; Deep Learning</span><span>87.70% &middot; 24.5s</span></div>
+            <h4>Beating Classical CV with a 2D CNN</h4>
+            <p>Train a strided <code>Conv2d</code> CNN directly on raw 28&times;28 pixels (12.8&times; faster SPIR-V <code>im2col</code>), inspect 16 learned 3&times;3 filters, and beat every classical model.</p>
+          </a>
+        </div>
+      </details>
+
+      <details class="dt-box dt-vector">
+        <summary>
+          <div class="dt-sum-top">
+            <div class="dt-sum-left">
+              <span class="dt-sum-title">Vector &amp; Text Data (NLP) &middot; BBC News</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="pill">97.53% &middot; Hybrid RRF + IVFIndex</span>
+              <span class="dt-chev">&#9662;</span>
+            </div>
+          </div>
+          <p class="dt-sum-sub">2,225 full-length BBC articles: TF-IDF &amp; RAG chunking vs. 64-D Neural Embeddings, BM25 Hybrid Search, and GPU Voronoi <code>IVFIndex</code>.</p>
+        </summary>
+        <div class="dt-parts">
+          <a class="dt-part" href="chapters/05_vector_search_classical_ml.html">
+            <div class="dt-part-tag"><span>Part 1 &middot; Classical NLP</span><span>97.30% Acc</span></div>
+            <h4>TF-IDF Vectors, RAG Chunking &amp; Vector Search</h4>
+            <p>Chunk long articles with <code>vkvec.chunk_text</code>, run filtered GPU Cosine Search, map 5 topic islands with <code>vkvis.UMAP</code>, and hit the Synonym Wall.</p>
+          </a>
+          <a class="dt-part" href="chapters/06_vector_embeddings_neural_net.html">
+            <div class="dt-part-tag"><span>Part 2 &middot; Deep NLP &amp; ANN</span><span>97.53% &middot; 100% Recall</span></div>
+            <h4>Learned Embeddings, <code>HybridIndex</code> &amp; <code>IVFIndex</code></h4>
+            <p>Compress articles into 64-D meaning vectors (31&times; smaller), shatter the Synonym Wall, fuse BM25 + Neural Search, and scale with GPU Voronoi <code>IVFIndex</code>.</p>
+          </a>
+        </div>
+      </details>
+
+      <details class="dt-box dt-timeseries">
+        <summary>
+          <div class="dt-sum-top">
+            <div class="dt-sum-left">
+              <span class="dt-sum-title">Time-Series Data &middot; 277-Yr Solar Sunspots</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="pill">11.1-Yr Cycle &middot; 34.56 RMSE</span>
+              <span class="dt-chev">&#9662;</span>
+            </div>
+          </div>
+          <p class="dt-sum-sub">3,334 real monthly observations (1749&ndash;2026): GPU spectral discovery (<code>periodogram</code>, <code>phase_fold</code>) vs. <code>SolarForecasterNet</code>.</p>
+        </summary>
+        <div class="dt-parts">
+          <a class="dt-part" href="chapters/07_solar_timeseries_classical_ml.html">
+            <div class="dt-part-tag"><span>Part 1 &middot; Classical ML</span><span>35.39 RMSE</span></div>
+            <h4>Spectral Discovery &amp; Classical Forecasting</h4>
+            <p>Automatically discover the 11.11-year Solar Cycle with GPU <code>ACF</code> &amp; <code>periodogram</code>, fold 25 cycles, and forecast 12 months ahead without lookahead leakage.</p>
+          </a>
+          <a class="dt-part" href="chapters/08_solar_timeseries_neural_net.html">
+            <div class="dt-part-tag"><span>Part 2 &middot; Deep Learning</span><span>34.56 RMSE &middot; R&sup2; 0.752</span></div>
+            <h4>Beating Classical ML with <code>SolarForecasterNet</code></h4>
+            <p>Train a skip-connected Temporal Neural Network in 14s on Vulkan GPU &mdash; beating Classical Ridge across unseen 1973&ndash;2026 Solar Cycles 21&ndash;25.</p>
+          </a>
+        </div>
+      </details>
+
+      <details class="dt-box dt-graph">
+        <summary>
+          <div class="dt-sum-top">
+            <div class="dt-sum-left">
+              <span class="dt-sum-title">Graph &amp; Network Data &middot; Karate Club &amp; Cora</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="pill">PageRank &middot; 87.35% 2-Layer GCN</span>
+              <span class="dt-chev">&#9662;</span>
+            </div>
+          </div>
+          <p class="dt-sum-sub">Nodes, edges, and message passing: GPU <code>PageRank</code>, <code>GraphRAG</code>, and Label Propagation vs. a 2-Layer Graph Convolutional Network.</p>
+        </summary>
+        <div class="dt-parts">
+          <a class="dt-part" href="chapters/09_graph_classical_ml.html">
+            <div class="dt-part-tag"><span>Part 1 &middot; Classical Graph ML</span><span>85.5% Label Prop</span></div>
+            <h4>Karate Club, Cora Citations, <code>PageRank</code> &amp; <code>GraphRAG</code></h4>
+            <p>100% faction recovery on Karate Club, then scale to 2,708 Cora AI papers with GPU <code>PageRank</code>, <code>BFS</code>, k-hop retrieval, and Label Propagation.</p>
+          </a>
+          <a class="dt-part" href="chapters/10_graph_neural_network_gcn.html">
+            <div class="dt-part-tag"><span>Part 2 &middot; Deep Learning</span><span>87.35% &middot; 1.6s GPU</span></div>
+            <h4>Building a 2-Layer <code>GCN</code> in <code>vktorch</code></h4>
+            <p>Add one matrix multiply (<code>A_hat @ H @ W</code>) to jump +13.5 pts over a plain MLP, map 7 AI topic islands with <code>vkvis.UMAP</code>, and save checkpoints.</p>
+          </a>
+        </div>
+      </details>
+
+      <details class="dt-box dt-geo">
+        <summary>
+          <div class="dt-sum-top">
+            <div class="dt-sum-left">
+              <span class="dt-sum-title">Geospatial Data &middot; Real USGS Earthquakes</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="pill">GPU DBSCAN (7 Belts) &middot; 84.42% Geo-Net</span>
+              <span class="dt-chev">&#9662;</span>
+            </div>
+          </div>
+          <p class="dt-sum-sub">1,763 live global earthquakes: Haversine, Morton Z-order indexing, GPU <code>DBSCAN</code> fault-line clustering vs. Spherical Fourier <code>GeoSeismicNet</code>.</p>
+        </summary>
+        <div class="dt-parts">
+          <a class="dt-part" href="chapters/11_geospatial_classical_ml.html">
+            <div class="dt-part-tag"><span>Part 1 &middot; Classical Geo-ML</span><span>83.29% GBDT</span></div>
+            <h4>Haversine, Morton Indexing, <code>DBSCAN</code> &amp; Geo-ML</h4>
+            <p>Solve the &plusmn;180&deg; Pacific wrap with Haversine &amp; 3D sphere coordinates, trace 7 tectonic belts with GPU <code>DBSCAN</code>, and climb to 83.29% with <code>GradientBoostingClassifier</code>.</p>
+          </a>
+          <a class="dt-part" href="chapters/12_geospatial_neural_net.html">
+            <div class="dt-part-tag"><span>Part 2 &middot; Deep Geo-AI</span><span>84.42% Acc</span></div>
+            <h4>Fourier Spatial Encodings &amp; <code>GeoSeismicNet</code></h4>
+            <p>Wrap 3D unit-sphere coordinates in multi-scale <code>sin/cos</code> Fourier waves (like Google SatCLIP &amp; Space2Vec) to beat every classical Geo-ML model.</p>
+          </a>
+        </div>
+      </details>
     </div>
 
-    <h2>AI by Data Type &middot; Classical ML &rarr; Deep Learning on Your Vulkan GPU</h2>
-    <p style="color:var(--muted);font-size:14px;margin:-6px 0 10px;">Jump into any real-world data type below &mdash; every section pairs <strong>Part 1: Feature Discovery &amp; Classical ML</strong> with <strong>Part 2: Deep Learning (<code>vktorch</code>)</strong> on the exact same split.</p>
-    <div class="dt-legend">
-      <span class="dt-chip" style="--accent:#8ab4f8;"><span class="dot"></span>Tabular Data</span>
-      <span class="dt-chip" style="--accent:#d2a8ff;"><span class="dot"></span>Image Data</span>
-      <span class="dt-chip" style="--accent:#a8db8f;"><span class="dot"></span>Vector &amp; Text (NLP)</span>
-      <span class="dt-chip" style="--accent:#f2a679;"><span class="dot"></span>Time-Series</span>
-      <span class="dt-chip" style="--accent:#7dcfff;"><span class="dot"></span>Graph &amp; Network</span>
-      <span class="dt-chip" style="--accent:#f7768e;"><span class="dot"></span>Geospatial &amp; Location</span>
-    </div>
+    <h2>Real-World AI Data Types at a Glance</h2>
     <div class="rw-wrap">
       <table class="rw-table">
         <thead>
@@ -168,125 +384,16 @@
         </tbody>
       </table>
     </div>
-    <div class="grid">
-      <a class="card dt-tabular" href="chapters/01_housing_classical_ml.html">
-        <div class="card-head">
-          <span class="ch">Tabular Data &middot; Part 1 &middot; Classical ML</span>
-          <span class="pill">$69.6k &rarr; $52.7k RMSE</span>
-        </div>
-        <h3>California Housing: Feature Discovery, Tree Ensembles &amp; GPU KNN</h3>
-        <p>Load 20,640 Census districts, engineer 36 domain + Haversine + KMeans-RBF features, and race LinearRegression, Ridge, <code>RandomForestRegressor</code>, <code>GradientBoostingRegressor</code>, and GPU <code>KNeighborsRegressor</code> + 3-fold CV.</p>
-      </a>
 
-      <a class="card dt-tabular" href="chapters/02_housing_neural_network.html">
-        <div class="card-head">
-          <span class="ch">Tabular Data &middot; Part 2 &middot; Deep Learning</span>
-          <span class="pill">$47.9k RMSE &middot; R&sup2; 0.830</span>
-        </div>
-        <h3>California Housing: Beating Classical ML with a Deep Residual Net</h3>
-        <p>Train a <code>vktorch</code> Pre-Norm Residual MLP (fused SPIR-V LayerNorm, GELU, AdamW) on the exact same split &mdash; beating every tree &amp; KNN model with live <code>vnp.memory_summary()</code> VRAM profiling and .npz checkpointing.</p>
-      </a>
-
-      <a class="card dt-image" href="chapters/03_fashion_classical_ml.html">
-        <div class="card-head">
-          <span class="ch">Image Data &middot; Part 1 &middot; Classical CV</span>
-          <span class="pill">81.5% &rarr; 86.45% Acc</span>
-        </div>
-        <h3>Fashion-MNIST: Image Feature Discovery &amp; Classical Computer Vision</h3>
-        <p>Visualize GPU &ldquo;Average Clothing&rdquo; prototypes, discover Eigen-Clothes with PCA, hand-craft Sobel/HOG edge features, and analyze the 10&times;10 confusion matrix.</p>
-      </a>
-
-      <a class="card dt-image" href="chapters/04_fashion_cnn_deep_learning.html">
-        <div class="card-head">
-          <span class="ch">Image Data &middot; Part 2 &middot; Deep Learning (2D CNN)</span>
-          <span class="pill">87.70% Acc &middot; 24.5s VRAM SPIR-V</span>
-        </div>
-        <h3>Fashion-MNIST: Beating Classical CV with a 2D CNN (<code>vktorch</code>)</h3>
-        <p>Train a strided <code>Conv2d</code> CNN directly on raw 28&times;28 pixels in 24.5s on Steam Deck GPU (12.8&times; faster SPIR-V <code>im2col</code>), inspect 16 learned 3&times;3 filters, and beat every Classical CV model.</p>
-      </a>
-
-      <a class="card dt-vector" href="chapters/05_vector_search_classical_ml.html">
-        <div class="card-head">
-          <span class="ch">Vector &amp; Text Data &middot; Part 1 &middot; Classical NLP</span>
-          <span class="pill">vkvec GPU Search &middot; 97.30% Acc</span>
-        </div>
-        <h3>Full-Length BBC News: TF-IDF Vectors, <code>vkvec</code> RAG Chunking &amp; Classical NLP</h3>
-        <p>Walk through the 3-step NLP pipeline on 2,225 complete multi-paragraph BBC articles, chunk long articles with <code>vkvec.chunk_text</code>, run filtered GPU Cosine Search, map 5 topic islands with <code>vkvis.UMAP</code>, and hit the Synonym Wall.</p>
-      </a>
-
-      <a class="card dt-vector" href="chapters/06_vector_embeddings_neural_net.html">
-        <div class="card-head">
-          <span class="ch">Vector &amp; Text Data &middot; Part 2 &middot; Deep NLP &amp; ANN</span>
-          <span class="pill">97.53% &middot; Hybrid RRF + IVFIndex 100%</span>
-        </div>
-        <h3>Full-Length BBC News: Learned Neural Embeddings, <code>HybridIndex</code> &amp; <code>IVFIndex</code></h3>
-        <p>Train a <code>vktorch</code> Neural Text Encoder in 12s to compress articles into 64-D vectors (31&times; smaller), shatter the Synonym Wall, fuse BM25 + Neural Search with <code>HybridIndex</code>, and scale with GPU Voronoi <code>vkvec.IVFIndex</code>.</p>
-      </a>
-
-      <a class="card dt-timeseries" href="chapters/07_solar_timeseries_classical_ml.html">
-        <div class="card-head">
-          <span class="ch">Time-Series Data &middot; Part 1 &middot; Classical Forecasting</span>
-          <span class="pill">11.1-Yr Cycle Found &middot; 35.39 RMSE</span>
-        </div>
-        <h3>277 Years of Solar Sunspots: Spectral Discovery &amp; Classical Forecasting (<code>vktime</code>)</h3>
-        <p>Load 3,334 real Royal Observatory of Belgium solar observations (1749&ndash;2026), discover the 11.11-year Solar Cycle with GPU <code>ACF</code> &amp; <code>periodogram</code>, fold 25 cycles with <code>phase_fold</code>, and forecast 12 months ahead without lookahead leakage.</p>
-      </a>
-
-      <a class="card dt-timeseries" href="chapters/08_solar_timeseries_neural_net.html">
-        <div class="card-head">
-          <span class="ch">Time-Series Data &middot; Part 2 &middot; Deep Forecasting</span>
-          <span class="pill">34.56 RMSE &middot; R&sup2; 0.752 &middot; 14.1s GPU</span>
-        </div>
-        <h3>Solar Cycle Forecasting: Beating Classical ML with <code>SolarForecasterNet</code> (<code>vktorch</code>)</h3>
-        <p>Train a skip-connected Temporal Neural Network (<code>LayerNorm</code> + <code>GELU</code> + <code>CosineAnnealingLR</code>) in 14.1s on Steam Deck GPU &mdash; beating Classical Ridge across unseen 1973&ndash;2026 Solar Cycles 21&ndash;25 and forecasting 2027.</p>
-      </a>
-
-      <a class="card dt-graph" href="chapters/09_graph_classical_ml.html">
-        <div class="card-head">
-          <span class="ch">Graph &amp; Network Data &middot; Part 1 &middot; Classical Graph ML</span>
-          <span class="pill">vkgraph PageRank &middot; 85.5% Label Prop</span>
-        </div>
-        <h3>Graph Data Explained: Karate Club, Cora Citations, GPU <code>PageRank</code> &amp; <code>GraphRAG</code></h3>
-        <p>Learn what Nodes, Edges, and Adjacency Matrices are on Zachary's Karate Club (100% faction recovery!), then scale to 2,708 real Cora AI papers with GPU <code>PageRank</code>, <code>BFS</code>, <code>GraphRAG</code> k-hop retrieval, and Label Propagation.</p>
-      </a>
-
-      <a class="card dt-graph" href="chapters/10_graph_neural_network_gcn.html">
-        <div class="card-head">
-          <span class="ch">Graph &amp; Network Data &middot; Part 2 &middot; Deep Learning (GCN)</span>
-          <span class="pill">87.35% Acc &middot; 1.6s GPU &middot; +13.5 pts vs MLP</span>
-        </div>
-        <h3>Graph Deep Learning: Building a 2-Layer <code>GCN</code> in <code>vktorch</code></h3>
-        <p>Add one matrix multiply (<code>A_hat @ H @ W</code>) to turn a plain MLP (73.9%) into a 2-Layer Graph Convolutional Network (87.35% in 1.6s on Steam Deck GPU!), map 7 AI topic islands with <code>vkvis.UMAP</code>, and save checkpoints.</p>
-      </a>
-
-      <a class="card dt-geo" href="chapters/11_geospatial_classical_ml.html">
-        <div class="card-head">
-          <span class="ch">Geospatial Data &middot; Part 1 &middot; Classical Geo-ML</span>
-          <span class="pill">GPU DBSCAN (7 Belts) &middot; 83.29% GBDT</span>
-        </div>
-        <h3>Global Earthquakes: Haversine, Morton Indexing, GPU <code>DBSCAN</code> &amp; Geo-ML</h3>
-        <p>Load 1,763 real USGS earthquakes, solve the &plusmn;180&deg; Pacific wrap with Haversine &amp; 3D sphere coordinates, trace 7 tectonic seismic belts automatically with GPU <code>DBSCAN</code>, and climb from 77.9% to 83.29% with <code>GradientBoostingClassifier</code>.</p>
-      </a>
-
-      <a class="card dt-geo" href="chapters/12_geospatial_neural_net.html">
-        <div class="card-head">
-          <span class="ch">Geospatial Data &middot; Part 2 &middot; Deep Geo-AI</span>
-          <span class="pill">84.42% Acc &middot; Spherical Fourier Net</span>
-        </div>
-        <h3>Global Earthquakes: Fourier Spatial Encodings &amp; <code>GeoSeismicNet</code> (<code>vktorch</code>)</h3>
-        <p>Wrap 3D unit-sphere coordinates in multi-scale <code>sin/cos</code> Fourier waves (like Google SatCLIP &amp; Space2Vec) inside a Pre-Norm Residual Net &mdash; beating every classical Geo-ML model at 84.42% in 21s on Vulkan GPU.</p>
-      </a>
-    </div>
-
-    <h2>Bonus Lab &middot; GPU Systems &amp; Memory Diagnostics</h2>
+    <h2>Bonus Lab &middot; GPU Systems &amp; Out-of-Core Streaming</h2>
     <div class="grid">
       <a class="card dt-foundations" href="chapters/bonus_vram_profiling.html">
         <div class="card-head">
-          <span class="ch">Bonus &middot; Vulkan GPU Memory (VRAM)</span>
-          <span class="pill">0 MB &rarr; 2.0 GB &rarr; Real OOM Catch</span>
+          <span class="ch">Bonus &middot; Vulkan VRAM &amp; Out-of-Core Streaming</span>
+          <span class="pill">4 GB Sharding &middot; Real OOM &middot; 2M rows/s</span>
         </div>
-        <h3>Vulkan VRAM Profiling, Host-Copy Detection &amp; Out-of-Memory (OOM) Lab</h3>
-        <p>Tour every <code>vknumpy</code> memory tool (<code>memory_info</code>, <code>profile_memory</code>, <code>memory_summary</code>, <code>empty_cache</code>), spot a 16&times; slower accidental CPU copy, climb a 2.0 GB VRAM staircase, and safely trigger &amp; catch a real Vulkan <code>ErrorOutOfDeviceMemory</code>.</p>
+        <h3>Vulkan VRAM Profiling, Out-of-Memory (OOM) &amp; <code>vpd.scan_csv</code> Streaming Lab</h3>
+        <p>Tour every <code>vknumpy</code> memory tool, watch the 4 GB BIOS UMA vs. 12 GB GTT spillover live, push past the 4 GB single-buffer limit, trigger a real Vulkan OOM, and stream 10M+ rows at 2.0M rows/sec with <code>vpd.scan_csv</code>.</p>
       </a>
     </div>
 
