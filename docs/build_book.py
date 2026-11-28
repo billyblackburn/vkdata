@@ -253,11 +253,12 @@ SYNTHWAVE84_CSS = """
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
+    --vk-font-scale: 1;
     --jp-ui-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     --jp-content-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     --jp-code-font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-    --jp-content-font-size1: 17px !important;
-    --jp-code-font-size: 14px !important;
+    --jp-content-font-size1: calc(18.5px * var(--vk-font-scale, 1)) !important;
+    --jp-code-font-size: calc(15px * var(--vk-font-scale, 1)) !important;
     --jp-layout-color0: #0d0f12 !important;
     --jp-layout-color1: #14171c !important;
     --jp-layout-color2: #1c2028 !important;
@@ -294,46 +295,67 @@ SYNTHWAVE84_CSS = """
   html, body, body.jp-Notebook {
     background-color: #0d0f12 !important;
     background-image: none !important;
-    color: #e6ebf2 !important;
+    color: #e2e8f0 !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
-  .jp-RenderedMarkdown {
-    color: #dde3ec !important;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-    font-size: 17px !important;
-    line-height: 1.74 !important;
+  .jp-Notebook {
+    max-width: 960px !important;
+    margin: 0 auto !important;
+    padding: 16px 24px 40px !important;
   }
-  .jp-RenderedMarkdown p, .jp-RenderedMarkdown li {
-    font-size: 17px !important;
+  .jp-RenderedMarkdown {
+    color: #e2e8f0 !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: calc(18.5px * var(--vk-font-scale, 1)) !important;
+    line-height: 1.78 !important;
+  }
+  .jp-RenderedMarkdown p {
+    font-size: calc(18.5px * var(--vk-font-scale, 1)) !important;
+    line-height: 1.78 !important;
+    margin-bottom: 0.9em !important;
+  }
+  .jp-RenderedMarkdown li {
+    font-size: calc(18.5px * var(--vk-font-scale, 1)) !important;
     line-height: 1.74 !important;
+    margin-bottom: 0.45em !important;
+  }
+  .jp-RenderedMarkdown li::marker {
+    color: #8ab4f8 !important;
   }
   .jp-RenderedMarkdown h1 {
-    color: #ffffff !important;
+    color: #f8fafc !important;
     text-shadow: none !important;
     border-color: #262b33 !important;
-    font-size: 28px !important;
+    font-size: calc(32px * var(--vk-font-scale, 1)) !important;
     font-weight: 700 !important;
-    letter-spacing: -0.02em;
-    line-height: 1.25 !important;
+    letter-spacing: -0.022em;
+    line-height: 1.24 !important;
+    margin-bottom: 0.6em !important;
   }
   .jp-RenderedMarkdown h2 {
-    color: #e6ebf2 !important;
+    color: #f1f5f9 !important;
     text-shadow: none !important;
-    border-color: #262b33 !important;
-    font-size: 22px !important;
+    border-bottom: 1px solid #262b33 !important;
+    padding-bottom: 0.3em !important;
+    margin-top: 1.5em !important;
+    font-size: calc(24px * var(--vk-font-scale, 1)) !important;
     font-weight: 700 !important;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.016em;
     line-height: 1.32 !important;
   }
   .jp-RenderedMarkdown h3 {
     color: #8ab4f8 !important;
     text-shadow: none !important;
-    font-size: 18.5px !important;
+    font-size: calc(20px * var(--vk-font-scale, 1)) !important;
     font-weight: 600 !important;
     letter-spacing: -0.01em;
+    margin-top: 1.2em !important;
+  }
+  .jp-RenderedImage img {
+    border-radius: 8px;
   }
   .jp-RenderedMarkdown strong { color: #ffffff !important; }
   .jp-RenderedMarkdown a { color: #8ab4f8 !important; }
@@ -393,8 +415,9 @@ SYNTHWAVE84_CSS = """
   }
   .jp-InputArea-editor pre, .highlight pre, .jp-OutputArea-output pre {
     font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-    font-size: 14px !important;
-    line-height: 1.55 !important;
+    font-size: calc(15px * var(--vk-font-scale, 1)) !important;
+    line-height: 1.6 !important;
+    font-variant-numeric: tabular-nums;
     white-space: pre !important;
     word-wrap: normal !important;
     overflow-wrap: normal !important;
@@ -483,17 +506,20 @@ SYNTHWAVE84_CSS = """
   #vk-tip-box a { color: #8ab4f8; font-size: 13px; font-weight: 600; text-decoration: none; }
 
   /* Collapsible Python Code Cells (Reader Mode by default — tap to inspect code!) */
-  .vkbook-nav button.code-all-btn {
+  .vkbook-nav button.code-all-btn,
+  .vkbook-nav button.font-btn {
     color: #a8db8f; background: #1e232b; border: 1px solid #2e3541;
-    border-radius: 6px; padding: 5px 10px; font-weight: 600; font-size: 13px;
+    border-radius: 6px; padding: 5px 10px; font-weight: 600; font-size: 13.5px;
     cursor: pointer; font-family: inherit;
   }
+  .vkbook-nav button.font-btn { color: #e2e8f0; padding: 5px 9px; }
   .vkbook-nav button.code-all-btn:hover { background: #262d38; border-color: #a8db8f; color: #ffffff; }
+  .vkbook-nav button.font-btn:hover { background: #262d38; border-color: #8ab4f8; color: #ffffff; }
   .vk-reader-banner {
-    max-width: 1100px; margin: 12px auto 4px; padding: 10px 14px;
+    max-width: 960px; margin: 14px auto 4px; padding: 12px 16px;
     background: #14171c; border: 1px solid #262b33; border-left: 3px solid #8ab4f8;
-    border-radius: 8px; color: #9aa4b2; font-size: 13.5px; line-height: 1.5;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    border-radius: 8px; color: #b0bac9; font-size: calc(15px * var(--vk-font-scale, 1)); line-height: 1.6;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   .vk-reader-banner strong { color: #e6ebf2; }
   .vk-reader-banner code {
@@ -522,14 +548,16 @@ SYNTHWAVE84_CSS = """
     border: 1px solid #262b33 !important;
     border-radius: 6px;
     font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-    font-size: 13.5px !important;
-    line-height: 1.45 !important;
+    font-size: calc(14.5px * var(--vk-font-scale, 1)) !important;
+    line-height: 1.5 !important;
+    font-variant-numeric: tabular-nums;
   }
   .jp-RenderedHTMLCommon thead tr,
   .jp-RenderedHTMLCommon thead th {
     background: #1a1f28 !important;
     color: #ffffff !important;
     border-bottom: 2px solid #8ab4f8 !important;
+    padding: 8px 12px !important;
   }
   .jp-RenderedHTMLCommon tbody tr:nth-child(odd) {
     background: #14171c !important;
@@ -546,15 +574,16 @@ SYNTHWAVE84_CSS = """
   .jp-RenderedHTMLCommon td {
     color: #e6ebf2 !important;
     border-color: #262b33 !important;
+    padding: 7px 12px !important;
   }
 
   @media (max-width: 768px) {
     body.jp-Notebook { padding: 0 !important; margin: 0 !important; }
-    .jp-Notebook { padding: 8px !important; }
+    .jp-Notebook { padding: 10px !important; }
     .jp-Cell { padding: 4px 2px !important; }
     .jp-InputPrompt, .jp-OutputPrompt { display: none !important; }
     .jp-RenderedImage img, img { max-width: 100% !important; height: auto !important; }
-    pre, code { font-size: 13.5px !important; }
+    pre, code { font-size: calc(14px * var(--vk-font-scale, 1)) !important; }
     .jp-CodeMirrorEditor, .jp-OutputArea-output pre { overflow-x: auto !important; }
     table { display: block; overflow-x: auto; max-width: 100%; }
   }
@@ -631,6 +660,23 @@ POPOVER_JS = """
       });
     }
   })();
+
+  // 3. Persistent A- / A+ reading font-size controls (saved in localStorage)
+  (function initFontScale() {
+    const KEY = 'vkbook_font_scale';
+    let scale = parseFloat(localStorage.getItem(KEY) || '1');
+    if (isNaN(scale) || scale < 0.85 || scale > 1.45) scale = 1;
+    function apply(s) {
+      scale = Math.round(Math.min(1.45, Math.max(0.85, s)) * 100) / 100;
+      document.documentElement.style.setProperty('--vk-font-scale', scale);
+      try { localStorage.setItem(KEY, String(scale)); } catch (_) {}
+    }
+    apply(scale);
+    const dec = document.getElementById('vk-font-dec');
+    const inc = document.getElementById('vk-font-inc');
+    if (dec) dec.addEventListener('click', () => apply(scale - 0.1));
+    if (inc) inc.addEventListener('click', () => apply(scale + 0.1));
+  })();
 </script>
 """
 
@@ -647,6 +693,8 @@ for idx, (_, fname, title) in enumerate(CHAPTERS):
         f'<a class="gloss-btn" href="../glossary.html">Glossary</a>'
         f'<a class="gloss-btn" href="../reference.html">API Docs</a>'
         f'<button type="button" class="code-all-btn" id="vk-toggle-all-code">Show All Code</button>'
+        f'<button type="button" class="font-btn" id="vk-font-dec" title="Decrease font size">A&minus;</button>'
+        f'<button type="button" class="font-btn" id="vk-font-inc" title="Increase font size">A+</button>'
         f'</span>'
         f'<span class="title">{title}</span>'
         f'<span style="display:flex;gap:6px;">{prev_link}{next_link}</span>'
@@ -668,7 +716,7 @@ for idx, (_, fname, title) in enumerate(CHAPTERS):
     if "vkbook-nav" in html:
         # Refresh CSS + top nav/banner + bottom footer + popover/collapsible-code JS in place
         html = re.sub(
-            r'<meta name="viewport"[^>]*>\s*<style>.*?</style>',
+            r'<meta name="viewport"[^>]*>.*?</style>',
             lambda _m: SYNTHWAVE84_CSS.strip(),
             html, count=1, flags=re.S,
         )
