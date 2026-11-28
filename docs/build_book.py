@@ -248,8 +248,16 @@ def link_acronyms_in_markdown(html: str) -> str:
 
 SYNTHWAVE84_CSS = """
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
+    --jp-ui-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    --jp-content-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    --jp-code-font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+    --jp-content-font-size1: 17px !important;
+    --jp-code-font-size: 14px !important;
     --jp-layout-color0: #0d0f12 !important;
     --jp-layout-color1: #14171c !important;
     --jp-layout-color2: #1c2028 !important;
@@ -287,24 +295,45 @@ SYNTHWAVE84_CSS = """
     background-color: #0d0f12 !important;
     background-image: none !important;
     color: #e6ebf2 !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   .jp-RenderedMarkdown {
     color: #dde3ec !important;
-    line-height: 1.68;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 17px !important;
+    line-height: 1.74 !important;
+  }
+  .jp-RenderedMarkdown p, .jp-RenderedMarkdown li {
+    font-size: 17px !important;
+    line-height: 1.74 !important;
   }
   .jp-RenderedMarkdown h1 {
     color: #ffffff !important;
     text-shadow: none !important;
     border-color: #262b33 !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em;
+    line-height: 1.25 !important;
   }
   .jp-RenderedMarkdown h2 {
     color: #e6ebf2 !important;
     text-shadow: none !important;
     border-color: #262b33 !important;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.015em;
+    line-height: 1.32 !important;
   }
   .jp-RenderedMarkdown h3 {
     color: #8ab4f8 !important;
     text-shadow: none !important;
+    font-size: 18.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em;
   }
   .jp-RenderedMarkdown strong { color: #ffffff !important; }
   .jp-RenderedMarkdown a { color: #8ab4f8 !important; }
@@ -323,6 +352,8 @@ SYNTHWAVE84_CSS = """
     background: #1e232b !important; color: #93b4f8 !important;
     border: 1px solid #2b323d;
     padding: 2px 6px; border-radius: 5px;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+    font-size: 0.88em !important;
   }
   .jp-RenderedMarkdown blockquote {
     border-left: 3px solid #8ab4f8 !important;
@@ -361,6 +392,9 @@ SYNTHWAVE84_CSS = """
     -webkit-overflow-scrolling: touch !important;
   }
   .jp-InputArea-editor pre, .highlight pre, .jp-OutputArea-output pre {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+    font-size: 14px !important;
+    line-height: 1.55 !important;
     white-space: pre !important;
     word-wrap: normal !important;
     overflow-wrap: normal !important;
@@ -487,6 +521,9 @@ SYNTHWAVE84_CSS = """
     border-collapse: collapse !important;
     border: 1px solid #262b33 !important;
     border-radius: 6px;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+    font-size: 13.5px !important;
+    line-height: 1.45 !important;
   }
   .jp-RenderedHTMLCommon thead tr,
   .jp-RenderedHTMLCommon thead th {
@@ -517,7 +554,7 @@ SYNTHWAVE84_CSS = """
     .jp-Cell { padding: 4px 2px !important; }
     .jp-InputPrompt, .jp-OutputPrompt { display: none !important; }
     .jp-RenderedImage img, img { max-width: 100% !important; height: auto !important; }
-    pre, code { font-size: 12.5px !important; }
+    pre, code { font-size: 13.5px !important; }
     .jp-CodeMirrorEditor, .jp-OutputArea-output pre { overflow-x: auto !important; }
     table { display: block; overflow-x: auto; max-width: 100%; }
   }
@@ -768,6 +805,9 @@ index_html = f"""<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <title>Hands-On AI, ML &amp; GPU Computing — Without CUDA or ROCm (vkdata)</title>
   <style>
     :root {{
@@ -778,8 +818,10 @@ index_html = f"""<!DOCTYPE html>
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0; background-color: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      line-height: 1.6; min-height: 100vh;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16.5px; line-height: 1.65; min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }}
     .wrap {{ max-width: 860px; margin: 0 auto; padding: 28px 18px 60px; }}
     .top-bar {{ display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }}
