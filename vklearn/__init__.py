@@ -19,8 +19,12 @@ from .decomposition import PCA
 from .ensemble import (
     GradientBoostingClassifier,
     GradientBoostingRegressor,
+    HistGradientBoostingClassifier,
+    HistGradientBoostingRegressor,
     RandomForestClassifier,
     RandomForestRegressor,
+    XGBClassifier,
+    XGBRegressor,
 )
 from .linear_model import LinearRegression, LogisticRegression, Perceptron, Ridge
 from .metrics import (
@@ -41,6 +45,8 @@ __all__ = [
     "FASHION_MNIST_CLASSES",
     "GradientBoostingClassifier",
     "GradientBoostingRegressor",
+    "HistGradientBoostingClassifier",
+    "HistGradientBoostingRegressor",
     "KFold",
     "KMeans",
     "KNeighborsClassifier",
@@ -58,6 +64,8 @@ __all__ = [
     "Ridge",
     "SimpleImputer",
     "StandardScaler",
+    "XGBClassifier",
+    "XGBRegressor",
     "accel",
     "accuracy_score",
     "cluster",

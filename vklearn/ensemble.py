@@ -621,9 +621,20 @@ class GradientBoostingClassifier:
         return accuracy_score(y, self.predict(X))
 
 
+from .xgb import (
+    HistGradientBoostingClassifier,
+    HistGradientBoostingRegressor,
+    XGBClassifier,
+    XGBRegressor,
+)
+
 __all__ = [
     "GradientBoostingClassifier",
     "GradientBoostingRegressor",
+    "HistGradientBoostingClassifier",
+    "HistGradientBoostingRegressor",
     "RandomForestClassifier",
     "RandomForestRegressor",
+    "XGBClassifier",
+    "XGBRegressor",
 ]
